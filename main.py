@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow
-from PySide6.QtCore import Slot
 from ui.ui_mainwindow import Ui_MainWindow
 
 
