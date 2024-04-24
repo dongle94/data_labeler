@@ -40,49 +40,49 @@
        </spacer>
       </item>
       <item>
-       <widget class="QToolButton" name="toolButton">
+       <widget class="QToolButton" name="tB_header_addDataset">
         <property name="text">
          <string>...</string>
         </property>
        </widget>
       </item>
       <item alignment="Qt::AlignRight">
-       <widget class="QToolButton" name="toolButton_2">
+       <widget class="QToolButton" name="tB_header_uploadDir">
         <property name="text">
          <string>...</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="toolButton_3">
+       <widget class="QToolButton" name="tB_header_uploadImage">
         <property name="text">
          <string>...</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="toolButton_4">
+       <widget class="QToolButton" name="tB_header_delDataset">
         <property name="text">
          <string>...</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="toolButton_5">
+       <widget class="QToolButton" name="tB_header_delLabels">
         <property name="text">
          <string>...</string>
         </property>
        </widget>
       </item>
       <item alignment="Qt::AlignRight">
-       <widget class="QToolButton" name="toolButton_6">
+       <widget class="QToolButton" name="tB_header_delCurImage">
         <property name="text">
          <string>...</string>
         </property>
        </widget>
       </item>
       <item alignment="Qt::AlignRight">
-       <widget class="QToolButton" name="toolButton_7">
+       <widget class="QToolButton" name="tB_header_delCurLabel">
         <property name="text">
          <string>...</string>
         </property>
@@ -102,7 +102,7 @@
       <item>
        <layout class="QVBoxLayout" name="vlo_letf" stretch="24,1">
         <item>
-         <widget class="QListWidget" name="lw_images"/>
+         <widget class="QTableWidget" name="tW_images"/>
         </item>
         <item>
          <layout class="QHBoxLayout" name="hlo_lefttb" stretch="0,1,1,0,0">
@@ -188,7 +188,15 @@
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="vlo_center"/>
+       <layout class="QVBoxLayout" name="vlo_center">
+        <item>
+         <widget class="ImgLabel" name="lb_img">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <layout class="QVBoxLayout" name="vlo_right" stretch="10,1,10,1">
@@ -519,6 +527,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImgLabel</class>
+   <extends>QLabel</extends>
+   <header>imglabel</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>lw_labels</tabstop>
  </tabstops>

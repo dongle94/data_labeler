@@ -17,10 +17,12 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QFormLayout, QFrame, QHBoxLayout,
-    QLayout, QListWidget, QListWidgetItem, QMainWindow,
-    QMenu, QMenuBar, QPushButton, QSizePolicy,
-    QSpacerItem, QStatusBar, QToolButton, QVBoxLayout,
-    QWidget)
+    QHeaderView, QLayout, QListWidget, QListWidgetItem,
+    QMainWindow, QMenu, QMenuBar, QPushButton,
+    QSizePolicy, QSpacerItem, QStatusBar, QTableWidget,
+    QTableWidgetItem, QToolButton, QVBoxLayout, QWidget)
+
+from imglabel import ImgLabel
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -83,40 +85,40 @@ class Ui_MainWindow(object):
 
         self.hlo_header.addItem(self.horizontalSpacer)
 
-        self.toolButton = QToolButton(self.centralwidget)
-        self.toolButton.setObjectName(u"toolButton")
+        self.tB_header_addDataset = QToolButton(self.centralwidget)
+        self.tB_header_addDataset.setObjectName(u"tB_header_addDataset")
 
-        self.hlo_header.addWidget(self.toolButton)
+        self.hlo_header.addWidget(self.tB_header_addDataset)
 
-        self.toolButton_2 = QToolButton(self.centralwidget)
-        self.toolButton_2.setObjectName(u"toolButton_2")
+        self.tB_header_uploadDir = QToolButton(self.centralwidget)
+        self.tB_header_uploadDir.setObjectName(u"tB_header_uploadDir")
 
-        self.hlo_header.addWidget(self.toolButton_2, 0, Qt.AlignRight)
+        self.hlo_header.addWidget(self.tB_header_uploadDir, 0, Qt.AlignRight)
 
-        self.toolButton_3 = QToolButton(self.centralwidget)
-        self.toolButton_3.setObjectName(u"toolButton_3")
+        self.tB_header_uploadImage = QToolButton(self.centralwidget)
+        self.tB_header_uploadImage.setObjectName(u"tB_header_uploadImage")
 
-        self.hlo_header.addWidget(self.toolButton_3)
+        self.hlo_header.addWidget(self.tB_header_uploadImage)
 
-        self.toolButton_4 = QToolButton(self.centralwidget)
-        self.toolButton_4.setObjectName(u"toolButton_4")
+        self.tB_header_delDataset = QToolButton(self.centralwidget)
+        self.tB_header_delDataset.setObjectName(u"tB_header_delDataset")
 
-        self.hlo_header.addWidget(self.toolButton_4)
+        self.hlo_header.addWidget(self.tB_header_delDataset)
 
-        self.toolButton_5 = QToolButton(self.centralwidget)
-        self.toolButton_5.setObjectName(u"toolButton_5")
+        self.tB_header_delLabels = QToolButton(self.centralwidget)
+        self.tB_header_delLabels.setObjectName(u"tB_header_delLabels")
 
-        self.hlo_header.addWidget(self.toolButton_5)
+        self.hlo_header.addWidget(self.tB_header_delLabels)
 
-        self.toolButton_6 = QToolButton(self.centralwidget)
-        self.toolButton_6.setObjectName(u"toolButton_6")
+        self.tB_header_delCurImage = QToolButton(self.centralwidget)
+        self.tB_header_delCurImage.setObjectName(u"tB_header_delCurImage")
 
-        self.hlo_header.addWidget(self.toolButton_6, 0, Qt.AlignRight)
+        self.hlo_header.addWidget(self.tB_header_delCurImage, 0, Qt.AlignRight)
 
-        self.toolButton_7 = QToolButton(self.centralwidget)
-        self.toolButton_7.setObjectName(u"toolButton_7")
+        self.tB_header_delCurLabel = QToolButton(self.centralwidget)
+        self.tB_header_delCurLabel.setObjectName(u"tB_header_delCurLabel")
 
-        self.hlo_header.addWidget(self.toolButton_7, 0, Qt.AlignRight)
+        self.hlo_header.addWidget(self.tB_header_delCurLabel, 0, Qt.AlignRight)
 
 
         self.verticalLayout.addLayout(self.hlo_header)
@@ -132,10 +134,10 @@ class Ui_MainWindow(object):
         self.hlo_main.setObjectName(u"hlo_main")
         self.vlo_letf = QVBoxLayout()
         self.vlo_letf.setObjectName(u"vlo_letf")
-        self.lw_images = QListWidget(self.centralwidget)
-        self.lw_images.setObjectName(u"lw_images")
+        self.tW_images = QTableWidget(self.centralwidget)
+        self.tW_images.setObjectName(u"tW_images")
 
-        self.vlo_letf.addWidget(self.lw_images)
+        self.vlo_letf.addWidget(self.tW_images)
 
         self.hlo_lefttb = QHBoxLayout()
         self.hlo_lefttb.setObjectName(u"hlo_lefttb")
@@ -201,6 +203,11 @@ class Ui_MainWindow(object):
 
         self.vlo_center = QVBoxLayout()
         self.vlo_center.setObjectName(u"vlo_center")
+        self.lb_img = ImgLabel(self.centralwidget)
+        self.lb_img.setObjectName(u"lb_img")
+
+        self.vlo_center.addWidget(self.lb_img)
+
 
         self.hlo_main.addLayout(self.vlo_center)
 
@@ -377,13 +384,13 @@ class Ui_MainWindow(object):
         self.actionClassification_entire_bounding_boxes_of_all_images.setText(QCoreApplication.translate("MainWindow", u"Classification entire bounding boxes of all images", None))
         self.actionClassification_entire_bounding_boxes_of_current_image.setText(QCoreApplication.translate("MainWindow", u"Classification entire bounding boxes of current image", None))
         self.actionClassification_current_bounding_box_of_current_image.setText(QCoreApplication.translate("MainWindow", u"Classification current bounding box of current image", None))
-        self.toolButton.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.toolButton_2.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.toolButton_3.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.toolButton_4.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.toolButton_5.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.toolButton_6.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.toolButton_7.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.tB_header_addDataset.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.tB_header_uploadDir.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.tB_header_uploadImage.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.tB_header_delDataset.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.tB_header_delLabels.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.tB_header_delCurImage.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.tB_header_delCurLabel.setText(QCoreApplication.translate("MainWindow", u"...", None))
 #if QT_CONFIG(tooltip)
         self.tB_img_up.setToolTip("")
 #endif // QT_CONFIG(tooltip)
@@ -396,6 +403,7 @@ class Ui_MainWindow(object):
         self.tB_img_del.setToolTip("")
 #endif // QT_CONFIG(tooltip)
         self.tB_img_del.setText("")
+        self.lb_img.setText("")
         self.tb_box_up.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.tb_box_down.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.tb_box_rm.setText(QCoreApplication.translate("MainWindow", u"...", None))
