@@ -2,13 +2,21 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow
 from ui.ui_mainwindow import Ui_MainWindow
+from ui.dialog import DSCreate
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
+        self.setupUi(self)
+
+        # Signal and Slot
+        self.tB_header_addDataset.clicked.connect(self.create_dataset)
+
+    def create_dataset(self):
+        ds_create = DSCreate(self)
+        ds_create.show()
+
 
 
 if __name__ == "__main__":
