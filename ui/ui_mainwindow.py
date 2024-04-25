@@ -19,10 +19,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
 from PySide6.QtWidgets import (QApplication, QFormLayout, QFrame, QHBoxLayout,
     QHeaderView, QLayout, QListWidget, QListWidgetItem,
     QMainWindow, QMenu, QMenuBar, QPushButton,
-    QSizePolicy, QSpacerItem, QStatusBar, QTableWidget,
-    QTableWidgetItem, QToolButton, QVBoxLayout, QWidget)
-
-from imglabel import ImgLabel
+    QSizePolicy, QSpacerItem, QStatusBar, QTabWidget,
+    QTableWidget, QTableWidgetItem, QToolButton, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -203,10 +202,10 @@ class Ui_MainWindow(object):
 
         self.vlo_center = QVBoxLayout()
         self.vlo_center.setObjectName(u"vlo_center")
-        self.lb_img = ImgLabel(self.centralwidget)
-        self.lb_img.setObjectName(u"lb_img")
+        self.tW_img = QTabWidget(self.centralwidget)
+        self.tW_img.setObjectName(u"tW_img")
 
-        self.vlo_center.addWidget(self.lb_img)
+        self.vlo_center.addWidget(self.tW_img)
 
 
         self.hlo_main.addLayout(self.vlo_center)
@@ -241,7 +240,13 @@ class Ui_MainWindow(object):
 
         self.tb_box_rm = QToolButton(self.centralwidget)
         self.tb_box_rm.setObjectName(u"tb_box_rm")
-        icon3 = QIcon(QIcon.fromTheme(u"list-remove"))
+        icon3 = QIcon()
+        iconThemeName = u"list-remove"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon3 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon3.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
         self.tb_box_rm.setIcon(icon3)
 
         self.horizontalLayout.addWidget(self.tb_box_rm, 0, Qt.AlignRight)
@@ -357,6 +362,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self.tW_img.setCurrentIndex(-1)
+
+
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
@@ -403,7 +411,6 @@ class Ui_MainWindow(object):
         self.tB_img_del.setToolTip("")
 #endif // QT_CONFIG(tooltip)
         self.tB_img_del.setText("")
-        self.lb_img.setText("")
         self.tb_box_up.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.tb_box_down.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.tb_box_rm.setText(QCoreApplication.translate("MainWindow", u"...", None))

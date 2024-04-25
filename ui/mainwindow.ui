@@ -190,9 +190,9 @@
       <item>
        <layout class="QVBoxLayout" name="vlo_center">
         <item>
-         <widget class="ImgLabel" name="lb_img">
-          <property name="text">
-           <string/>
+         <widget class="QTabWidget" name="tW_img">
+          <property name="currentIndex">
+           <number>-1</number>
           </property>
          </widget>
         </item>
@@ -257,7 +257,8 @@
              <string>...</string>
             </property>
             <property name="icon">
-             <iconset theme="list-remove"/>
+             <iconset theme="list-remove">
+              <normaloff>.</normaloff>.</iconset>
             </property>
            </widget>
           </item>
@@ -527,13 +528,6 @@
    </property>
   </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>ImgLabel</class>
-   <extends>QLabel</extends>
-   <header>imglabel</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>lw_labels</tabstop>
  </tabstops>
