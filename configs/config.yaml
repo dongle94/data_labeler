@@ -1,0 +1,39 @@
+
+# DB
+DB:
+  DATABASE: ANNODATA
+  HOST: 127.0.0.1
+  USER: root
+  PASSWORD:
+
+# Environments
+#ENV:
+#  DEVICE: cuda     # cuda, cpu
+#  GPU_NUM: 0
+
+# Object Detector
+#DET:
+#  MODEL_TYPE: yolov5
+#  DET_MODEL_PATH: './weights/yolov5x.pt'
+#  HALF: True
+#  CONF_THRES: 0.75
+#  OBJ_CLASSES: [0]
+
+#YOLOV5:
+#  IMG_SIZE: 640
+#  NMS_IOU: 0.45
+#  AGNOSTIC_NMS: True
+#  MAX_DET: 100
+
+
+# Logger
+LOG:
+  LOG_LEVEL: 'debug'
+  LOGGER_NAME: "ANNO"
+  CONSOLE_LOG: True
+  CONSOLE_LOG_INTERVAL: 30
+  FILE_LOG: True
+  FILE_LOG_DIR: './log/'
+  FILE_LOG_COUNTER: 10
+  FILE_LOG_ROTATE_TIME: "D"
+  FILE_LOG_ROTATE_INTERVAL: 1
