@@ -41,10 +41,11 @@ class DBManager(object):
         self.logger.info("Dataset %s created", name)
 
     def read_dataset(self, name):
-        sql = "SELECT * FROM dataset WHERE name = %s"
+        sql = "SELECT * FROM dataset WHERE name = (%s)"
+        data = (name, )
 
         cursor = self.con.cursor()
-        cursor.execute(sql, name)
+        cursor.execute(sql, data)
         ret = cursor.fetchall()
         cursor.close()
 
