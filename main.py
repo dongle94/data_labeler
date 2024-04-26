@@ -10,11 +10,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
+        self.db_manager = None
+
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
+        self.actionCreate_Dataset.triggered.connect(self.create_dataset)
 
     def create_dataset(self):
-        ds_create = DSCreate(self)
+        ds_create = DSCreate(self.db_manager, self)
         ds_create.show()
 
 
