@@ -54,7 +54,7 @@ class DBManager(object):
 
     def read_dataset_detail(self, name):
         sql = "SELECT * FROM dataset WHERE name = (%s)"
-        data = tuple(name)
+        data = (name, )
 
         cursor = self.con.cursor()
         cursor.execute(sql, data)
