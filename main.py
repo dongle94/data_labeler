@@ -7,6 +7,7 @@ from utils.logger import init_logger, get_logger
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate
 from core.database import DBManager
+from ui.imglabel import ImgWidget
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -25,8 +26,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     logger=logger)
 
         # init drawing
-        self.draw_dataset()
-
+        self.draw_entire_dataset()
 
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
@@ -36,12 +36,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ds_create = DSCreate(self, self.db_manager)
         ds_create.show()
 
-    def draw_dataset(self):
+    def draw_entire_dataset(self):
         ds = self.db_manager.read_dataset()
-        print(ds)
 
-        # TODO create widget to add
-        pass
+        for d in ds:
+            ds_name = d[1]
+            wg = ImgWidget(self)
+            self.tW_img.addTab(wg, ds_name)
+
+        # TODO add dataset desc
+
+    def draw_dataset(self, ds_name):
+        wg = ImgWidget(self)
+        self.tW_img.addTab(wg, ds_name)
+
+        # TODO add dataset desc
 
 
 if __name__ == "__main__":

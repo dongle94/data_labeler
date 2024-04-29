@@ -1,6 +1,6 @@
 import sys
-from PySide6.QtWidgets import QWidget, QDialog, QMessageBox
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QDialog, QMessageBox
+from PySide6.QtCore import Qt, Signal
 
 from utils.logger import get_logger
 from ui.ui_dataset import Ui_DS_Create
@@ -8,6 +8,8 @@ from utils.checks import is_empty
 
 
 class DSCreate(QDialog, Ui_DS_Create):
+    create_dataset = Signal(str, str)
+
     def __init__(self, parent=None, db=None):
         super(DSCreate, self).__init__(parent)
         self.setupUi(self)
@@ -19,6 +21,7 @@ class DSCreate(QDialog, Ui_DS_Create):
         # Signal & Slot
         self.pB_ds_create.clicked.connect(self.create_ds)
         self.pB_ds_cancel.clicked.connect(self.cancel)
+        self.create_dataset.connect(self.parent().draw_dataset)
 
     def create_ds(self):
         ds_name = self.lE_dataset_name.text()
@@ -53,6 +56,8 @@ class DSCreate(QDialog, Ui_DS_Create):
         msgBox.setText(f"데이터 셋 생성에 성공하였습니다.")
         msgBox.exec()
         self.accept()
+
+        self.create_dataset.emit(ds_name, ds_type)
 
         self.logger.info(f"데이터 셋 생성: {ds_name}-{ds_type}-{ds_desc}")
 
