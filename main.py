@@ -20,6 +20,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.db_manager = DBManager(user=cfg.user,
                                     password=cfg.password,
                                     host=cfg.host,
+                                    port=cfg.port,
                                     database=cfg.database,
                                     logger=logger)
 

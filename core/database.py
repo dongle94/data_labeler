@@ -4,11 +4,12 @@ import mysql.connector
 
 
 class DBManager(object):
-    def __init__(self, user, password, host='localhost', database='ANNODATA', logger: logging.Logger = None):
+    def __init__(self, user, password, host='localhost', port=3306, database='ANNODATA', logger: logging.Logger = None):
 
         con = mysql.connector.connect(user=user,
                                       password=password,
-                                      host=host)
+                                      host=host,
+                                      port=port)
         cur = con.cursor()
         sql = open('./core/init.sql').read()
         cur.execute(sql)
@@ -17,6 +18,7 @@ class DBManager(object):
             user=user,
             password=password,
             host=host,
+            port=port,
             database=database
         )
 

@@ -15,6 +15,7 @@ def set_config(file):
     # DB
     config.database = _config['DB']['DATABASE']
     config.host = _config['DB']['HOST']
+    config.port = _config['DB']['PORT']
     config.user = _config['DB']['USER']
     config.password = _config['DB']['PASSWORD']
 

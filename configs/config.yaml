@@ -3,7 +3,8 @@
 DB:
   DATABASE: ANNODATA
   HOST: 127.0.0.1
-  USER: root
+  PORT: 3306
+  USER: anno
   PASSWORD:
 
 # Environments
