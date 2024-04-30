@@ -26,7 +26,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     logger=logger)
 
         # init drawing
-        self.draw_entire_dataset()
+        self.draw_dataset()
 
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
@@ -38,7 +38,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ds_create = DSCreate(self, self.db_manager)
         ds_create.show()
 
-    def draw_entire_dataset(self):
+    def draw_dataset(self):
         ds = self.db_manager.read_dataset()
 
         for d in ds:
