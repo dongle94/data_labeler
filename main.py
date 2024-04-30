@@ -48,12 +48,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # TODO add dataset current desc
 
-    def draw_dataset(self, ds_name):
-        wg = ImgWidget(self)
-        self.tW_img.addTab(wg, ds_name)
-
-        # TODO add dataset desc
-
     def delete_dataset(self):
         cur_idx = self.tW_img.currentIndex()
         cur_tab_name = self.tW_img.tabText(cur_idx)

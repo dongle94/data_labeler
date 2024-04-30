@@ -5,12 +5,11 @@ from PySide6.QtCore import Qt, Signal
 from utils.logger import get_logger
 from ui.ui_dataset import Ui_DS_Create
 from ui.ui_basic_dialog import Ui_DS_Delete
+from ui.imglabel import ImgWidget
 from utils.checks import is_empty
 
 
 class DSCreate(QDialog, Ui_DS_Create):
-    create_dataset = Signal(str, str)
-
     def __init__(self, parent=None, db=None):
         super(DSCreate, self).__init__(parent)
         self.setupUi(self)
@@ -22,7 +21,6 @@ class DSCreate(QDialog, Ui_DS_Create):
         # Signal & Slot
         self.pB_ds_create.clicked.connect(self.create_ds)
         self.pB_ds_cancel.clicked.connect(self.cancel)
-        self.create_dataset.connect(self.parent().draw_dataset)
 
     def create_ds(self):
         ds_name = self.lE_dataset_name.text()
@@ -58,7 +56,11 @@ class DSCreate(QDialog, Ui_DS_Create):
         msgBox.exec()
         self.accept()
 
-        self.create_dataset.emit(ds_name, ds_type)
+        # (GUI)Draw dataset in tabWidget
+        wg = ImgWidget(self)
+        self.parent().tW_img.addTab(wg, ds_name)
+
+        # TODO add dataset desc
 
         self.logger.info(f"데이터 셋 생성: {ds_name}-{ds_type}-{ds_desc}")
 
@@ -88,7 +90,7 @@ class DSDelete(QDialog, Ui_DS_Delete):
         self.buttonBox.rejected.connect(self.cancel)
 
     def delete_ds(self):
-        # remove dataset in tabwidget
+        # (GUI)Remove dataset in tabwidget
         self.parent().tW_img.removeTab(self.parent().tW_img.currentIndex())
 
         # delete dataset in database
