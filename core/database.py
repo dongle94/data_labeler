@@ -65,6 +65,17 @@ class DBManager(object):
 
         return ret
 
+    def delete_dataset(self, name):
+        sql = "DELETE FROM dataset WHERE name = (%s)"
+        data = (name, )
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        self.logger.info("Dataset '%s' is deleted.", name)
+
 
 if __name__ == "__main__":
     import time
