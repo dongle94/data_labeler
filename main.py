@@ -34,9 +34,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
 
+        self.logger.info("Success initializing MainWindow")
+
     def create_dataset(self):
         ds_create = DSCreate(self, self.db_manager)
         ds_create.show()
+
+        self.logger.info("Click 'dataset create'")
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()
@@ -48,12 +52,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # TODO add dataset current desc
 
+        self.logger.info("Success drawing datasets")
+
     def delete_dataset(self):
         cur_idx = self.tW_img.currentIndex()
         cur_tab_name = self.tW_img.tabText(cur_idx)
 
         q_delete = DSDelete(self, cur_tab_name, self.db_manager)
         q_delete.exec()
+
+        self.logger.info("Click 'dataset delete'")
 
 
 if __name__ == "__main__":

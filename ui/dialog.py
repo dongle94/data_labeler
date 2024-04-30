@@ -66,6 +66,7 @@ class DSCreate(QDialog, Ui_DS_Create):
 
     def cancel(self):
         self.close()
+        self.logger.info("데이터 셋 생성 취소")
 
     def get_ds_type(self):
         if self.rB_dstype_image.isChecked():
@@ -106,3 +107,4 @@ class DSDelete(QDialog, Ui_DS_Delete):
 
     def cancel(self):
         self.close()
+        self.logger.info("데이터 셋 삭제 취소")
