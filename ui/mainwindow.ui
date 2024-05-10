@@ -42,49 +42,61 @@
       <item>
        <widget class="QToolButton" name="tB_header_addDataset">
         <property name="text">
-         <string>...</string>
+         <string>AddDataset</string>
+        </property>
+        <property name="icon">
+         <iconset theme="document-new"/>
         </property>
        </widget>
       </item>
       <item alignment="Qt::AlignRight">
        <widget class="QToolButton" name="tB_header_uploadDir">
         <property name="text">
-         <string>...</string>
+         <string>UploadDir</string>
+        </property>
+        <property name="icon">
+         <iconset theme="folder-open"/>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QToolButton" name="tB_header_uploadImage">
         <property name="text">
-         <string>...</string>
+         <string>UploadImage</string>
+        </property>
+        <property name="icon">
+         <iconset theme="insert-image"/>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QToolButton" name="tB_header_delDataset">
         <property name="text">
-         <string>...</string>
+         <string>DeleteDataset</string>
+        </property>
+        <property name="icon">
+         <iconset theme="edit-delete"/>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QToolButton" name="tB_header_delLabels">
         <property name="text">
-         <string>...</string>
+         <string>DeleteLabels</string>
         </property>
        </widget>
       </item>
       <item alignment="Qt::AlignRight">
        <widget class="QToolButton" name="tB_header_delCurImage">
         <property name="text">
-         <string>...</string>
+         <string>DeleteCurImage</string>
         </property>
        </widget>
       </item>
       <item alignment="Qt::AlignRight">
        <widget class="QToolButton" name="tB_header_delCurLabel">
         <property name="text">
-         <string>...</string>
+         <string>DeleteCurLabel</string>
         </property>
        </widget>
       </item>
@@ -412,9 +424,15 @@
     <addaction name="actionClassification_entire_bounding_boxes_of_current_image"/>
     <addaction name="actionClassification_current_bounding_box_of_current_image"/>
    </widget>
+   <widget class="QMenu" name="menuExport">
+    <property name="title">
+     <string>Export</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuData"/>
    <addaction name="menuInfer"/>
+   <addaction name="menuExport"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExit">
