@@ -22,6 +22,8 @@ class SeaWeedFS(object):
 
         self.logger = logger if logger is not None else get_logger()
 
+        self.init_collection()
+
     def get_status(self):
         url = f'http://{self.master_host}:{self.master_port}/dir/status'
         res = requests.get(url)
@@ -31,7 +33,35 @@ class SeaWeedFS(object):
             res = res.json()
         return res
 
-    def allocate_collection(self, collection_name="", count=1, **kwargs):
+    def get_volume_status(self):
+        url = f"http://{self.master_host}:{self.master_port}/vol/status"
+        res = requests.get(url)
+        if res.status_code != 200:
+            res = res.json()
+        else:
+            res = res.json()
+        return res
+
+    def init_collection(self):
+        """
+        1. get current volume collection info
+        2. check available collection status
+        3. do nothing or create collection
+
+        :return:
+        """
+        weed_status = self.get_status()
+        layouts = weed_status['Topology'].get('Layouts')
+        if layouts is not None:
+            pass
+        else:
+            _ = self.allocate_collection()
+
+        weed_status = self.get_status()
+        layouts = weed_status['Topology'].get('Layouts')
+        self.logger.info(f"Success init collection: {layouts}")
+
+    def allocate_collection(self, **kwargs):
         params = '&'.join([f'{k}={v}' for k, v in kwargs.items()])
         param = params if params else ""
         url = (f"http://{self.master_host}:{self.master_port}/vol/grow"
@@ -54,7 +84,17 @@ if __name__ == '__main__':
     i = SeaWeedFS(cfg=_cfg)
 
     ret = i.get_status()
-    print(ret)
+    # print(ret)
+    # print(ret['Version'])
+
+    ret = i.get_volume_status()
+    # print(ret)
 
     # ret = i.allocate_collection()
+    # print(ret)
+
+    # ret = i.get_status()
+    # print(ret)
+
+    # ret = i.get_volume_status()
     # print(ret)
