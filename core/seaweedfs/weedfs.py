@@ -1,5 +1,10 @@
-import requests
+import os
+import sys
 from urllib.parse import urlparse
+
+ROOT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+if ROOT_PATH not in sys.path:
+    sys.path.append(ROOT_PATH)
 
 from core.seaweedfs.util import *
 from utils.logger import get_logger
@@ -84,11 +89,11 @@ if __name__ == '__main__':
     i = SeaWeedFS(cfg=_cfg)
 
     ret = i.get_status()
-    # print(ret)
+    print(ret)
     # print(ret['Version'])
 
     ret = i.get_volume_status()
-    # print(ret)
+    print(ret)
 
     # ret = i.allocate_collection()
     # print(ret)
