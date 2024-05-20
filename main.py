@@ -1,6 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
@@ -35,6 +35,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
         self.actionCreate_Dataset.triggered.connect(self.create_dataset)
+
+        self.tB_header_uploadImage.clicked.connect(self.insert_image)
+        self.actionUpload_Image.triggered.connect(self.insert_image)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
 
@@ -69,6 +72,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         q_delete.exec()
 
         self.logger.info("Click 'dataset delete'")
+
+    def insert_image(self):
+        fileDialog = QFileDialog(self)
+        fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
+        fileDialog.setViewMode(QFileDialog.ViewMode.Detail)     # Detail, List
+        # By default, all options are disabled.
+        fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+        fileDialog.setOption(QFileDialog.Option.ReadOnly, True)
+        fileDialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
+        fileDialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+
+        fileNames = fileDialog.getOpenFileNames(
+            parent=self,
+            caption="Open Image",
+            dir="",
+            filter="Image Files (*.png *.jpg *.bmp)",
+        )
+        fileNames, filters = fileNames
+        if not fileNames:
+            return
+        else:
+            print(fileNames)
 
     def change_tab(self, index):
         self.cur_tab_idx = index
