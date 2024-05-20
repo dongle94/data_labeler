@@ -6,7 +6,8 @@ Create data annotation tool for servering
 - Python 3.10.14
 - MariaDB 10.11
 - PySide6(PyQt6) 6.7.0
-- (Image Server)
+- Image Server
+  - seaweedfs (https://github.com/seaweedfs/seaweedfs)
 
 
 ### Python packages

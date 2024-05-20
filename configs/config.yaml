@@ -5,7 +5,15 @@ DB:
   HOST: 127.0.0.1
   PORT: 3306
   USER: anno
-  PASSWORD:
+  PASSWORD: dyseo1!
+
+# SeaweedFS
+WEED:
+  MASTER_URL: 'http://localhost:9333'
+  COLLECTION: annotation
+  COLLECTION_COUNT: 2
+  USE_PUBLIC_URL: True
+
 
 # Environments
 #ENV:

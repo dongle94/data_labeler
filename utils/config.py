@@ -19,6 +19,12 @@ def set_config(file):
     config.user = _config['DB']['USER']
     config.password = _config['DB']['PASSWORD']
 
+    # WEED
+    config.weed_master_url = _config['WEED']['MASTER_URL']
+    config.weed_collection_name = _config['WEED']['COLLECTION']
+    config.weed_collection_count = _config['WEED']['COLLECTION_COUNT']
+    config.weed_use_public_url = _config['WEED']['USE_PUBLIC_URL']
+
     # Env
     # config.device = _config['ENV']['DEVICE']
     # config.gpu_num = _config['ENV']['GPU_NUM']

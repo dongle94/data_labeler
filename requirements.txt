@@ -2,3 +2,4 @@ pyside6==6.7.0
 numpy
 mysql-connector-python
 pyyaml
+requests
