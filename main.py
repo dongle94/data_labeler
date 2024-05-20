@@ -25,6 +25,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     database=cfg.database,
                                     logger=logger)
 
+        # Set params
+        self.cur_tab_idx = -1
+        self.cur_tab_name = None
+
         # init drawing
         self.draw_dataset()
 
@@ -33,6 +37,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionCreate_Dataset.triggered.connect(self.create_dataset)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
+
+        self.tW_img.currentChanged.connect(self.change_tab)
 
         self.logger.info("Success initializing MainWindow")
 
@@ -51,8 +57,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tW_img.addTab(wg, ds_name)
 
         # TODO add dataset current desc
-
-        self.logger.info("Success drawing datasets")
+        self.cur_tab_idx = self.tW_img.currentIndex()
+        self.cur_tab_name = self.tW_img.tabText(self.cur_tab_idx)
+        self.logger.info(f"Success drawing datasets - Current tab index, name: {self.cur_tab_idx}-{self.cur_tab_name}")
 
     def delete_dataset(self):
         cur_idx = self.tW_img.currentIndex()
@@ -62,6 +69,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         q_delete.exec()
 
         self.logger.info("Click 'dataset delete'")
+
+    def change_tab(self, index):
+        self.cur_tab_idx = index
+        self.cur_tab_name = self.tW_img.tabText(index)
+
+        self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
 
 
 if __name__ == "__main__":
