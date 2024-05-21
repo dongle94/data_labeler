@@ -76,9 +76,27 @@ class DBManager(object):
 
         self.logger.info("Dataset '%s' is deleted.", name)
 
+    def insert_image(self, dataset_id, filename, image_url, width, height):
+        sql = ("INSERT INTO image_data (dataset_id, filename, image_url, width, height) "
+               "VALUES (%s, %s, %s, %s, %s)")
+        data = (dataset_id, filename, image_url, width, height)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        self.logger.info("Image '%s' inserted", filename)
+
 
 if __name__ == "__main__":
     import time
+    import os
+    import sys
+
+    ROOT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    if ROOT_PATH not in sys.path:
+        sys.path.append(ROOT_PATH)
     from utils.config import set_config, get_config
 
     set_config('./configs/config.yaml')
@@ -88,3 +106,6 @@ if __name__ == "__main__":
 
     time.sleep(0.1)
     db.show_tables()
+
+    # ret = db.read_dataset_detail('sample1')
+    # print(ret)
