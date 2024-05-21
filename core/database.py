@@ -88,6 +88,16 @@ class DBManager(object):
 
         self.logger.info("Image '%s' inserted", filename)
 
+    def get_images_by_dataset_id(self, dataset_id):
+        sql = "SELECT * FROM image_data WHERE dataset_id = (%s)"
+        data = (dataset_id,)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        ret = cursor.fetchall()
+        cursor.close()
+
+        return ret
 
 if __name__ == "__main__":
     import time
