@@ -86,29 +86,45 @@ class Ui_MainWindow(object):
 
         self.tB_header_addDataset = QToolButton(self.centralwidget)
         self.tB_header_addDataset.setObjectName(u"tB_header_addDataset")
-        icon = QIcon(QIcon.fromTheme(u"document-new"))
+        icon = QIcon()
+        iconThemeName = u"document-new"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon = QIcon.fromTheme(iconThemeName)
+        else:
+            icon.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
         self.tB_header_addDataset.setIcon(icon)
 
         self.hlo_header.addWidget(self.tB_header_addDataset)
 
         self.tB_header_uploadDir = QToolButton(self.centralwidget)
         self.tB_header_uploadDir.setObjectName(u"tB_header_uploadDir")
-        icon1 = QIcon(QIcon.fromTheme(u"folder-open"))
+        icon1 = QIcon()
+        iconThemeName = u"folder-open"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon1 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon1.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
         self.tB_header_uploadDir.setIcon(icon1)
 
         self.hlo_header.addWidget(self.tB_header_uploadDir, 0, Qt.AlignRight)
 
         self.tB_header_uploadImage = QToolButton(self.centralwidget)
         self.tB_header_uploadImage.setObjectName(u"tB_header_uploadImage")
-        icon2 = QIcon(QIcon.fromTheme(u"insert-image"))
-        self.tB_header_uploadImage.setIcon(icon2)
 
         self.hlo_header.addWidget(self.tB_header_uploadImage)
 
         self.tB_header_delDataset = QToolButton(self.centralwidget)
         self.tB_header_delDataset.setObjectName(u"tB_header_delDataset")
-        icon3 = QIcon(QIcon.fromTheme(u"edit-delete"))
-        self.tB_header_delDataset.setIcon(icon3)
+        icon2 = QIcon()
+        iconThemeName = u"edit-delete"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon2 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon2.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
+        self.tB_header_delDataset.setIcon(icon2)
 
         self.hlo_header.addWidget(self.tB_header_delDataset)
 
@@ -155,42 +171,42 @@ class Ui_MainWindow(object):
         self.tB_img_up = QToolButton(self.centralwidget)
         self.tB_img_up.setObjectName(u"tB_img_up")
         self.tB_img_up.setMouseTracking(False)
-        icon4 = QIcon()
+        icon3 = QIcon()
         iconThemeName = u"go-up"
         if QIcon.hasThemeIcon(iconThemeName):
-            icon4 = QIcon.fromTheme(iconThemeName)
+            icon3 = QIcon.fromTheme(iconThemeName)
         else:
-            icon4.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+            icon3.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
 
-        self.tB_img_up.setIcon(icon4)
+        self.tB_img_up.setIcon(icon3)
         self.tB_img_up.setArrowType(Qt.UpArrow)
 
         self.hlo_lefttb.addWidget(self.tB_img_up, 0, Qt.AlignHCenter)
 
         self.tB_img_down = QToolButton(self.centralwidget)
         self.tB_img_down.setObjectName(u"tB_img_down")
-        icon5 = QIcon()
+        icon4 = QIcon()
         iconThemeName = u"go-down"
         if QIcon.hasThemeIcon(iconThemeName):
-            icon5 = QIcon.fromTheme(iconThemeName)
+            icon4 = QIcon.fromTheme(iconThemeName)
         else:
-            icon5.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+            icon4.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
 
-        self.tB_img_down.setIcon(icon5)
+        self.tB_img_down.setIcon(icon4)
         self.tB_img_down.setArrowType(Qt.DownArrow)
 
         self.hlo_lefttb.addWidget(self.tB_img_down, 0, Qt.AlignHCenter)
 
         self.tB_img_del = QToolButton(self.centralwidget)
         self.tB_img_del.setObjectName(u"tB_img_del")
-        icon6 = QIcon()
+        icon5 = QIcon()
         iconThemeName = u"user-trash"
         if QIcon.hasThemeIcon(iconThemeName):
-            icon6 = QIcon.fromTheme(iconThemeName)
+            icon5 = QIcon.fromTheme(iconThemeName)
         else:
-            icon6.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+            icon5.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
 
-        self.tB_img_del.setIcon(icon6)
+        self.tB_img_del.setIcon(icon5)
 
         self.hlo_lefttb.addWidget(self.tB_img_del)
 
@@ -248,14 +264,14 @@ class Ui_MainWindow(object):
 
         self.tb_box_rm = QToolButton(self.centralwidget)
         self.tb_box_rm.setObjectName(u"tb_box_rm")
-        icon7 = QIcon()
+        icon6 = QIcon()
         iconThemeName = u"list-remove"
         if QIcon.hasThemeIcon(iconThemeName):
-            icon7 = QIcon.fromTheme(iconThemeName)
+            icon6 = QIcon.fromTheme(iconThemeName)
         else:
-            icon7.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+            icon6.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
 
-        self.tb_box_rm.setIcon(icon7)
+        self.tb_box_rm.setIcon(icon6)
 
         self.horizontalLayout.addWidget(self.tb_box_rm, 0, Qt.AlignRight)
 

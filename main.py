@@ -1,12 +1,13 @@
 # This Python file uses the following encoding: utf-8
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete
 from core.database import DBManager
+from core.weedfs import SeaWeedFS
 from ui.imglabel import ImgWidget
 
 
@@ -24,6 +25,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     port=cfg.port,
                                     database=cfg.database,
                                     logger=logger)
+        self.weed_manager = SeaWeedFS(cfg=cfg, logger=self.logger)
+
+        # Set params
+        self.cur_tab_idx = -1
+        self.cur_tab_name = None
 
         # init drawing
         self.draw_dataset()
@@ -31,8 +37,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
         self.actionCreate_Dataset.triggered.connect(self.create_dataset)
+
+        self.tB_header_uploadImage.clicked.connect(self.insert_image)
+        self.actionUpload_Image.triggered.connect(self.insert_image)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
+
+        self.tW_img.currentChanged.connect(self.change_tab)
 
         self.logger.info("Success initializing MainWindow")
 
@@ -51,8 +62,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tW_img.addTab(wg, ds_name)
 
         # TODO add dataset current desc
-
-        self.logger.info("Success drawing datasets")
+        self.cur_tab_idx = self.tW_img.currentIndex()
+        self.cur_tab_name = self.tW_img.tabText(self.cur_tab_idx)
+        self.logger.info(f"Success drawing datasets - Current tab index, name: {self.cur_tab_idx}-{self.cur_tab_name}")
 
     def delete_dataset(self):
         cur_idx = self.tW_img.currentIndex()
@@ -62,6 +74,47 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         q_delete.exec()
 
         self.logger.info("Click 'dataset delete'")
+
+    def insert_image(self):
+        fileDialog = QFileDialog(self)
+        fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
+        fileDialog.setViewMode(QFileDialog.ViewMode.List)     # Detail, List
+        # By default, all options are disabled.
+        fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+        fileDialog.setOption(QFileDialog.Option.ReadOnly, True)
+        fileDialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
+        fileDialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+
+        fileNames = fileDialog.getOpenFileNames(
+            parent=self,
+            caption="Open Image",
+            dir="",
+            filter="Image Files (*.png *.jpg *.jpeg *.bmp)",
+        )
+        filenames, filters = fileNames
+        if not filenames:
+            return
+        else:
+            # get current tab dataset_id
+            ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
+            dataset_id = ret[0]
+
+            for filename in filenames:
+                ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
+
+                self.db_manager.insert_image(
+                    dataset_id=dataset_id,
+                    filename=ret['filename'],
+                    image_url=ret['url'],
+                    width=ret['width'],
+                    height=ret['height']
+                )
+
+    def change_tab(self, index):
+        self.cur_tab_idx = index
+        self.cur_tab_name = self.tW_img.tabText(index)
+
+        self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
 
 
 if __name__ == "__main__":

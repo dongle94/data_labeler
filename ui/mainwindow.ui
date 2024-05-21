@@ -45,7 +45,8 @@
          <string>AddDataset</string>
         </property>
         <property name="icon">
-         <iconset theme="document-new"/>
+         <iconset theme="document-new">
+          <normaloff>.</normaloff>.</iconset>
         </property>
        </widget>
       </item>
@@ -55,7 +56,8 @@
          <string>UploadDir</string>
         </property>
         <property name="icon">
-         <iconset theme="folder-open"/>
+         <iconset theme="folder-open">
+          <normaloff>.</normaloff>.</iconset>
         </property>
        </widget>
       </item>
@@ -63,9 +65,6 @@
        <widget class="QToolButton" name="tB_header_uploadImage">
         <property name="text">
          <string>UploadImage</string>
-        </property>
-        <property name="icon">
-         <iconset theme="insert-image"/>
         </property>
        </widget>
       </item>
@@ -75,7 +74,8 @@
          <string>DeleteDataset</string>
         </property>
         <property name="icon">
-         <iconset theme="edit-delete"/>
+         <iconset theme="edit-delete">
+          <normaloff>.</normaloff>.</iconset>
         </property>
        </widget>
       </item>
