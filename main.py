@@ -7,6 +7,7 @@ from utils.logger import init_logger, get_logger
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete
 from core.database import DBManager
+from core.weedfs import SeaWeedFS
 from ui.imglabel import ImgWidget
 
 
@@ -24,6 +25,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     port=cfg.port,
                                     database=cfg.database,
                                     logger=logger)
+        self.weed_manager = SeaWeedFS(cfg=cfg, logger=self.logger)
 
         # Set params
         self.cur_tab_idx = -1
@@ -76,7 +78,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def insert_image(self):
         fileDialog = QFileDialog(self)
         fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
-        fileDialog.setViewMode(QFileDialog.ViewMode.Detail)     # Detail, List
+        fileDialog.setViewMode(QFileDialog.ViewMode.List)     # Detail, List
         # By default, all options are disabled.
         fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
         fileDialog.setOption(QFileDialog.Option.ReadOnly, True)
@@ -87,13 +89,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             parent=self,
             caption="Open Image",
             dir="",
-            filter="Image Files (*.png *.jpg *.bmp)",
+            filter="Image Files (*.png *.jpg *.jpeg *.bmp)",
         )
-        fileNames, filters = fileNames
-        if not fileNames:
+        filenames, filters = fileNames
+        if not filenames:
             return
         else:
-            print(fileNames)
+            # get current tab dataset_id
+            ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
+            dataset_id = ret[0]
+
+            for filename in filenames:
+                ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
+
+                self.db_manager.insert_image(
+                    dataset_id=dataset_id,
+                    filename=ret['filename'],
+                    image_url=ret['url'],
+                    width=ret['width'],
+                    height=ret['height']
+                )
 
     def change_tab(self, index):
         self.cur_tab_idx = index
