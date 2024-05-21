@@ -33,6 +33,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # init drawing
         self.draw_dataset()
+        self.draw_image_list_widget()
 
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
@@ -52,19 +53,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ds_create.show()
 
         self.logger.info("Click 'dataset create'")
-
-    def draw_dataset(self):
-        ds = self.db_manager.read_dataset()
-
-        for d in ds:
-            ds_name = d[1]
-            wg = ImgWidget(self)
-            self.tW_img.addTab(wg, ds_name)
-
-        # TODO add dataset current desc
-        self.cur_tab_idx = self.tW_img.currentIndex()
-        self.cur_tab_name = self.tW_img.tabText(self.cur_tab_idx)
-        self.logger.info(f"Success drawing datasets - Current tab index, name: {self.cur_tab_idx}-{self.cur_tab_name}")
 
     def delete_dataset(self):
         cur_idx = self.tW_img.currentIndex()
@@ -110,9 +98,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     height=ret['height']
                 )
 
+    def draw_dataset(self):
+        ds = self.db_manager.read_dataset()
+
+        for d in ds:
+            ds_name = d[1]
+            wg = ImgWidget(self)
+            self.tW_img.addTab(wg, ds_name)
+
+        self.cur_tab_idx = self.tW_img.currentIndex()
+        self.cur_tab_name = self.tW_img.tabText(self.cur_tab_idx)
+        self.logger.info(f"Success drawing datasets - Current tab index, name: {self.cur_tab_idx}-{self.cur_tab_name}")
+
+    def draw_image_list_widget(self):
+        # get current tab dataset_id
+        ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
+        dataset_id = ret[0]
+
+        images = self.db_manager.get_images_by_dataset_id(dataset_id)
+        self.tW_images.verticalHeader().setVisible(False)
+        self.tW_images.setRowCount(len(images))
+        self.tW_images.setColumnCount(2)
+        self.tW_images.setHorizontalHeaderLabels(['ID', 'FileName'])
+        tW_width = self.tW_images.width()
+        tW_height = self.tW_images.height()
+        self.tW_images.setColumnWidth(0, int(tW_width * 0.3))
+        self.tW_images.setColumnWidth(1, int(tW_width * 0.7))
+        print(tW_width, tW_height)
+        print(images)
+
+        self.logger.info(f"Success drawing image_list - Current tab index, dataset_id: {self.cur_tab_idx}-{dataset_id}")
+
     def change_tab(self, index):
         self.cur_tab_idx = index
         self.cur_tab_name = self.tW_img.tabText(index)
+
+        self.draw_image_list_widget()
 
         self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
 
