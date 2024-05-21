@@ -107,6 +107,7 @@ class SeaWeedFS(object):
     def put_image(self, image, filename=None, data=None, **kwargs):
         im = image
         if isinstance(image, (numpy.ndarray, numpy.generic)):
+            width, height = image.shape[1], image.shape[0]
             im = image[..., ::-1]
             im = Image.fromarray(im)
             out = io.BytesIO()
@@ -116,7 +117,8 @@ class SeaWeedFS(object):
             else:
                 im.save(out, format='JPEG')
             out.seek(0)
-        elif isinstance(image, Image.Image):
+        elif isinstance(im, Image.Image):
+            width, height = im.size
             out = io.BytesIO()
             if im.mode == 'RGBA':
                 im.save(out, format='PNG')
@@ -125,12 +127,18 @@ class SeaWeedFS(object):
                 im.save(out, format='JPEG')
             out.seek(0)
         else:
+            im = Image.open(filename)
+            width, height = im.size
             with open(filename, 'rb') as f:
                 out = f.read()
 
         filename = os.path.basename(filename)
 
-        return self.put_file(stream=out, filename=filename, data=data, **kwargs)
+        res = self.put_file(stream=out, filename=filename, data=data, **kwargs)
+        res['width'] = width
+        res['height'] = height
+
+        return res
 
     def put_file(self, path=None, stream=None, filename=None, data=None, **kwargs):
         res = self.assign(**kwargs)
