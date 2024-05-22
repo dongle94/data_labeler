@@ -92,13 +92,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for filename in filenames:
                 ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
 
-                self.db_manager.insert_image(
+                idx = self.db_manager.insert_image(
                     dataset_id=dataset_id,
                     filename=ret['filename'],
                     image_url=ret['url'],
                     width=ret['width'],
                     height=ret['height']
                 )
+                self.tW_images.add_image_list(idx, ret['filename'], ret['url'])
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()

@@ -70,6 +70,14 @@ class ImagesTableWidget(QTableWidget):
             self.setItem(i, 1, QTableWidgetItem(img_name))
             self.url_dict[img_idx] = image[3]
 
+    def add_image_list(self, idx, name, url):
+        len_item = len(self.url_dict)
+        self.insertRow(len_item)
+        self.setItem(len_item, 0, QTableWidgetItem(str(idx)))
+        self.setItem(len_item, 1, QTableWidgetItem(name))
+
+        self.url_dict[idx] = url
+
 
 class ImageTabWidget(QTabWidget):
     def __init__(self, parent=None):
