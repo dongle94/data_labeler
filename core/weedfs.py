@@ -1,7 +1,7 @@
 import os
 import sys
 import io
-import numpy
+import numpy as np
 from PIL import Image
 from urllib.parse import urlparse
 
@@ -106,7 +106,7 @@ class SeaWeedFS(object):
 
     def put_image(self, image, filename=None, data=None, **kwargs):
         im = image
-        if isinstance(image, (numpy.ndarray, numpy.generic)):
+        if isinstance(image, (np.ndarray, np.generic)):
             width, height = image.shape[1], image.shape[0]
             im = image[..., ::-1]
             im = Image.fromarray(im)
@@ -169,6 +169,37 @@ class SeaWeedFS(object):
 
         return res
 
+    def get_image(self, fid=None, url=None, pil=True, **kwargs):
+        if fid is not None:
+            # TODO get fid url
+            url = None
+        elif url is not None:
+            url = url
+        data = self.get_file(url, **kwargs)
+        if not data:
+            return
+        out = io.BytesIO(data)
+        out.seek(0)
+        pil_img = Image.open(out)
+        if pil is True:
+            return pil_img
+        else:
+            return np.array(pil_img)
+
+    def get_file(self, url, **kwargs):
+        params = '&'.join(['%s=%s' % (k, v) for k, v in kwargs.items()])
+        param = "?" + params if params else ""
+        url = f"{url}{param}"
+        res = requests.get(url)
+
+        if not res.ok:
+            self.logger.error(f"get_file got error: {res.status_code}- {res.json().get('error')}")
+            return None
+
+        ret = res.content
+
+        return ret
+
 
 if __name__ == '__main__':
     from utils.config import get_config, set_config
@@ -176,8 +207,8 @@ if __name__ == '__main__':
     _cfg = get_config()
     i = SeaWeedFS(cfg=_cfg)
 
-    ret = i.get_status()
-    print(ret)
+    _ret = i.get_status()
+    print(_ret)
     # print(ret['Version'])
 
     # ret = i.get_volume_status()
