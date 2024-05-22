@@ -1,4 +1,44 @@
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget, QWidget, QVBoxLayout, QSizePolicy
+from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush, Qt, QPixmap, QImage
+
+from ui.label import ImgLabel, BoxOverlayLabel
+
+
+class ImageTabInnerWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        self.bg_label = ImgLabel()
+
+        layout = QVBoxLayout()
+        self.img_labels = []
+        layout.addWidget(self.bg_label)
+
+        self.setLayout(layout)
+
+    def set_image(self, img, scale=False):
+        self.bg_label.setPixmap(QPixmap().fromImage(img))
+        self.bg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.bg_label.setScaledContents(scale)
+
+    def set_array(self, arr, scale=False):
+        img = QImage(arr.data, arr.shape[1], arr.shape[0], QImage.Format.Format_BGR888)
+        self.set_image(img, scale=scale)
+
+    def set_file(self, path, scale=False):
+        qpixmap = QPixmap().load(path)
+        self.bg_label.setPixmap(qpixmap)
+        self.bg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.bg_label.setScaledContents(scale)
+
+    def set_qpixmap(self, pixmap: QPixmap, scale=False):
+        self.bg_label.setPixmap(pixmap)
+        self.bg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.bg_label.setScaledContents(scale)
+
+    def add_box(self):
+        self.img_labels.append(BoxOverlayLabel())
+        # TODO add box
 
 
 class ImagesTableWidget(QTableWidget):

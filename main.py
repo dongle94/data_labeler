@@ -1,6 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
@@ -8,7 +8,7 @@ from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
-from ui.imglabel import ImgWidget
+from ui.widget import ImageTabInnerWidget
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -45,6 +45,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
 
         self.tW_img.currentChanged.connect(self.change_tab)
+
+        self.tW_images.itemClicked.connect(self.draw_image)
 
         self.logger.info("Success initializing MainWindow")
 
@@ -103,7 +105,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         for d in ds:
             ds_name = d[1]
-            wg = ImgWidget(self)
+            wg = ImageTabInnerWidget(self)
             self.tW_img.addTab(wg, ds_name)
 
         self.cur_tab_idx = self.tW_img.currentIndex()
@@ -120,6 +122,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info(f"Success drawing image_list - Current tab index, dataset_id, image_len: "
                          f"{self.cur_tab_idx}-{dataset_id}, {len(images)} images")
+
+    def draw_image(self, item: QTableWidgetItem):
+        img_idx = self.tW_images.item(item.row(), 0).text()
+        image_url = self.tW_images.url_dict[int(img_idx)]
+
+        img = self.weed_manager.get_image(url=image_url)
+
+        cur_tab = self.tW_img.currentWidget()
+        cur_tab.set_qpixmap(img.toqpixmap(), scale=False)
 
     def change_tab(self, index):
         self.cur_tab_idx = index
