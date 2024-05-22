@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt, Signal
 from utils.logger import get_logger
 from ui.ui_dataset import Ui_DS_Create
 from ui.ui_basic_dialog import Ui_DS_Delete
-from ui.imglabel import ImgWidget
+from ui.widget import ImageTabInnerWidget
 from utils.checks import is_empty
 
 
@@ -57,7 +57,7 @@ class DSCreate(QDialog, Ui_DS_Create):
         self.accept()
 
         # (GUI)Draw dataset in tabWidget
-        wg = ImgWidget(self)
+        wg = ImageTabInnerWidget(self)
         self.parent().tW_img.addTab(wg, ds_name)
 
         # TODO add dataset desc
