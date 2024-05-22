@@ -5,6 +5,10 @@ class ImagesTableWidget(QTableWidget):
     def __init__(self, parent=None):
         super(ImagesTableWidget, self).__init__(parent)
 
+        # Data
+        self.url_dict = {}
+
+        # Ui
         self.verticalHeader().setVisible(False)
         self.setColumnCount(2)
         self.setHorizontalHeaderLabels(['ID', 'FileName'])
@@ -18,8 +22,10 @@ class ImagesTableWidget(QTableWidget):
     def draw_image_list(self, images):
         self.setRowCount(len(images))
 
+        self.url_dict = {}
         for i, image in enumerate(images):
             img_idx = image[0]
             img_name = image[2]
             self.setItem(i, 0, QTableWidgetItem(str(img_idx)))
             self.setItem(i, 1, QTableWidgetItem(img_name))
+            self.url_dict[img_idx] = image[3]
