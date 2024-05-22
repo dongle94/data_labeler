@@ -116,18 +116,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dataset_id = ret[0]
 
         images = self.db_manager.get_images_by_dataset_id(dataset_id)
-        self.tW_images.verticalHeader().setVisible(False)
-        self.tW_images.setRowCount(len(images))
-        self.tW_images.setColumnCount(2)
-        self.tW_images.setHorizontalHeaderLabels(['ID', 'FileName'])
-        tW_width = self.tW_images.width()
-        tW_height = self.tW_images.height()
-        self.tW_images.setColumnWidth(0, int(tW_width * 0.3))
-        self.tW_images.setColumnWidth(1, int(tW_width * 0.7))
-        print(tW_width, tW_height)
-        print(images)
+        self.tW_images.draw_image_list(images)
 
-        self.logger.info(f"Success drawing image_list - Current tab index, dataset_id: {self.cur_tab_idx}-{dataset_id}")
+        self.logger.info(f"Success drawing image_list - Current tab index, dataset_id, image_len: "
+                         f"{self.cur_tab_idx}-{dataset_id}, {len(images)} images")
 
     def change_tab(self, index):
         self.cur_tab_idx = index
