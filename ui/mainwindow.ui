@@ -111,10 +111,23 @@
     </item>
     <item>
      <layout class="QHBoxLayout" name="hlo_main" stretch="1,8,1">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
       <item>
        <layout class="QVBoxLayout" name="vlo_letf" stretch="24,1">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <item>
-         <widget class="ImagesTableWidget" name="tW_images"/>
+         <widget class="ImagesTableWidget" name="tW_images">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="hlo_lefttb" stretch="0,1,1,0,0">
@@ -203,6 +216,12 @@
        <layout class="QVBoxLayout" name="vlo_center">
         <item>
          <widget class="ImageTabWidget" name="tW_img">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="currentIndex">
            <number>-1</number>
           </property>
@@ -213,7 +232,7 @@
       <item>
        <layout class="QVBoxLayout" name="vlo_right" stretch="10,1,10,1">
         <property name="sizeConstraint">
-         <enum>QLayout::SetMaximumSize</enum>
+         <enum>QLayout::SetDefaultConstraint</enum>
         </property>
         <item>
          <widget class="QListWidget" name="lw_labels">
