@@ -20,8 +20,9 @@ from PySide6.QtWidgets import (QApplication, QFormLayout, QFrame, QHBoxLayout,
     QHeaderView, QLayout, QListWidget, QListWidgetItem,
     QMainWindow, QMenu, QMenuBar, QPushButton,
     QSizePolicy, QSpacerItem, QStatusBar, QTabWidget,
-    QTableWidget, QTableWidgetItem, QToolButton, QVBoxLayout,
-    QWidget)
+    QTableWidgetItem, QToolButton, QVBoxLayout, QWidget)
+
+from ui.tableWidget import ImagesTableWidget
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -157,7 +158,7 @@ class Ui_MainWindow(object):
         self.hlo_main.setObjectName(u"hlo_main")
         self.vlo_letf = QVBoxLayout()
         self.vlo_letf.setObjectName(u"vlo_letf")
-        self.tW_images = QTableWidget(self.centralwidget)
+        self.tW_images = ImagesTableWidget(self.centralwidget)
         self.tW_images.setObjectName(u"tW_images")
 
         self.vlo_letf.addWidget(self.tW_images)

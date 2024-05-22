@@ -114,7 +114,7 @@
       <item>
        <layout class="QVBoxLayout" name="vlo_letf" stretch="24,1">
         <item>
-         <widget class="QTableWidget" name="tW_images"/>
+         <widget class="ImagesTableWidget" name="tW_images"/>
         </item>
         <item>
          <layout class="QHBoxLayout" name="hlo_lefttb" stretch="0,1,1,0,0">
@@ -546,6 +546,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImagesTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>ui.tableWidget</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>lw_labels</tabstop>
  </tabstops>
