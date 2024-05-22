@@ -202,7 +202,7 @@
       <item>
        <layout class="QVBoxLayout" name="vlo_center">
         <item>
-         <widget class="QTabWidget" name="tW_img">
+         <widget class="ImageTabWidget" name="tW_img">
           <property name="currentIndex">
            <number>-1</number>
           </property>
@@ -550,7 +550,13 @@
   <customwidget>
    <class>ImagesTableWidget</class>
    <extends>QTableWidget</extends>
-   <header>ui.tableWidget</header>
+   <header>ui.widget</header>
+  </customwidget>
+  <customwidget>
+   <class>ImageTabWidget</class>
+   <extends>QTabWidget</extends>
+   <header>ui.widget</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>

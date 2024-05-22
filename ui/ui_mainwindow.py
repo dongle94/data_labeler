@@ -19,10 +19,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
 from PySide6.QtWidgets import (QApplication, QFormLayout, QFrame, QHBoxLayout,
     QHeaderView, QLayout, QListWidget, QListWidgetItem,
     QMainWindow, QMenu, QMenuBar, QPushButton,
-    QSizePolicy, QSpacerItem, QStatusBar, QTabWidget,
-    QTableWidgetItem, QToolButton, QVBoxLayout, QWidget)
+    QSizePolicy, QSpacerItem, QStatusBar, QTableWidgetItem,
+    QToolButton, QVBoxLayout, QWidget)
 
-from ui.tableWidget import ImagesTableWidget
+from ui.widget import (ImageTabWidget, ImagesTableWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -227,7 +227,7 @@ class Ui_MainWindow(object):
 
         self.vlo_center = QVBoxLayout()
         self.vlo_center.setObjectName(u"vlo_center")
-        self.tW_img = QTabWidget(self.centralwidget)
+        self.tW_img = ImageTabWidget(self.centralwidget)
         self.tW_img.setObjectName(u"tW_img")
 
         self.vlo_center.addWidget(self.tW_img)

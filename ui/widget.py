@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget
 
 
 class ImagesTableWidget(QTableWidget):
@@ -29,3 +29,9 @@ class ImagesTableWidget(QTableWidget):
             self.setItem(i, 0, QTableWidgetItem(str(img_idx)))
             self.setItem(i, 1, QTableWidgetItem(img_name))
             self.url_dict[img_idx] = image[3]
+
+
+class ImageTabWidget(QTabWidget):
+    def __init__(self, parent=None):
+        super(ImageTabWidget, self).__init__(parent)
+
