@@ -19,10 +19,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
 from PySide6.QtWidgets import (QApplication, QFormLayout, QFrame, QHBoxLayout,
     QHeaderView, QLayout, QListWidget, QListWidgetItem,
     QMainWindow, QMenu, QMenuBar, QPushButton,
-    QSizePolicy, QSpacerItem, QStatusBar, QTabWidget,
-    QTableWidgetItem, QToolButton, QVBoxLayout, QWidget)
+    QSizePolicy, QSpacerItem, QStatusBar, QTableWidgetItem,
+    QToolButton, QVBoxLayout, QWidget)
 
-from ui.tableWidget import ImagesTableWidget
+from ui.widget import (ImageTabWidget, ImagesTableWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -156,10 +156,17 @@ class Ui_MainWindow(object):
 
         self.hlo_main = QHBoxLayout()
         self.hlo_main.setObjectName(u"hlo_main")
+        self.hlo_main.setSizeConstraint(QLayout.SetDefaultConstraint)
         self.vlo_letf = QVBoxLayout()
         self.vlo_letf.setObjectName(u"vlo_letf")
+        self.vlo_letf.setSizeConstraint(QLayout.SetDefaultConstraint)
         self.tW_images = ImagesTableWidget(self.centralwidget)
         self.tW_images.setObjectName(u"tW_images")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tW_images.sizePolicy().hasHeightForWidth())
+        self.tW_images.setSizePolicy(sizePolicy)
 
         self.vlo_letf.addWidget(self.tW_images)
 
@@ -227,8 +234,13 @@ class Ui_MainWindow(object):
 
         self.vlo_center = QVBoxLayout()
         self.vlo_center.setObjectName(u"vlo_center")
-        self.tW_img = QTabWidget(self.centralwidget)
+        self.tW_img = ImageTabWidget(self.centralwidget)
         self.tW_img.setObjectName(u"tW_img")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.tW_img.sizePolicy().hasHeightForWidth())
+        self.tW_img.setSizePolicy(sizePolicy1)
 
         self.vlo_center.addWidget(self.tW_img)
 
@@ -237,7 +249,7 @@ class Ui_MainWindow(object):
 
         self.vlo_right = QVBoxLayout()
         self.vlo_right.setObjectName(u"vlo_right")
-        self.vlo_right.setSizeConstraint(QLayout.SetMaximumSize)
+        self.vlo_right.setSizeConstraint(QLayout.SetDefaultConstraint)
         self.lw_labels = QListWidget(self.centralwidget)
         self.lw_labels.setObjectName(u"lw_labels")
         self.lw_labels.setEnabled(True)
@@ -296,11 +308,11 @@ class Ui_MainWindow(object):
 
         self.pB_label_add = QPushButton(self.centralwidget)
         self.pB_label_add.setObjectName(u"pB_label_add")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pB_label_add.sizePolicy().hasHeightForWidth())
-        self.pB_label_add.setSizePolicy(sizePolicy)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.pB_label_add.sizePolicy().hasHeightForWidth())
+        self.pB_label_add.setSizePolicy(sizePolicy2)
         self.pB_label_add.setMaximumSize(QSize(45, 16777215))
 
         self.horizontalLayout_3.addWidget(self.pB_label_add)

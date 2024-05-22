@@ -87,6 +87,7 @@ class DBManager(object):
         cursor.close()
 
         self.logger.info("Image '%s' inserted", filename)
+        return cursor.lastrowid
 
     def get_images_by_dataset_id(self, dataset_id):
         sql = "SELECT * FROM image_data WHERE dataset_id = (%s)"
