@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidg
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate, DSDelete
+from ui.dialog import DSCreate, DSDelete, ProgressDialog
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
 from ui.widget import ImageTabInnerWidget
@@ -89,7 +89,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
             dataset_id = ret[0]
 
-            for filename in filenames:
+            progress_dialog = ProgressDialog(maxlen=len(filenames))
+            progress_dialog.show()
+            for f_idx, filename in enumerate(filenames):
+                progress_dialog.update_ui(filename, f_idx)
+
                 ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
 
                 idx = self.db_manager.insert_image(
@@ -100,6 +104,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     height=ret['height']
                 )
                 self.tW_images.add_image_list(idx, ret['filename'], ret['url'])
+            progress_dialog.success_process()
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()

@@ -7,6 +7,7 @@ from ui.ui_dataset import Ui_DS_Create
 from ui.ui_basic_dialog import Ui_DS_Delete
 from ui.widget import ImageTabInnerWidget
 from utils.checks import is_empty
+from ui.ui_progress_dialog import Ui_ProgressDialog
 
 
 class DSCreate(QDialog, Ui_DS_Create):
@@ -108,3 +109,19 @@ class DSDelete(QDialog, Ui_DS_Delete):
     def cancel(self):
         self.close()
         self.logger.info("데이터 셋 삭제 취소")
+
+
+class ProgressDialog(QDialog, Ui_ProgressDialog):
+    def __init__(self, parent=None, maxlen=0):
+        super(ProgressDialog, self).__init__(parent)
+
+        self.pBar.reset()
+        self.pBar.setRange(0, maxlen)
+
+    def update_ui(self, filename, idx):
+        self.pD_label.setText(f"Uploading {filename} ...")
+        self.pBar.setValue(idx+1)
+
+    def success_process(self):
+        self.pD_label.setText("Success uploading images")
+        self.pB_close.setEnabled(True)
