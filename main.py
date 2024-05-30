@@ -39,8 +39,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
         self.actionCreate_Dataset.triggered.connect(self.create_dataset)
 
-        self.tB_header_uploadImage.clicked.connect(self.insert_image)
-        self.actionUpload_Image.triggered.connect(self.insert_image)
+        self.tB_header_uploadImage.clicked.connect(self.insert_images)
+        self.actionUpload_Image.triggered.connect(self.insert_images)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
 
@@ -65,7 +65,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info("Click 'dataset delete'")
 
-    def insert_image(self):
+    def insert_images(self):
         self.logger.info("이미지 업로드 클릭")
         fileDialog = QFileDialog(self)
         fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
@@ -106,6 +106,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.tW_images.add_image_list(idx, ret['filename'], ret['url'])
             self.logger.info("이미지 업로드 완료")
             self.statusbar.showMessage(f"Image upload Success")
+
+    # def delete_images(self):
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()
