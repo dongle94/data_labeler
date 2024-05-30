@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidg
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate, DSDelete, ProgressDialog
+from ui.dialog import DSCreate, DSDelete
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
 from ui.widget import ImageTabInnerWidget
@@ -66,6 +66,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info("Click 'dataset delete'")
 
     def insert_image(self):
+        self.logger.info("이미지 업로드 클릭")
         fileDialog = QFileDialog(self)
         fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
         fileDialog.setViewMode(QFileDialog.ViewMode.List)     # Detail, List
@@ -83,16 +84,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         filenames, filters = fileNames
         if not filenames:
+            self.logger.info("이미지 업로드 취소")
             return
         else:
             # get current tab dataset_id
             ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
             dataset_id = ret[0]
 
-            progress_dialog = ProgressDialog(maxlen=len(filenames))
-            progress_dialog.show()
             for f_idx, filename in enumerate(filenames):
-                progress_dialog.update_ui(filename, f_idx)
+                self.statusbar.showMessage(f"Upload image ... ({f_idx+1}/{len(filenames)})")
 
                 ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
 
@@ -104,7 +104,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     height=ret['height']
                 )
                 self.tW_images.add_image_list(idx, ret['filename'], ret['url'])
-            progress_dialog.success_process()
+            self.logger.info("이미지 업로드 완료")
+            self.statusbar.showMessage(f"Image upload Success")
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()
