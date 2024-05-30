@@ -66,6 +66,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info("Click 'dataset delete'")
 
     def insert_image(self):
+        self.logger.info("이미지 업로드 클릭")
         fileDialog = QFileDialog(self)
         fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
         fileDialog.setViewMode(QFileDialog.ViewMode.List)     # Detail, List
@@ -83,13 +84,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         filenames, filters = fileNames
         if not filenames:
+            self.logger.info("이미지 업로드 취소")
             return
         else:
             # get current tab dataset_id
             ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
             dataset_id = ret[0]
 
-            for filename in filenames:
+            for f_idx, filename in enumerate(filenames):
+                self.statusbar.showMessage(f"Upload image ... ({f_idx+1}/{len(filenames)})")
+
                 ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
 
                 idx = self.db_manager.insert_image(
@@ -100,6 +104,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     height=ret['height']
                 )
                 self.tW_images.add_image_list(idx, ret['filename'], ret['url'])
+            self.logger.info("이미지 업로드 완료")
+            self.statusbar.showMessage(f"Image upload Success")
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()
