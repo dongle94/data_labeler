@@ -44,7 +44,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
 
-        self.tB_header_delCurImage.clicked.connect(self.delete_images)
+        self.tB_header_delSelectedImage.clicked.connect(self.delete_images)
         self.actionDelete_Selected_Image.triggered.connect(self.delete_images)
 
         self.tW_img.currentChanged.connect(self.change_tab)

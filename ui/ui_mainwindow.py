@@ -134,10 +134,10 @@ class Ui_MainWindow(object):
 
         self.hlo_header.addWidget(self.tB_header_delLabels)
 
-        self.tB_header_delCurImage = QToolButton(self.centralwidget)
-        self.tB_header_delCurImage.setObjectName(u"tB_header_delCurImage")
+        self.tB_header_delSelectedImage = QToolButton(self.centralwidget)
+        self.tB_header_delSelectedImage.setObjectName(u"tB_header_delSelectedImage")
 
-        self.hlo_header.addWidget(self.tB_header_delCurImage, 0, Qt.AlignRight)
+        self.hlo_header.addWidget(self.tB_header_delSelectedImage, 0, Qt.AlignRight)
 
         self.tB_header_delCurLabel = QToolButton(self.centralwidget)
         self.tB_header_delCurLabel.setObjectName(u"tB_header_delCurLabel")
@@ -382,7 +382,6 @@ class Ui_MainWindow(object):
         self.menuData.addAction(self.actionDelete_Whole_Label)
         self.menuData.addAction(self.actionDelete_Selected_Image)
         self.menuData.addAction(self.actionDelete_Selected_Label)
-        self.menuData.addAction(self.actionDelete_Current_Image)
         self.menuData.addAction(self.actionDeltete_Current_Label)
         self.menuInfer.addAction(self.actionObject_Detection_for_whole_Image)
         self.menuInfer.addAction(self.actionObject_Detection_for_selected_Image)
@@ -437,7 +436,7 @@ class Ui_MainWindow(object):
         self.tB_header_uploadImage.setText(QCoreApplication.translate("MainWindow", u"UploadImage", None))
         self.tB_header_delDataset.setText(QCoreApplication.translate("MainWindow", u"DeleteDataset", None))
         self.tB_header_delLabels.setText(QCoreApplication.translate("MainWindow", u"DeleteLabels", None))
-        self.tB_header_delCurImage.setText(QCoreApplication.translate("MainWindow", u"DeleteCurImage", None))
+        self.tB_header_delSelectedImage.setText(QCoreApplication.translate("MainWindow", u"DeleteSelectedImage", None))
         self.tB_header_delCurLabel.setText(QCoreApplication.translate("MainWindow", u"DeleteCurLabel", None))
 #if QT_CONFIG(tooltip)
         self.tB_img_up.setToolTip("")

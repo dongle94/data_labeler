@@ -87,9 +87,9 @@
        </widget>
       </item>
       <item alignment="Qt::AlignRight">
-       <widget class="QToolButton" name="tB_header_delCurImage">
+       <widget class="QToolButton" name="tB_header_delSelectedImage">
         <property name="text">
-         <string>DeleteCurImage</string>
+         <string>DeleteSelectedImage</string>
         </property>
        </widget>
       </item>
@@ -420,7 +420,6 @@
     <addaction name="actionDelete_Whole_Label"/>
     <addaction name="actionDelete_Selected_Image"/>
     <addaction name="actionDelete_Selected_Label"/>
-    <addaction name="actionDelete_Current_Image"/>
     <addaction name="actionDeltete_Current_Label"/>
    </widget>
    <widget class="QMenu" name="menuInfer">
