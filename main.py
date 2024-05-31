@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidg
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate, DSDelete
+from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
 from ui.widget import ImageTabInnerWidget
@@ -43,6 +43,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionUpload_Image.triggered.connect(self.insert_images)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
+
+        self.tB_header_delCurImage.clicked.connect(self.delete_images)
+        self.actionDelete_Selected_Image.triggered.connect(self.delete_images)
 
         self.tW_img.currentChanged.connect(self.change_tab)
 
@@ -107,7 +110,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info("이미지 업로드 완료")
             self.statusbar.showMessage(f"Image upload Success")
 
-    # def delete_images(self):
+    def delete_images(self):
+        self.logger.info("이미지 삭제 클릭")
+
+        if len(self.tW_images.selectedItems()):
+            self.statusbar.showMessage(f"{len(self.tW_images.selectedItems())} 개의 이미지 삭제 요청")
+            q_delete = ImageDeleteDialog(self,
+                                         image_num=len(self.tW_images.selectedItems()),
+                                         weed=self.weed_manager,
+                                         db=self.db_manager)
+            q_delete.exec()
+        else:
+            self.statusbar.showMessage("이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다.")
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()
@@ -126,7 +140,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
         dataset_id = ret[0]
 
-        images = self.db_manager.get_images_by_dataset_id(dataset_id)
+        images = self.db_manager.read_image_by_dataset_id(dataset_id)
         self.tW_images.draw_image_list(images)
 
         self.logger.info(f"Success drawing image_list - Current tab index, dataset_id, image_len: "
