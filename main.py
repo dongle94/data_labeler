@@ -49,6 +49,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tW_img.currentChanged.connect(self.change_tab)
 
+        self.tB_img_up.clicked.connect(self.get_upper_image)
+        self.tB_img_down.clicked.connect(self.get_lower_image)
+        self.tB_img_del.clicked.connect(self.delete_images)
+
         self.tW_images.itemClicked.connect(self.draw_image)
 
         self.logger.info("Success initializing MainWindow")
@@ -163,6 +167,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.draw_image_list_widget()
 
         self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
+
+    def get_upper_image(self):
+        self.logger.info("Click 'upper image'")
+        if not self.tW_images.selectedItems():
+            self.tW_images.selectRow(0)
+            self.draw_image(self.tW_images.item(0, 0))
+        else:
+            idx = self.tW_images.selectedIndexes()[0].row()
+            idx = max(idx-1, 0)
+            self.tW_images.selectRow(idx)
+            self.draw_image(self.tW_images.item(idx, 0))
+
+    def get_lower_image(self):
+        self.logger.info("Click 'lower image'")
+        if not self.tW_images.selectedItems():
+            self.tW_images.selectRow(0)
+            self.draw_image(self.tW_images.item(0, 0))
+        else:
+            num_row = self.tW_images.rowCount()
+            idx = self.tW_images.selectedIndexes()[0].row()
+            idx = min(idx + 1, num_row - 1)
+            self.tW_images.selectRow(idx)
+            self.draw_image(self.tW_images.item(idx, 0))
 
 
 if __name__ == "__main__":
