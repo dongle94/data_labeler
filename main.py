@@ -54,22 +54,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info("Success initializing MainWindow")
 
     def create_dataset(self):
+        self.logger.info("Click 'dataset create'")
         ds_create = DSCreate(self, self.db_manager)
         ds_create.show()
 
-        self.logger.info("Click 'dataset create'")
-
     def delete_dataset(self):
+        self.logger.info("Click 'dataset delete'")
         cur_idx = self.tW_img.currentIndex()
         cur_tab_name = self.tW_img.tabText(cur_idx)
 
-        q_delete = DSDelete(self, cur_tab_name, self.db_manager)
+        q_delete = DSDelete(self,
+                            ds_name=cur_tab_name,
+                            weed=self.weed_manager,
+                            db=self.db_manager)
         q_delete.exec()
 
-        self.logger.info("Click 'dataset delete'")
-
     def insert_images(self):
-        self.logger.info("이미지 업로드 클릭")
+        self.logger.info("Click 'Upload image'")
         fileDialog = QFileDialog(self)
         fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
         fileDialog.setViewMode(QFileDialog.ViewMode.List)     # Detail, List
@@ -111,7 +112,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(f"Image upload Success")
 
     def delete_images(self):
-        self.logger.info("이미지 삭제 클릭")
+        self.logger.info("Click 'Delete Image'")
 
         if len(self.tW_images.selectedItems()):
             self.statusbar.showMessage(f"{len(self.tW_images.selectedItems())} 개의 이미지 삭제 요청")

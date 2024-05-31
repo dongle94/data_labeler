@@ -76,11 +76,12 @@ class DSCreate(QDialog, Ui_DS_Create):
 
 
 class DSDelete(QDialog, Ui_Basic_Dialog):
-    def __init__(self, parent=None, ds_name="", db=None):
+    def __init__(self, parent=None, ds_name="", weed=None, db=None):
         super(DSDelete, self).__init__(parent)
         self.setupUi(self)
 
         self.ds_name = ds_name
+        self.weed_manager = weed
         self.db_manager = db
         self.logger = get_logger()
 
@@ -91,8 +92,13 @@ class DSDelete(QDialog, Ui_Basic_Dialog):
         self.buttonBox.rejected.connect(self.cancel)
 
     def delete_ds(self):
-        # (GUI)Remove dataset in tabwidget
-        self.parent().tW_img.removeTab(self.parent().tW_img.currentIndex())
+        tab_widget = self.parent().tW_images
+        # Get All image url in that inner tab
+        img_num = len(tab_widget.url_dict)
+
+        # Delete All images in weedfs
+        for db_idx, img_url in tab_widget.url_dict.items():
+            self.weed_manager.delete_file(url=img_url)
 
         # delete dataset in database
         try:
@@ -103,7 +109,8 @@ class DSDelete(QDialog, Ui_Basic_Dialog):
             msgBox.exec()
             return
 
-        self.logger.info(f"데이터 셋 삭제: {self.ds_name}")
+        self.logger.info(f"데이터 셋 삭제: {self.ds_name} / 지워진 이미지 수: {img_num}")
+        self.parent().tW_img.removeTab(self.parent().tW_img.currentIndex())
 
     def cancel(self):
         self.close()
