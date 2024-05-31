@@ -200,6 +200,14 @@ class SeaWeedFS(object):
 
         return ret
 
+    def delete_file(self, fid=None, url=None):
+        if url is not None:
+            res = requests.delete(url)
+            if not res.ok:
+                self.logger.error(f"delete file got error: {res.status_code}- {res.json().get('error')}")
+                return False
+        return True
+
 
 if __name__ == '__main__':
     from utils.config import get_config, set_config
