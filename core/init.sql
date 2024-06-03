@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS label_data (
     label_data_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     image_data_id INT NOT NULL,
     label_field_id INT NOT NULL,
+    ref_box_id INT NULL,
     is_box TINYINT(1) NOT NULL DEFAULT 0,
     coord VARCHAR(100) NULL,
     cls TINYINT NULL,
