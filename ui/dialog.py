@@ -1,11 +1,12 @@
 import sys
-from PySide6.QtWidgets import QDialog, QMessageBox
+from PySide6.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QLineEdit
 from PySide6.QtCore import Qt, Signal
 
 from utils.logger import get_logger
 from ui.ui_dataset import Ui_DS_Create
 from ui.ui_basic_dialog import Ui_Basic_Dialog
 from ui.widget import ImageTabInnerWidget
+from ui.ui_add_label_field import Ui_add_field
 from utils.checks import is_empty
 
 
@@ -154,7 +155,128 @@ class ImageDeleteDialog(QDialog, Ui_Basic_Dialog):
         # Draw again
         self.parent().draw_image_list_widget()
 
-
     def cancel(self):
         self.close()
         self.logger.info("이미지 삭제 취소")
+
+
+class AddLabelDialog(QDialog, Ui_add_field):
+    def __init__(self, parent=None, db=None):
+        super(AddLabelDialog, self).__init__(parent)
+        self.setupUi(self)
+
+        self.db_manager = db
+        self.logger = get_logger()
+
+        # init
+        self.cur_class_num = 0
+        self.cur_class_edit = []
+        self.set_visible_type(False)
+        self.set_visible_fieldname(False)
+        self.set_visible_class(False)
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+
+        # trigger
+        self.rb_boxes.clicked.connect(self.set_visible_type)
+        self.rb_iamge.clicked.connect(self.set_visible_type2)
+
+        self.rb_box.clicked.connect(self.set_box_type)
+        self.rb_caption.clicked.connect(self.set_caption_type)
+        self.rb_cls.clicked.connect(self.set_classification_type)
+
+        self.lE_fieldname.textEdited.connect(self.check_fieldname)
+        self.bt_add_cls.clicked.connect(self.add_class)
+        self.bt_del_cls.clicked.connect(self.sub_class)
+
+        self.buttonBox.rejected.connect(self.cancel)
+
+    def set_visible_type(self, visible: bool):
+        self.lb_type.setVisible(visible)
+        self.gb_type.setVisible(visible)
+        self.rb_box.setVisible(visible)
+        self.rb_caption.setVisible(visible)
+        self.rb_cls.setVisible(visible)
+
+    def set_visible_type2(self, visible: bool):
+        self.lb_type.setVisible(visible)
+        self.gb_type.setVisible(visible)
+        self.rb_box.setVisible(False)
+        self.rb_caption.setVisible(visible)
+        self.rb_cls.setVisible(visible)
+
+    def set_visible_fieldname(self, visible: bool):
+        self.lb_fieldname.setVisible(visible)
+        self.lE_fieldname.setVisible(visible)
+
+    def set_visible_class(self, visible: bool):
+        self.lb_class.setVisible(visible)
+        self.bt_add_cls.setVisible(visible)
+        self.bt_del_cls.setVisible(visible)
+
+    def set_box_type(self):
+        self.set_visible_fieldname(False)
+        self.set_visible_class(True)
+
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        self.clean_formlayout()
+
+    def set_caption_type(self):
+        self.set_visible_fieldname(True)
+        self.set_visible_class(False)
+
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        self.clean_formlayout()
+        self.check_fieldname(self.lE_fieldname.text())
+
+    def set_classification_type(self):
+        self.set_visible_fieldname(True)
+        self.set_visible_class(True)
+
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        self.clean_formlayout()
+
+    def check_fieldname(self, text):
+        if self.rb_caption.isChecked():
+            if len(text.strip()):
+                self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+            else:
+                self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        elif self.rb_cls.isChecked():
+            pass
+
+    def add_class(self):
+        lineedit = QLineEdit(self)
+        lineedit.textEdited.connect(self.check_entire_classfield)
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        self.cur_class_edit.append(lineedit)
+        self.flo_classes.addRow(str(self.cur_class_num), lineedit)
+
+        self.cur_class_num += 1
+
+    def sub_class(self):
+        last_idx = self.flo_classes.rowCount()
+        if last_idx != 0:
+            self.cur_class_edit.pop(-1)
+            self.flo_classes.removeRow(last_idx-1)
+            if self.cur_class_num >= 0:
+                self.cur_class_num -= 1
+        if self.flo_classes.rowCount() == 0:
+            self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+
+    def clean_formlayout(self):
+        self.cur_class_num = 0
+        self.cur_class_edit = []
+        if self.flo_classes.rowCount() > 0:
+            for i in range(self.flo_classes.rowCount()-1, -1, -1):
+                self.flo_classes.removeRow(i)
+
+    def check_entire_classfield(self):
+        _lineedit = QLineEdit(self)
+        for lineedit in self.cur_class_edit:
+            if len(lineedit.text().strip()) == 0:
+                self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+                return
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+
+    def cancel(self):
+        self.logger.info("라벨 필드 추가 취소")
