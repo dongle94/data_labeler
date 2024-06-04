@@ -178,7 +178,7 @@ class AddLabelDialog(QDialog, Ui_add_field):
 
         # trigger
         self.rb_boxes.clicked.connect(self.set_visible_type)
-        self.rb_iamge.clicked.connect(self.set_visible_type2)
+        self.rb_image.clicked.connect(self.set_visible_type2)
 
         self.rb_box.clicked.connect(self.set_box_type)
         self.rb_caption.clicked.connect(self.set_caption_type)
@@ -189,20 +189,73 @@ class AddLabelDialog(QDialog, Ui_add_field):
         self.bt_del_cls.clicked.connect(self.sub_class)
 
         self.buttonBox.rejected.connect(self.cancel)
+        self.buttonBox.accepted.connect(self.save_label)
 
     def set_visible_type(self, visible: bool):
+        """click boxes format, clean element below.
+
+        Args:
+            visible: (bool) whether element is visible or not
+
+        Returns:
+
+        """
+        # type
         self.lb_type.setVisible(visible)
         self.gb_type.setVisible(visible)
+        self.rb_box.setAutoExclusive(False)
+        self.rb_caption.setAutoExclusive(False)
+        self.rb_cls.setAutoExclusive(False)
         self.rb_box.setVisible(visible)
         self.rb_caption.setVisible(visible)
         self.rb_cls.setVisible(visible)
+        self.rb_box.setChecked(False)
+        self.rb_caption.setChecked(False)
+        self.rb_cls.setChecked(False)
+        self.rb_box.setAutoExclusive(True)
+        self.rb_caption.setAutoExclusive(True)
+        self.rb_cls.setAutoExclusive(True)
+
+        # field name & classes
+        self.set_visible_fieldname(False)
+        self.set_visible_class(False)
+        self.clean_formlayout()
+
+        # Button
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
 
     def set_visible_type2(self, visible: bool):
+        """click image format, clean element below.
+
+        Args:
+            visible: (bool) whether element is visible or not
+
+        Returns:
+
+        """
+        # type
         self.lb_type.setVisible(visible)
         self.gb_type.setVisible(visible)
+        self.rb_box.setAutoExclusive(False)
+        self.rb_caption.setAutoExclusive(False)
+        self.rb_cls.setAutoExclusive(False)
         self.rb_box.setVisible(False)
         self.rb_caption.setVisible(visible)
         self.rb_cls.setVisible(visible)
+        self.rb_box.setChecked(False)
+        self.rb_caption.setChecked(False)
+        self.rb_cls.setChecked(False)
+        self.rb_box.setAutoExclusive(True)
+        self.rb_caption.setAutoExclusive(True)
+        self.rb_cls.setAutoExclusive(True)
+
+        # field name & classes
+        self.set_visible_fieldname(False)
+        self.set_visible_class(False)
+        self.clean_formlayout()
+
+        # Button
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
 
     def set_visible_fieldname(self, visible: bool):
         self.lb_fieldname.setVisible(visible)
@@ -210,12 +263,15 @@ class AddLabelDialog(QDialog, Ui_add_field):
 
     def set_visible_class(self, visible: bool):
         self.lb_class.setVisible(visible)
+        self.cb_duplicate.setVisible(visible)
         self.bt_add_cls.setVisible(visible)
         self.bt_del_cls.setVisible(visible)
 
     def set_box_type(self):
         self.set_visible_fieldname(False)
         self.set_visible_class(True)
+        self.cb_duplicate.setChecked(False)
+        self.cb_duplicate.setEnabled(False)
 
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
         self.clean_formlayout()
@@ -231,6 +287,7 @@ class AddLabelDialog(QDialog, Ui_add_field):
     def set_classification_type(self):
         self.set_visible_fieldname(True)
         self.set_visible_class(True)
+        self.cb_duplicate.setEnabled(True)
 
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
         self.clean_formlayout()
@@ -249,7 +306,7 @@ class AddLabelDialog(QDialog, Ui_add_field):
         lineedit.textEdited.connect(self.check_entire_classfield)
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
         self.cur_class_edit.append(lineedit)
-        self.flo_classes.addRow(str(self.cur_class_num), lineedit)
+        self.flo_classes.addRow(f"{self.cur_class_num}: ", lineedit)
 
         self.cur_class_num += 1
 
@@ -277,6 +334,9 @@ class AddLabelDialog(QDialog, Ui_add_field):
                 self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
                 return
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+
+    def save_label(self):
+        pass
 
     def cancel(self):
         self.logger.info("라벨 필드 추가 취소")
