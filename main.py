@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidg
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog
+from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
 from ui.widget import ImageTabInnerWidget
@@ -29,6 +29,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Set params
         self.cur_tab_idx = -1
+        self.cur_dataset_idx = -1
         self.cur_tab_name = None
 
         # init drawing
@@ -54,6 +55,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tB_img_del.clicked.connect(self.delete_images)
 
         self.tW_images.itemClicked.connect(self.draw_image)
+
+        self.pB_label_add.clicked.connect(self.add_label)
 
         self.logger.info("Success initializing MainWindow")
 
@@ -128,6 +131,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.statusbar.showMessage("이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다.")
 
+    def add_label(self):
+        self.logger.info("Click 'add_label'")
+
+        add_label_dialog = AddLabelDialog(self, dataset_id=self.cur_dataset_idx, db=self.db_manager)
+        add_label_dialog.show()
+
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()
 
@@ -144,6 +153,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # get current tab dataset_id
         ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
         dataset_id = ret[0]
+        self.cur_dataset_idx = dataset_id
 
         images = self.db_manager.read_image_by_dataset_id(dataset_id)
         self.tW_images.draw_image_list(images)
