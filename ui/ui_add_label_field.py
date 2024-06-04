@@ -45,10 +45,10 @@ class Ui_add_field(object):
 
         self.horizontalLayout_2.addWidget(self.rb_boxes)
 
-        self.rb_iamge = QRadioButton(self.gb_format)
-        self.rb_iamge.setObjectName(u"rb_iamge")
+        self.rb_image = QRadioButton(self.gb_format)
+        self.rb_image.setObjectName(u"rb_image")
 
-        self.horizontalLayout_2.addWidget(self.rb_iamge)
+        self.horizontalLayout_2.addWidget(self.rb_image)
 
 
         self.verticalLayout.addWidget(self.gb_format)
@@ -146,7 +146,7 @@ class Ui_add_field(object):
         self.lb_format.setText(QCoreApplication.translate("add_field", u"Format", None))
         self.gb_format.setTitle("")
         self.rb_boxes.setText(QCoreApplication.translate("add_field", u"Boxes", None))
-        self.rb_iamge.setText(QCoreApplication.translate("add_field", u"Image", None))
+        self.rb_image.setText(QCoreApplication.translate("add_field", u"Image", None))
         self.lb_type.setText(QCoreApplication.translate("add_field", u"Type", None))
         self.gb_type.setTitle("")
         self.rb_box.setText(QCoreApplication.translate("add_field", u"Box", None))

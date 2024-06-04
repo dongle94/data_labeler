@@ -41,7 +41,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="rb_iamge">
+       <widget class="QRadioButton" name="rb_image">
         <property name="text">
          <string>Image</string>
         </property>
