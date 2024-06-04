@@ -111,6 +111,19 @@ class DBManager(object):
 
         self.logger.info("Image '%s' is deleted.", image_id)
 
+    def create_label_field(self, name, dataset_id, label_format, label_type, is_duplicate, detail):
+        sql = ("INSERT INTO label_field (name, dataset_id, subject, type, duplicatable, detail) "
+               "VALUES (%s, %s, %s, %s, %s, %s)")
+        data = (name, dataset_id, label_format, label_type, is_duplicate, detail)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        self.logger.info("Label_field '%s-%s' created", label_format, label_type)
+        return cursor.lastrowid
+
 
 if __name__ == "__main__":
     import time
