@@ -1,4 +1,5 @@
 import sys
+import json
 from PySide6.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QLineEdit
 from PySide6.QtCore import Qt, Signal
 
@@ -161,10 +162,11 @@ class ImageDeleteDialog(QDialog, Ui_Basic_Dialog):
 
 
 class AddLabelDialog(QDialog, Ui_add_field):
-    def __init__(self, parent=None, db=None):
+    def __init__(self, parent=None, dataset_id=None, db=None):
         super(AddLabelDialog, self).__init__(parent)
         self.setupUi(self)
 
+        self.dataset_id = dataset_id
         self.db_manager = db
         self.logger = get_logger()
 
@@ -336,7 +338,44 @@ class AddLabelDialog(QDialog, Ui_add_field):
         self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
 
     def save_label(self):
-        pass
+        label_format = 0  # 0: boxes, 1: images
+        if self.rb_boxes.isChecked():
+            label_format = 0
+        elif self.rb_image.isChecked():
+            label_format = 1
+
+        label_type = 0      # 0: box, 1: caption, 2: classification
+        if self.rb_box.isChecked():
+            label_type = 0
+        elif self.rb_caption.isChecked():
+            label_type = 1
+        elif self.rb_cls.isChecked():
+            label_type = 2
+
+        field_name = None
+        if self.rb_caption.isChecked() or self.rb_cls.isChecked():
+            field_name = self.lE_fieldname.text()
+
+        is_duplicate = False
+        if self.rb_cls.isChecked():
+            is_duplicate = self.cb_duplicate.isChecked()
+
+        classes = {}
+        if self.rb_box.isChecked() or self.rb_cls.isChecked():
+            for idx, line_edit in enumerate(self.cur_class_edit):
+                classes[idx] = line_edit.text()
+        classes = json.dumps(classes)
+
+        rowid = self.db_manager.create_label_field(
+            name=field_name,
+            dataset_id=self.dataset_id,
+            label_format=label_format,
+            label_type=label_type,
+            is_duplicate=is_duplicate,
+            detail=classes
+        )
+
+        self.logger.info(f"라벨 필드 생성: {label_format}-{label_type} / label_field row: {rowid}")
 
     def cancel(self):
         self.logger.info("라벨 필드 추가 취소")
