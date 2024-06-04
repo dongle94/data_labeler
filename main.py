@@ -29,6 +29,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Set params
         self.cur_tab_idx = -1
+        self.cur_dataset_idx = -1
         self.cur_tab_name = None
 
         # init drawing
@@ -131,7 +132,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage("이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다.")
 
     def add_label(self):
-        add_label_dialog = AddLabelDialog(self)
+        self.logger.info("Click 'add_label'")
+
+        add_label_dialog = AddLabelDialog(self, dataset_id=self.cur_dataset_idx, db=self.db_manager)
         add_label_dialog.show()
 
     def draw_dataset(self):
@@ -150,6 +153,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # get current tab dataset_id
         ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
         dataset_id = ret[0]
+        self.cur_dataset_idx = dataset_id
 
         images = self.db_manager.read_image_by_dataset_id(dataset_id)
         self.tW_images.draw_image_list(images)
