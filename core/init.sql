@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS dataset (
 
 CREATE TABLE IF NOT EXISTS label_field (
     label_field_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NULL,
     dataset_id INT NOT NULL,
     subject TINYINT NOT NULL DEFAULT 0 COMMENT "0: Box label, 1: Image label",
     type TINYINT NOT NULL DEFAULT 0 COMMENT"0: OD, 1: caption, 2: cls",
