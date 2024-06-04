@@ -113,6 +113,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="cb_duplicate">
+       <property name="text">
+        <string>dupllicate</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="bt_add_cls">
        <property name="text">
         <string>+</string>

@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogButtonBox,
-    QFormLayout, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QRadioButton, QSizePolicy, QSpacerItem,
-    QToolButton, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QDialog,
+    QDialogButtonBox, QFormLayout, QGroupBox, QHBoxLayout,
+    QLabel, QLineEdit, QRadioButton, QSizePolicy,
+    QSpacerItem, QToolButton, QVBoxLayout, QWidget)
 
 class Ui_add_field(object):
     def setupUi(self, add_field):
@@ -99,6 +99,11 @@ class Ui_add_field(object):
 
         self.hlo_class.addWidget(self.lb_class)
 
+        self.cb_duplicate = QCheckBox(add_field)
+        self.cb_duplicate.setObjectName(u"cb_duplicate")
+
+        self.hlo_class.addWidget(self.cb_duplicate)
+
         self.bt_add_cls = QToolButton(add_field)
         self.bt_add_cls.setObjectName(u"bt_add_cls")
 
@@ -149,6 +154,7 @@ class Ui_add_field(object):
         self.rb_cls.setText(QCoreApplication.translate("add_field", u"Classification", None))
         self.lb_fieldname.setText(QCoreApplication.translate("add_field", u"Field Name", None))
         self.lb_class.setText(QCoreApplication.translate("add_field", u"Class", None))
+        self.cb_duplicate.setText(QCoreApplication.translate("add_field", u"dupllicate", None))
         self.bt_add_cls.setText(QCoreApplication.translate("add_field", u"+", None))
         self.bt_del_cls.setText(QCoreApplication.translate("add_field", u"-", None))
     # retranslateUi
