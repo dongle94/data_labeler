@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS image_data (
     image_data_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     dataset_id INT NOT NULL,
     filename VARCHAR(50) NOT NULL,
+    image_fid VARCHAR(20), NOT NULL,
     image_url VARCHAR(200) NOT NULL,
     width SMALLINT NOT NULL,
     height SMALLINT NOT NULL,
