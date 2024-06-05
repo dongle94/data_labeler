@@ -423,6 +423,7 @@ class DeleteLabelDialog(QDialog, Ui_Basic_Dialog):
         widget_item = self.verticalLayout.takeAt(0)
         q_label = widget_item.widget()
         q_label.deleteLater()
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
 
         hlo = QHBoxLayout()
         label = QLabel(self)
@@ -439,6 +440,7 @@ class DeleteLabelDialog(QDialog, Ui_Basic_Dialog):
             hlo = QHBoxLayout()
             checkbox = QCheckBox(self)
             checkbox.setText("")
+            checkbox.clicked.connect(self.valid_check_state)
             label = QLabel(self)
             label.setText(label_item[1])
             hlo.addWidget(label, 5, Qt.AlignmentFlag.AlignLeft)
@@ -447,8 +449,39 @@ class DeleteLabelDialog(QDialog, Ui_Basic_Dialog):
 
             self.field_dict[label_item[0]] = [checkbox, label_item[1]]
 
+    def valid_check_state(self):
+        for _, item in self.field_dict.items():
+            checkbox = item[0]
+            if checkbox.isChecked():
+                self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+                return
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+
     def delete_label(self):
-        print(self.field_dict)
+        delete_field_name = []
+        delete_idx = []
+        for db_idx, label_item in self.field_dict.items():
+            checkbox, label_field = label_item
+            if checkbox.isChecked():
+                delete_field_name.append(label_field)
+                delete_idx.append(db_idx)
+
+        # Remove in DB
+        for idx in delete_idx:
+            self.db_manager.delete_label_field_by_label_field_id(idx)
+
+        text = f"'{delete_field_name.pop(0)}'"
+        for label_field in delete_field_name:
+            text += f", '{label_field}'"
+        msgBox = QMessageBox()
+        msgBox.setText(f"{len(delete_idx)}개의 필드 {text}을(를) 삭제하였습니다.")
+        msgBox.exec()
+
+        # Update UI
+        self.parent().clean_label_field()
+        self.parent().draw_label_field()
+
+        self.logger.info(f"{len(delete_idx)}개의 라벨 필드 삭제: {delete_idx}")
 
     def cancel(self):
         self.logger.info("라벨 필드 삭제 취소")

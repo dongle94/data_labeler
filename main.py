@@ -148,7 +148,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def delete_label(self):
         self.logger.info("Click 'delete_label'")
 
-        delete_label_dialog = DeleteLabelDialog(self, label_info=self.cur_label_fields)
+        delete_label_dialog = DeleteLabelDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
         delete_label_dialog.show()
 
     def draw_dataset(self):
