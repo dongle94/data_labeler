@@ -267,6 +267,60 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
             self.vlo_box_label_field.addWidget(group_box)
 
+    def add_label_field(self, data_format, data_type, field_name, is_duplicate, classes):
+        # image-cap
+        if data_format == 1 and data_type == 1:
+            q_label = create_label(self,
+                                   text=field_name,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="font-weight: bold")
+            self.vlo_img_label_field.addWidget(q_label)
+            q_ptext = QPlainTextEdit(self)
+            q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            self.vlo_img_label_field.addWidget(q_ptext)
+
+        # image-cls
+        elif data_format == 1 and data_type == 2:
+            q_label = create_label(self,
+                                   text=field_name,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="font-weight: bold")
+            self.vlo_img_label_field.addWidget(q_label)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            self.vlo_img_label_field.addWidget(group_box)
+
+        # boxes-box
+        elif data_format == 0 and data_type == 0:
+            text = ""
+            for idx, cls_name in classes.items():
+                text += f"{idx}: {cls_name} "
+            q_label = create_label(self,
+                                   text=text,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="color: blue; font-weight: bold;")
+            self.vlo_box_label_field.addWidget(q_label)
+
+        # boxes-cap
+        elif data_format == 0 and data_type == 1:
+            q_label = create_label(self,
+                                   text=field_name,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="font-weight: bold")
+            self.vlo_box_label_field.addWidget(q_label)
+            q_ptext = QPlainTextEdit(self)
+            q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            self.vlo_box_label_field.addWidget(q_ptext)
+
+        # boxes-cls
+        elif data_format == 0 and data_type == 2:
+            q_label = create_label(self,
+                                   text=field_name,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="font-weight: bold")
+            self.vlo_box_label_field.addWidget(q_label)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            self.vlo_box_label_field.addWidget(group_box)
+
     def change_tab(self, index):
         self.cur_tab_idx = index
         self.cur_tab_name = self.tW_img.tabText(index)
