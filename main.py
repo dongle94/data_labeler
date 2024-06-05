@@ -118,6 +118,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 idx = self.db_manager.insert_image(
                     dataset_id=dataset_id,
                     filename=ret['filename'],
+                    image_fid=ret['fid'],
                     image_url=ret['url'],
                     width=ret['width'],
                     height=ret['height']
