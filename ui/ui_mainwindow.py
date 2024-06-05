@@ -16,11 +16,11 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QFormLayout, QFrame, QHBoxLayout,
-    QHeaderView, QLayout, QListWidget, QListWidgetItem,
-    QMainWindow, QMenu, QMenuBar, QPushButton,
-    QSizePolicy, QSpacerItem, QStatusBar, QTableWidgetItem,
-    QToolButton, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QHeaderView,
+    QLayout, QListWidget, QListWidgetItem, QMainWindow,
+    QMenu, QMenuBar, QPushButton, QSizePolicy,
+    QSpacerItem, QStatusBar, QTableWidgetItem, QToolButton,
+    QVBoxLayout, QWidget)
 
 from ui.widget import (ImageTabWidget, ImagesTableWidget)
 
@@ -295,10 +295,30 @@ class Ui_MainWindow(object):
 
         self.vlo_right.addLayout(self.horizontalLayout)
 
-        self.formLayout = QFormLayout()
-        self.formLayout.setObjectName(u"formLayout")
+        self.vlo_label_field = QVBoxLayout()
+        self.vlo_label_field.setObjectName(u"vlo_label_field")
+        self.vlo_label_field.setSizeConstraint(QLayout.SetMinimumSize)
+        self.vlo_img_label_field = QVBoxLayout()
+        self.vlo_img_label_field.setObjectName(u"vlo_img_label_field")
 
-        self.vlo_right.addLayout(self.formLayout)
+        self.vlo_label_field.addLayout(self.vlo_img_label_field)
+
+        self.line_2 = QFrame(self.centralwidget)
+        self.line_2.setObjectName(u"line_2")
+        self.line_2.setFrameShape(QFrame.Shape.HLine)
+        self.line_2.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.vlo_label_field.addWidget(self.line_2)
+
+        self.vlo_box_label_field = QVBoxLayout()
+        self.vlo_box_label_field.setObjectName(u"vlo_box_label_field")
+
+        self.vlo_label_field.addLayout(self.vlo_box_label_field)
+
+        self.vlo_label_field.setStretch(0, 1)
+        self.vlo_label_field.setStretch(2, 1)
+
+        self.vlo_right.addLayout(self.vlo_label_field)
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
@@ -336,7 +356,7 @@ class Ui_MainWindow(object):
 
         self.vlo_right.addLayout(self.horizontalLayout_3)
 
-        self.vlo_right.setStretch(0, 10)
+        self.vlo_right.setStretch(0, 4)
         self.vlo_right.setStretch(1, 1)
         self.vlo_right.setStretch(2, 10)
         self.vlo_right.setStretch(3, 1)
