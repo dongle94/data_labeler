@@ -135,6 +135,17 @@ class DBManager(object):
 
         return ret
 
+    def delete_label_field_by_label_field_id(self, label_field_id):
+        sql = "DELETE FROM label_field WHERE label_field_id = (%s)"
+        data = (label_field_id,)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        self.logger.info("label_field_id '%s' is deleted.", label_field_id)
+
 
 if __name__ == "__main__":
     import time
