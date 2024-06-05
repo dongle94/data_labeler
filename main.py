@@ -350,6 +350,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_tab_name = self.tW_img.tabText(index)
 
         self.draw_image_list_widget()
+        self.clean_label_field()
+        self.draw_label_field()
 
         self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
 
