@@ -178,9 +178,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_image(self, item: QTableWidgetItem):
         img_idx = self.tW_images.item(item.row(), 0).text()
-        image_url = self.tW_images.url_dict[int(img_idx)]
+        image_fid = self.tW_images.fid_dict[int(img_idx)]
 
-        img = self.weed_manager.get_image(url=image_url)
+        img = self.weed_manager.get_image(fid=image_fid)
 
         cur_tab = self.tW_img.currentWidget()
         cur_tab.set_qpixmap(img.toqpixmap(), scale=False)
