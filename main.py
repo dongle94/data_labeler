@@ -1,14 +1,18 @@
 # This Python file uses the following encoding: utf-8
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
+import json
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit, \
+    QGroupBox, QCheckBox, QRadioButton, QHBoxLayout
+from PySide6.QtCore import Qt
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
+from utils.qt import create_label, create_button_group
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog
+from ui.widget import ImageTabInnerWidget
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
-from ui.widget import ImageTabInnerWidget
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -35,6 +39,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # init drawing
         self.draw_dataset()
         self.draw_image_list_widget()
+        self.clean_label_field()
+        self.draw_label_field()
 
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
@@ -169,6 +175,97 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         cur_tab = self.tW_img.currentWidget()
         cur_tab.set_qpixmap(img.toqpixmap(), scale=False)
+
+    def clean_label_field(self):
+        while self.vlo_img_label_field.count() > 0:
+            b = self.vlo_img_label_field.takeAt(0)
+            w = b.widget()
+            w.deleteLater()
+        while self.vlo_box_label_field.count() > 0:
+            b = self.vlo_box_label_field.takeAt(0)
+            w = b.widget()
+            w.deleteLater()
+
+    def draw_label_field(self):
+        rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
+        image_cap, image_cls = [], []
+        boxes_box, boxes_cap, boxes_cls = [], [], []
+
+        for ret in rets:
+            field_name = ret[1]
+            # dataset_id = ret[2]
+            data_format = ret[3]
+            data_type = ret[4]
+            is_duplicate = ret[5]
+            classes = json.loads(ret[6])
+
+            if data_format == 0 and data_type == 0:     # boxes-box
+                boxes_box.append(classes)
+            elif data_format == 0 and data_type == 1:   # boxes-cap
+                boxes_cap.append(field_name)
+            elif data_format == 0 and data_type == 2:   # boxes-cls
+                boxes_cls.append([field_name, is_duplicate, classes])
+            elif data_format == 1 and data_type == 1:   # image-cap
+                image_cap.append(field_name)
+            elif data_format == 1 and data_type == 2:   # image-cls
+                image_cls.append([field_name, is_duplicate, classes])
+
+        # image-cap
+        for f_name in image_cap:
+            q_label = create_label(self,
+                                   text=f_name,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="font-weight: bold")
+            self.vlo_img_label_field.addWidget(q_label)
+            q_ptext = QPlainTextEdit(self)
+            q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            self.vlo_img_label_field.addWidget(q_ptext)
+
+        # image-cls
+        for data in image_cls:
+            f_name, is_duplicate, classes = data
+
+            q_label = create_label(self,
+                                   text=f_name,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="font-weight: bold")
+            self.vlo_img_label_field.addWidget(q_label)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            self.vlo_img_label_field.addWidget(group_box)
+
+        # boxes-box
+        for classes in boxes_box:
+            text = ""
+            for idx, cls_name in classes.items():
+                text += f"{idx}: {cls_name} "
+            q_label = create_label(self,
+                                   text=text,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="color: blue; font-weight: bold;")
+            self.vlo_box_label_field.addWidget(q_label)
+
+        # boxes-cap
+        for f_name in boxes_cap:
+            q_label = create_label(self,
+                                   text=f_name,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="font-weight: bold")
+            self.vlo_box_label_field.addWidget(q_label)
+            q_ptext = QPlainTextEdit(self)
+            q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            self.vlo_box_label_field.addWidget(q_ptext)
+
+        # boxes-cls
+        for data in boxes_cls:
+            f_name, is_duplicate, classes = data
+
+            q_label = create_label(self,
+                                   text=f_name,
+                                   alignment=Qt.AlignmentFlag.AlignTop,
+                                   stylesheet="font-weight: bold")
+            self.vlo_box_label_field.addWidget(q_label)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            self.vlo_box_label_field.addWidget(group_box)
 
     def change_tab(self, index):
         self.cur_tab_idx = index
