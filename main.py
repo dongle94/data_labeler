@@ -35,6 +35,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_tab_idx = -1
         self.cur_dataset_idx = -1
         self.cur_tab_name = None
+        self.cur_label_fields = []
 
         # init drawing
         self.draw_dataset()
@@ -187,11 +188,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             w.deleteLater()
 
     def draw_label_field(self):
+        self.cur_label_fields = []
+
         rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
         image_cap, image_cls = [], []
         boxes_box, boxes_cap, boxes_cls = [], [], []
 
+        label_field_id = []
         for ret in rets:
+            label_field_id.append(ret[0])
             field_name = ret[1]
             # dataset_id = ret[2]
             data_format = ret[3]
@@ -200,14 +205,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             classes = json.loads(ret[6])
 
             if data_format == 0 and data_type == 0:     # boxes-box
+                self.cur_label_fields.append([ret[0], 'boxes-box'])
                 boxes_box.append(classes)
             elif data_format == 0 and data_type == 1:   # boxes-cap
+                self.cur_label_fields.append([ret[0], field_name])
                 boxes_cap.append(field_name)
             elif data_format == 0 and data_type == 2:   # boxes-cls
+                self.cur_label_fields.append([ret[0], field_name])
                 boxes_cls.append([field_name, is_duplicate, classes])
             elif data_format == 1 and data_type == 1:   # image-cap
+                self.cur_label_fields.append([ret[0], field_name])
                 image_cap.append(field_name)
             elif data_format == 1 and data_type == 2:   # image-cls
+                self.cur_label_fields.append([ret[0], field_name])
                 image_cls.append([field_name, is_duplicate, classes])
 
         # image-cap
@@ -267,7 +277,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
             self.vlo_box_label_field.addWidget(group_box)
 
-    def add_label_field(self, data_format, data_type, field_name, is_duplicate, classes):
+        self.logger.info(f"Success drawing label_field - label_field_id: {label_field_id}")
+
+    def add_label_field(self, db_id, data_format, data_type, field_name, is_duplicate, classes):
         # image-cap
         if data_format == 1 and data_type == 1:
             q_label = create_label(self,
@@ -291,6 +303,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # boxes-box
         elif data_format == 0 and data_type == 0:
+            field_name = 'boxes-box'
             text = ""
             for idx, cls_name in classes.items():
                 text += f"{idx}: {cls_name} "
@@ -320,6 +333,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.vlo_box_label_field.addWidget(q_label)
             group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
             self.vlo_box_label_field.addWidget(group_box)
+
+        self.cur_label_fields.append([db_id, field_name])
+        self.logger.info(f"Success add label_field - label_field_id: {db_id}")
 
     def change_tab(self, index):
         self.cur_tab_idx = index
