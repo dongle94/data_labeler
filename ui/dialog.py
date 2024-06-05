@@ -377,5 +377,9 @@ class AddLabelDialog(QDialog, Ui_add_field):
 
         self.logger.info(f"라벨 필드 생성: {label_format}-{label_type} / label_field row: {rowid}")
 
+        self.parent().clean_label_field()
+        self.parent().draw_label_field()
+        self.logger.info(f"라벨 필드 재 출력")
+
     def cancel(self):
         self.logger.info("라벨 필드 추가 취소")
