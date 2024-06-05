@@ -124,6 +124,17 @@ class DBManager(object):
         self.logger.info("Label_field '%s-%s' created", label_format, label_type)
         return cursor.lastrowid
 
+    def read_label_field_by_dataset_id(self, dataset_id):
+        sql = "SELECT * FROM label_field WHERE dataset_id = (%s)"
+        data = (dataset_id,)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        ret = cursor.fetchall()
+        cursor.close()
+
+        return ret
+
 
 if __name__ == "__main__":
     import time
