@@ -123,7 +123,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     width=ret['width'],
                     height=ret['height']
                 )
-                self.tW_images.add_image_list(idx, ret['filename'], ret['url'])
+                self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
             self.logger.info("이미지 업로드 완료")
             self.statusbar.showMessage(f"Image upload Success")
 
