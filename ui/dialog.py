@@ -183,6 +183,7 @@ class AddLabelDialog(QDialog, Ui_add_field):
         self.rb_image.clicked.connect(self.set_visible_type2)
 
         self.rb_box.clicked.connect(self.set_box_type)
+        self.rb_box.clicked.connect(self.check_box_duplication)
         self.rb_caption.clicked.connect(self.set_caption_type)
         self.rb_cls.clicked.connect(self.set_classification_type)
 
@@ -379,6 +380,22 @@ class AddLabelDialog(QDialog, Ui_add_field):
 
         self.parent().add_label_field(rowid, label_format, label_type, field_name, is_duplicate, json.loads(classes))
         self.logger.info(f"라벨 필드 재 출력")
+
+    def check_box_duplication(self):
+        # check duplication boxes-box
+        rets = self.db_manager.read_label_field_by_dataset_id(self.dataset_id)
+        for ret in rets:
+            data_format = ret[3]
+            data_type = ret[4]
+            if data_format == 0 and data_type == 0:     # boxes-box
+                msgBox = QMessageBox()
+                msgBox.setText("데이터 셋 당 박스 별 타입은 1개만 존재할 수 있습니다.")
+                msgBox.exec()
+                self.rb_box.setAutoExclusive(False)
+                self.rb_box.setChecked(False)
+                self.rb_box.setAutoExclusive(True)
+                self.set_visible_class(False)
+                return
 
     def cancel(self):
         self.logger.info("라벨 필드 추가 취소")
