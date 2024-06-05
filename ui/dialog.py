@@ -1,6 +1,7 @@
 import sys
 import json
-from PySide6.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QLineEdit
+from PySide6.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QLineEdit, QHBoxLayout, QFormLayout, QVBoxLayout, \
+    QLabel, QCheckBox
 from PySide6.QtCore import Qt, Signal
 
 from utils.logger import get_logger
@@ -399,3 +400,55 @@ class AddLabelDialog(QDialog, Ui_add_field):
 
     def cancel(self):
         self.logger.info("라벨 필드 추가 취소")
+
+
+class DeleteLabelDialog(QDialog, Ui_Basic_Dialog):
+    def __init__(self, parent=None, label_info=None, db=None):
+        super(DeleteLabelDialog, self).__init__(parent)
+        self.setupUi(self)
+
+        self.label_info = label_info
+        self.db_manager = db
+        self.logger = get_logger()
+
+        # init
+        self.field_dict = {}
+        self.draw_init_ui()
+
+        # trigger
+        self.buttonBox.rejected.connect(self.cancel)
+        self.buttonBox.accepted.connect(self.delete_label)
+
+    def draw_init_ui(self):
+        widget_item = self.verticalLayout.takeAt(0)
+        q_label = widget_item.widget()
+        q_label.deleteLater()
+
+        hlo = QHBoxLayout()
+        label = QLabel(self)
+        label.setText("필드 명")
+        label.setStyleSheet("font-weight: bold;")
+        hlo.addWidget(label, 5, Qt.AlignmentFlag.AlignLeft)
+        label = QLabel(self)
+        label.setText("삭제 여부")
+        label.setStyleSheet("font-weight: bold;")
+        hlo.addWidget(label, 1, Qt.AlignmentFlag.AlignRight)
+        self.verticalLayout.insertLayout(0, hlo)
+
+        for idx, label_item in enumerate(self.label_info):
+            hlo = QHBoxLayout()
+            checkbox = QCheckBox(self)
+            checkbox.setText("")
+            label = QLabel(self)
+            label.setText(label_item[1])
+            hlo.addWidget(label, 5, Qt.AlignmentFlag.AlignLeft)
+            hlo.addWidget(checkbox, 1, Qt.AlignmentFlag.AlignRight)
+            self.verticalLayout.insertLayout(idx+1, hlo)
+
+            self.field_dict[label_item[0]] = [checkbox, label_item[1]]
+
+    def delete_label(self):
+        print(self.field_dict)
+
+    def cancel(self):
+        self.logger.info("라벨 필드 삭제 취소")

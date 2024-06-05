@@ -9,7 +9,7 @@ from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
 from utils.qt import create_label, create_button_group
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog
+from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, DeleteLabelDialog
 from ui.widget import ImageTabInnerWidget
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
@@ -64,6 +64,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tW_images.itemClicked.connect(self.draw_image)
 
         self.pB_label_add.clicked.connect(self.add_label)
+        self.pB_label_del.clicked.connect(self.delete_label)
 
         self.logger.info("Success initializing MainWindow")
 
@@ -143,6 +144,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         add_label_dialog = AddLabelDialog(self, dataset_id=self.cur_dataset_idx, db=self.db_manager)
         add_label_dialog.show()
+
+    def delete_label(self):
+        self.logger.info("Click 'delete_label'")
+
+        delete_label_dialog = DeleteLabelDialog(self, label_info=self.cur_label_fields)
+        delete_label_dialog.show()
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()
