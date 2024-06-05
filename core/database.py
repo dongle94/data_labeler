@@ -76,10 +76,10 @@ class DBManager(object):
 
         self.logger.info("Dataset '%s' is deleted.", name)
 
-    def insert_image(self, dataset_id, filename, image_url, width, height):
-        sql = ("INSERT INTO image_data (dataset_id, filename, image_url, width, height) "
-               "VALUES (%s, %s, %s, %s, %s)")
-        data = (dataset_id, filename, image_url, width, height)
+    def insert_image(self, dataset_id, filename, image_fid, image_url, width, height):
+        sql = ("INSERT INTO image_data (dataset_id, filename, image_fid, image_url, width, height) "
+               "VALUES (%s, %s, %s, %s, %s, %s)")
+        data = (dataset_id, filename, image_fid, image_url, width, height)
 
         cursor = self.con.cursor()
         cursor.execute(sql, data)

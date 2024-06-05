@@ -118,11 +118,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 idx = self.db_manager.insert_image(
                     dataset_id=dataset_id,
                     filename=ret['filename'],
+                    image_fid=ret['fid'],
                     image_url=ret['url'],
                     width=ret['width'],
                     height=ret['height']
                 )
-                self.tW_images.add_image_list(idx, ret['filename'], ret['url'])
+                self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
             self.logger.info("이미지 업로드 완료")
             self.statusbar.showMessage(f"Image upload Success")
 
@@ -177,9 +178,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_image(self, item: QTableWidgetItem):
         img_idx = self.tW_images.item(item.row(), 0).text()
-        image_url = self.tW_images.url_dict[int(img_idx)]
+        image_fid = self.tW_images.fid_dict[int(img_idx)]
 
-        img = self.weed_manager.get_image(url=image_url)
+        img = self.weed_manager.get_image(fid=image_fid)
 
         cur_tab = self.tW_img.currentWidget()
         cur_tab.set_qpixmap(img.toqpixmap(), scale=False)

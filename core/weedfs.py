@@ -92,11 +92,25 @@ class SeaWeedFS(object):
         res = requests.get(url)
 
         if not res.ok:
-            self.logger.error(f"assign got error: {res.status_code} - {res.get('error')}")
+            self.logger.error(f"assign got error: {res.status_code} - {res.json().get('error')}")
             return
 
         res = res.json()
         return res
+
+    def lookup(self, fid_or_volumeid=None):
+        if '/' in fid_or_volumeid:
+            fid_or_volumeid = fid_or_volumeid.split('/')[-1]
+
+        url = f'http://{self.master_host}:{self.master_port}/dir/lookup?volumeId={fid_or_volumeid}'
+        res = requests.get(url)
+
+        if not res.ok:
+            self.logger.error(f"lookup got error: {res.status_code} - {res.json().get('error')}")
+            return
+
+        result = res.json()
+        return result, fid_or_volumeid
 
     def put_image_collection(self, image, filename, data=None, **kwargs):
         collection = {"collection": self.get_writable_collection()}
@@ -171,8 +185,7 @@ class SeaWeedFS(object):
 
     def get_image(self, fid=None, url=None, pil=True, **kwargs):
         if fid is not None:
-            # TODO get fid url
-            url = None
+            url = self.get_file_url(fid=fid)
         elif url is not None:
             url = url
         data = self.get_file(url, **kwargs)
@@ -199,6 +212,15 @@ class SeaWeedFS(object):
         ret = res.content
 
         return ret
+
+    def get_file_url(self, fid):
+        r, fid = self.lookup(fid_or_volumeid=fid)
+        if not r:
+            return
+        else:
+            url = r['locations'][0]['publicUrl'] if self.use_public_url else r['locations'][0]['url']
+            full_url = f'http://{url}/{fid}'
+            return full_url
 
     def delete_file(self, fid=None, url=None):
         if url is not None:

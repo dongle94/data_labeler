@@ -47,6 +47,7 @@ class ImagesTableWidget(QTableWidget):
 
         # Data
         self.url_dict = {}
+        self.fid_dict = {}
 
         # Ui
         self.verticalHeader().setVisible(False)
@@ -62,20 +63,23 @@ class ImagesTableWidget(QTableWidget):
     def draw_image_list(self, images):
         self.setRowCount(len(images))
 
+        self.fid_dict = {}
         self.url_dict = {}
         for i, image in enumerate(images):
             img_idx = image[0]
             img_name = image[2]
             self.setItem(i, 0, QTableWidgetItem(str(img_idx)))
             self.setItem(i, 1, QTableWidgetItem(img_name))
-            self.url_dict[img_idx] = image[3]
+            self.fid_dict[img_idx] = image[3]
+            self.url_dict[img_idx] = image[4]
 
-    def add_image_list(self, idx, name, url):
+    def add_image_list(self, idx, name, fid, url):
         len_item = len(self.url_dict)
         self.insertRow(len_item)
         self.setItem(len_item, 0, QTableWidgetItem(str(idx)))
         self.setItem(len_item, 1, QTableWidgetItem(name))
 
+        self.fid_dict[idx] = fid
         self.url_dict[idx] = url
 
 
