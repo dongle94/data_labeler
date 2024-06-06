@@ -298,6 +298,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_label_fields = []
         self.cur_label_fields_idx_dict = {}
 
+        self.lb_image_caps = []
+        self.lb_image_cls = []
+
         rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
         image_cap, image_cls = [], []
         boxes_box, boxes_cap, boxes_cls = [], [], []
