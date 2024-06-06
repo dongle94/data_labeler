@@ -2,8 +2,8 @@
 import os
 import sys
 import json
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit, \
-    QGroupBox, QCheckBox, QRadioButton, QHBoxLayout
+from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
+                               QMessageBox)
 from PySide6.QtCore import Qt
 
 from utils.config import get_config, set_config
@@ -38,6 +38,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_tab_name = None
         self.cur_label_fields = []
         self.cur_image_idx = -1
+
+        # label fields
+        self.lb_image_caps = []
 
         # init drawing
         self.draw_dataset()
@@ -256,6 +259,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
         self.cur_image_idx = img_idx
 
+        # clear label field
+        self.clear_img_label_captions()
+
+        # Draw label field
+
         self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
 
     def change_tab(self, index):
@@ -320,7 +328,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.vlo_img_label_field.addWidget(q_label)
             q_ptext = QPlainTextEdit(self)
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            q_ptext.textChanged.connect(self.is_valid_change_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
+            self.lb_image_caps.append(q_ptext)
 
         # image-cls
         for data in image_cls:
@@ -427,6 +437,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.cur_label_fields.append([db_id, field_name])
         self.logger.info(f"Success add label_field - label_field_id: {db_id}")
+
+    def is_valid_change_img_caption(self):
+        if self.cur_image_idx == -1:
+            for plain_text in self.lb_image_caps:
+                if len(plain_text.toPlainText()):
+                    msgBox = QMessageBox()
+                    msgBox.setText("이미지 캡션 라벨은 이미지를 선택 후 입력할 수 있습니다.")
+                    msgBox.exec()
+                    self.clear_img_label_captions()
+        else:
+            return
+
+    def clear_img_label_captions(self):
+        for plain_text in self.lb_image_caps:
+            plain_text.clear()
 
 
 if __name__ == "__main__":
