@@ -47,8 +47,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
         self.actionCreate_Dataset.triggered.connect(self.create_dataset)
 
-        self.tB_header_uploadImage.clicked.connect(self.insert_images)
-        self.actionUpload_Image.triggered.connect(self.insert_images)
+        self.tB_header_uploadImage.clicked.connect(self.upload_images)
+        self.actionUpload_Image.triggered.connect(self.upload_images)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
 
@@ -84,7 +84,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             db=self.db_manager)
         q_delete.exec()
 
-    def insert_images(self):
+    def upload_images(self):
         self.logger.info("Click 'Upload image'")
         fileDialog = QFileDialog(self)
         fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
