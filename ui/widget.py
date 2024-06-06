@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget, QWidget, QVBoxLayout, QSizePolicy
-from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush, Qt, QPixmap, QImage
+from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush, Qt, QPixmap, QImage, QKeyEvent
 
 from ui.label import ImgLabel, BoxOverlayLabel
 
@@ -81,6 +81,12 @@ class ImagesTableWidget(QTableWidget):
 
         self.fid_dict[idx] = fid
         self.url_dict[idx] = url
+
+    def keyPressEvent(self, event):
+        if Qt.Key.Key_Up == event.key():
+            self.window().get_upper_image()
+        elif Qt.Key.Key_Down == event.key():
+            self.window().get_lower_image()
 
 
 class ImageTabWidget(QTabWidget):
