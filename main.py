@@ -115,7 +115,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
 
-                idx = self.db_manager.insert_image(
+                idx = self.db_manager.create_image_data(
                     dataset_id=self.cur_dataset_idx,
                     filename=ret['filename'],
                     image_fid=ret['fid'],
@@ -154,7 +154,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
 
-                idx = self.db_manager.insert_image(
+                idx = self.db_manager.create_image_data(
                     dataset_id=self.cur_dataset_idx,
                     filename=ret['filename'],
                     image_fid=ret['fid'],
@@ -244,7 +244,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dataset_id = ret[0]
         self.cur_dataset_idx = dataset_id
 
-        images = self.db_manager.read_image_by_dataset_id(dataset_id)
+        images = self.db_manager.read_image_data_by_dataset_id(dataset_id)
         self.tW_images.draw_image_list(images)
 
         self.logger.info(f"Success drawing image_list - Current tab index, dataset_id, image_len: "

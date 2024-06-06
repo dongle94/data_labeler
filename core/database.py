@@ -76,7 +76,7 @@ class DBManager(object):
 
         self.logger.info("Dataset '%s' is deleted.", name)
 
-    def insert_image(self, dataset_id, filename, image_fid, image_url, width, height):
+    def create_image_data(self, dataset_id, filename, image_fid, image_url, width, height):
         sql = ("INSERT INTO image_data (dataset_id, filename, image_fid, image_url, width, height) "
                "VALUES (%s, %s, %s, %s, %s, %s)")
         data = (dataset_id, filename, image_fid, image_url, width, height)
@@ -89,7 +89,7 @@ class DBManager(object):
         self.logger.info("Image '%s' inserted", filename)
         return cursor.lastrowid
 
-    def read_image_by_dataset_id(self, dataset_id):
+    def read_image_data_by_dataset_id(self, dataset_id):
         sql = "SELECT * FROM image_data WHERE dataset_id = (%s)"
         data = (dataset_id,)
 
@@ -100,7 +100,7 @@ class DBManager(object):
 
         return ret
 
-    def delete_image_by_image_id(self, image_id):
+    def delete_image_data_by_image_id(self, image_id):
         sql = "DELETE FROM image_data WHERE image_data_id = (%s)"
         data = (image_id,)
 
@@ -145,6 +145,12 @@ class DBManager(object):
         cursor.close()
 
         self.logger.info("label_field_id '%s' is deleted.", label_field_id)
+
+    def create_label_data(self):
+        pass
+
+    def read_label_data(self):
+        pass
 
 
 if __name__ == "__main__":
