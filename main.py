@@ -1,4 +1,5 @@
 # This Python file uses the following encoding: utf-8
+import os
 import sys
 import json
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit, \
@@ -46,7 +47,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
         self.actionCreate_Dataset.triggered.connect(self.create_dataset)
-
+        self.tB_header_uploadDir.clicked.connect(self.upload_dir)
+        self.actionUpload_folder.triggered.connect(self.upload_dir)
         self.tB_header_uploadImage.clicked.connect(self.upload_images)
         self.actionUpload_Image.triggered.connect(self.upload_images)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
@@ -84,6 +86,52 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             db=self.db_manager)
         q_delete.exec()
 
+    def upload_dir(self):
+        self.logger.info("Click 'Upload dir'")
+        fileDialog = QFileDialog(self)
+        fileDialog.setFileMode(QFileDialog.FileMode.Directory)
+        fileDialog.setViewMode(QFileDialog.ViewMode.List)
+
+        fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+        fileDialog.setOption(QFileDialog.Option.ReadOnly, True)
+        fileDialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
+        fileDialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+
+        dirname = fileDialog.getExistingDirectory(
+            parent=self,
+            caption='Select Directory',
+            dir=""
+        )
+
+        if not dirname:
+            self.logger.info("이미지 디렉토리 선택 취소")
+            return
+        else:
+            dataset_id = self.cur_dataset_idx
+
+            upload_images = []
+            for file in os.listdir(dirname):
+                basename, ext = os.path.splitext(file)
+                file_path = os.path.join(dirname, file)
+                if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp']:
+                    upload_images.append(file_path)
+            for f_idx, filename in enumerate(upload_images):
+                self.statusbar.showMessage(f"Upload image ... ({f_idx + 1}/{len(upload_images)})")
+
+                ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
+
+                idx = self.db_manager.insert_image(
+                    dataset_id=self.cur_dataset_idx,
+                    filename=ret['filename'],
+                    image_fid=ret['fid'],
+                    image_url=ret['url'],
+                    width=ret['width'],
+                    height=ret['height']
+                )
+                self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
+            self.logger.info("이미지 디렉토리 업로드 완료")
+            self.statusbar.showMessage(f"Image Directory upload Success")
+
     def upload_images(self):
         self.logger.info("Click 'Upload image'")
         fileDialog = QFileDialog(self)
@@ -106,17 +154,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info("이미지 업로드 취소")
             return
         else:
-            # get current tab dataset_id
-            ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
-            dataset_id = ret[0]
-
             for f_idx, filename in enumerate(filenames):
                 self.statusbar.showMessage(f"Upload image ... ({f_idx+1}/{len(filenames)})")
 
                 ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
 
                 idx = self.db_manager.insert_image(
-                    dataset_id=dataset_id,
+                    dataset_id=self.cur_dataset_idx,
                     filename=ret['filename'],
                     image_fid=ret['fid'],
                     image_url=ret['url'],
