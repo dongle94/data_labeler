@@ -145,14 +145,15 @@ class ImageDeleteDialog(QDialog, Ui_Basic_Dialog):
 
         # Get Weedfs url
         for img_db_idx in db_idx:
-            weedfs_url = image_list_table_widget.url_dict[int(img_db_idx)]
+            image_fid = image_list_table_widget.fid_dict[int(img_db_idx)]
 
             # Delete Weedfs image
-            ret = self.weed_manager.delete_file(url=weedfs_url)
+            ret = self.weed_manager.delete_file(fid=image_fid)
 
             # Delete in DB Table
             if ret is True:
                 self.db_manager.delete_image_by_image_id(img_db_idx)
+                self.parent().statusbar.showMessage(f"Success delete image ")
 
         # Draw again
         self.parent().draw_image_list_widget()

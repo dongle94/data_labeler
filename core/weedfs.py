@@ -223,11 +223,14 @@ class SeaWeedFS(object):
             return full_url
 
     def delete_file(self, fid=None, url=None):
-        if url is not None:
-            res = requests.delete(url)
-            if not res.ok:
-                self.logger.error(f"delete file got error: {res.status_code}- {res.json().get('error')}")
-                return False
+        if fid is not None:
+            url = self.get_file_url(fid=fid)
+        elif url is not None:
+            url = url
+        res = requests.delete(url)
+        if not res.ok:
+            self.logger.error(f"delete file got error: {res.status_code}- {res.json().get('error')}")
+            return False
         return True
 
 
