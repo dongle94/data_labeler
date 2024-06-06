@@ -535,9 +535,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Success save image-caption label_data_id: {lastrowid}")
 
     def draw_cur_img_caption_label(self):
+        captions_idx = []
         for cap_label in self.lb_image_caps:
             field_name, plain_text = cap_label
             label_field_idx = self.cur_label_fields_idx_dict[field_name]
+            captions_idx.append(label_field_idx)
             ret = self.db_manager.read_label_data(
                 image_data_id=self.cur_image_idx,
                 label_field_id=label_field_idx
@@ -546,7 +548,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 caption_text = ret[0][7]
                 plain_text.setPlainText(caption_text)
 
-        self.logger.info("load current image captions")
+        self.logger.info(f"load {self.cur_image_idx} idx image caption fields: {captions_idx}")
 
 
 if __name__ == "__main__":
