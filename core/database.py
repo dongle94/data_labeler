@@ -76,7 +76,7 @@ class DBManager(object):
 
         self.logger.info("Dataset '%s' is deleted.", name)
 
-    def insert_image(self, dataset_id, filename, image_fid, image_url, width, height):
+    def create_image_data(self, dataset_id, filename, image_fid, image_url, width, height):
         sql = ("INSERT INTO image_data (dataset_id, filename, image_fid, image_url, width, height) "
                "VALUES (%s, %s, %s, %s, %s, %s)")
         data = (dataset_id, filename, image_fid, image_url, width, height)
@@ -89,7 +89,7 @@ class DBManager(object):
         self.logger.info("Image '%s' inserted", filename)
         return cursor.lastrowid
 
-    def read_image_by_dataset_id(self, dataset_id):
+    def read_image_data_by_dataset_id(self, dataset_id):
         sql = "SELECT * FROM image_data WHERE dataset_id = (%s)"
         data = (dataset_id,)
 
@@ -100,7 +100,7 @@ class DBManager(object):
 
         return ret
 
-    def delete_image_by_image_id(self, image_id):
+    def delete_image_data_by_image_id(self, image_id):
         sql = "DELETE FROM image_data WHERE image_data_id = (%s)"
         data = (image_id,)
 
@@ -145,6 +145,55 @@ class DBManager(object):
         cursor.close()
 
         self.logger.info("label_field_id '%s' is deleted.", label_field_id)
+
+    def create_label_data(self, image_data_id, label_field_id, ref_box_id=None,
+                          is_box=0, coord=None, cls=None, caption=None):
+        sql = ("INSERT INTO label_data "
+               "(image_data_id, label_field_id, ref_box_id, is_box, coord, cls, caption) "
+               "VALUES (%s, %s, %s, %s, %s, %s, %s)")
+        data = (image_data_id, label_field_id, ref_box_id, is_box, coord, cls, caption)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        log_text = f"Create label_data - image_idx: {image_data_id}, label_field_idx: {label_field_id}"
+        if is_box:
+            log_text += f", ref_box_id: {ref_box_id}"
+        if coord:
+            log_text += f", coord: {coord}"
+        if cls:
+            log_text += f", class: {cls}"
+        if caption:
+            log_text += f", caption: {caption}"
+        self.logger.info(log_text)
+        return cursor.lastrowid
+
+    def read_label_data(self, image_data_id, label_field_id=None):
+        sql = "SELECT * FROM label_data WHERE image_data_id = (%s)"
+        data = [image_data_id,]
+        if label_field_id is not None:
+            sql += " AND label_field_id = (%s)"
+            data.append(label_field_id)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        ret = cursor.fetchall()
+        cursor.close()
+
+        return ret
+
+    def delete_label_data_by_image_data_id(self, image_data_id):
+        sql = "DELETE FROM label_data WHERE image_data_id = (%s)"
+        data = (image_data_id,)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        self.logger.info("image_data: %s of label_data are deleted.", image_data_id)
 
 
 if __name__ == "__main__":

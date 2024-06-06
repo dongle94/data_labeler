@@ -152,7 +152,7 @@ class ImageDeleteDialog(QDialog, Ui_Basic_Dialog):
 
             # Delete in DB Table
             if ret is True:
-                self.db_manager.delete_image_by_image_id(img_db_idx)
+                self.db_manager.delete_image_data_by_image_id(img_db_idx)
                 self.parent().statusbar.showMessage(f"Success delete image ")
 
         # Draw again
