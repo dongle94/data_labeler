@@ -37,6 +37,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_dataset_idx = -1
         self.cur_tab_name = None
         self.cur_label_fields = []
+        self.cur_image_idx = -1
 
         # init drawing
         self.draw_dataset()
@@ -74,17 +75,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info("Click 'dataset create'")
         ds_create = DSCreate(self, self.db_manager)
         ds_create.show()
-
-    def delete_dataset(self):
-        self.logger.info("Click 'dataset delete'")
-        cur_idx = self.tW_img.currentIndex()
-        cur_tab_name = self.tW_img.tabText(cur_idx)
-
-        q_delete = DSDelete(self,
-                            ds_name=cur_tab_name,
-                            weed=self.weed_manager,
-                            db=self.db_manager)
-        q_delete.exec()
 
     def upload_dir(self):
         self.logger.info("Click 'Upload dir'")
@@ -171,6 +161,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info("이미지 업로드 완료")
             self.statusbar.showMessage(f"Image upload Success")
 
+    def delete_dataset(self):
+        self.logger.info("Click 'dataset delete'")
+        cur_idx = self.tW_img.currentIndex()
+        cur_tab_name = self.tW_img.tabText(cur_idx)
+
+        q_delete = DSDelete(self,
+                            ds_name=cur_tab_name,
+                            weed=self.weed_manager,
+                            db=self.db_manager)
+        q_delete.exec()
+
     def delete_images(self):
         self.logger.info("Click 'Delete Image'")
 
@@ -183,6 +184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             q_delete.exec()
         else:
             self.statusbar.showMessage("이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다.")
+        self.cur_image_idx = -1
 
     def add_label_field(self):
         self.logger.info("Click 'add_label_field'")
@@ -195,6 +197,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         delete_label_dialog = DeleteLabelDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
         delete_label_dialog.show()
+
+    def get_upper_image(self):
+        self.logger.info("Click 'upper image'")
+        if not self.tW_images.selectedItems():
+            self.tW_images.selectRow(0)
+            self.draw_image(self.tW_images.item(0, 0))
+        else:
+            idx = self.tW_images.selectedIndexes()[0].row()
+            idx = max(idx-1, 0)
+            self.tW_images.selectRow(idx)
+            self.draw_image(self.tW_images.item(idx, 0))
+
+    def get_lower_image(self):
+        self.logger.info("Click 'lower image'")
+        if not self.tW_images.selectedItems():
+            self.tW_images.selectRow(0)
+            self.draw_image(self.tW_images.item(0, 0))
+        else:
+            num_row = self.tW_images.rowCount()
+            idx = self.tW_images.selectedIndexes()[0].row()
+            idx = min(idx + 1, num_row - 1)
+            self.tW_images.selectRow(idx)
+            self.draw_image(self.tW_images.item(idx, 0))
 
     def draw_dataset(self):
         ds = self.db_manager.read_dataset()
@@ -222,12 +247,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_image(self, item: QTableWidgetItem):
         img_idx = self.tW_images.item(item.row(), 0).text()
+        img_name = self.tW_images.item(item.row(), 1).text()
         image_fid = self.tW_images.fid_dict[int(img_idx)]
 
         img = self.weed_manager.get_image(fid=image_fid)
 
         cur_tab = self.tW_img.currentWidget()
         cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
+        self.cur_image_idx = img_idx
+
+        self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
+
+    def change_tab(self, index):
+        self.cur_tab_idx = index
+        self.cur_tab_name = self.tW_img.tabText(index)
+
+        self.draw_image_list_widget()
+        self.clean_label_field()
+        self.draw_label_field()
+
+        self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
 
     def clean_label_field(self):
         while self.vlo_img_label_field.count() > 0:
@@ -388,39 +427,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.cur_label_fields.append([db_id, field_name])
         self.logger.info(f"Success add label_field - label_field_id: {db_id}")
-
-    def change_tab(self, index):
-        self.cur_tab_idx = index
-        self.cur_tab_name = self.tW_img.tabText(index)
-
-        self.draw_image_list_widget()
-        self.clean_label_field()
-        self.draw_label_field()
-
-        self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
-
-    def get_upper_image(self):
-        self.logger.info("Click 'upper image'")
-        if not self.tW_images.selectedItems():
-            self.tW_images.selectRow(0)
-            self.draw_image(self.tW_images.item(0, 0))
-        else:
-            idx = self.tW_images.selectedIndexes()[0].row()
-            idx = max(idx-1, 0)
-            self.tW_images.selectRow(idx)
-            self.draw_image(self.tW_images.item(idx, 0))
-
-    def get_lower_image(self):
-        self.logger.info("Click 'lower image'")
-        if not self.tW_images.selectedItems():
-            self.tW_images.selectRow(0)
-            self.draw_image(self.tW_images.item(0, 0))
-        else:
-            num_row = self.tW_images.rowCount()
-            idx = self.tW_images.selectedIndexes()[0].row()
-            idx = min(idx + 1, num_row - 1)
-            self.tW_images.selectRow(idx)
-            self.draw_image(self.tW_images.item(idx, 0))
 
 
 if __name__ == "__main__":
