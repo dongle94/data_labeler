@@ -183,7 +183,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         img = self.weed_manager.get_image(fid=image_fid)
 
         cur_tab = self.tW_img.currentWidget()
-        cur_tab.set_qpixmap(img.toqpixmap(), scale=False)
+        cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
 
     def clean_label_field(self):
         while self.vlo_img_label_field.count() > 0:
