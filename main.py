@@ -39,6 +39,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_label_fields = []
         self.cur_label_fields_idx_dict = {}
         self.cur_image_idx = -1
+        self.is_label_change = False
 
         # label fields
         self.lb_image_caps = []
@@ -268,7 +269,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # clear boxes-cls label
 
         # Draw label field
-        # draw current img-cap label
+        self.draw_cur_img_caption_label()
         # draw current img-cls label
 
         self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
@@ -498,23 +499,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def save_labels(self):
         # 현재 이미지, 라벨 필드 목록
-        print(self.cur_image_idx, self.cur_label_fields)
-        print(self.cur_label_fields_idx_dict)
+        # print(self.cur_image_idx, self.cur_label_fields)
+        # print(self.cur_label_fields_idx_dict)
 
         # DB에서 현재 데이터셋 필드 조회
 
+        # Delete entire label in current image
+        self.db_manager.delete_label_data_by_image_data_id(self.cur_image_idx)
 
-        # 이미지 - 캡션
-        print(self.lb_image_caps)
+        # Save image-cap label
+        self.save_img_caption_label()
 
         # 이미지 - 클래스
-        print(self.lb_image_cls)
+        # print(self.lb_image_cls)
 
         # 박스 - 박스
 
         # 박스 - 캡션
 
         # 박스 - 클래스
+
+    def save_img_caption_label(self):
+        for cap_label in self.lb_image_caps:
+            field_name, plain_text = cap_label
+            caption_text = plain_text.toPlainText()
+            label_field_id = self.cur_label_fields_idx_dict[field_name]
+
+            lastrowid = self.db_manager.create_label_data(
+                image_data_id=self.cur_image_idx,
+                label_field_id=label_field_id,
+                is_box=0,
+                caption=caption_text
+            )
+
+            self.logger.info(f"Success save image-caption label_data_id: {lastrowid}")
+
+    def draw_cur_img_caption_label(self):
+        for cap_label in self.lb_image_caps:
+            field_name, plain_text = cap_label
+            label_field_idx = self.cur_label_fields_idx_dict[field_name]
+            ret = self.db_manager.read_label_data(
+                image_data_id=self.cur_image_idx,
+                label_field_id=label_field_idx
+            )
+            if ret:
+                caption_text = ret[0][7]
+                plain_text.setPlainText(caption_text)
+
+        self.logger.info("load current image captions")
 
 
 if __name__ == "__main__":
