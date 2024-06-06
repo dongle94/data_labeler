@@ -65,8 +65,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tW_images.itemClicked.connect(self.draw_image)
 
-        self.pB_label_add.clicked.connect(self.add_label)
-        self.pB_label_del.clicked.connect(self.delete_label)
+        self.pB_label_add.clicked.connect(self.add_label_field)
+        self.pB_label_del.clicked.connect(self.delete_label_field)
 
         self.logger.info("Success initializing MainWindow")
 
@@ -184,14 +184,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.statusbar.showMessage("이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다.")
 
-    def add_label(self):
-        self.logger.info("Click 'add_label'")
+    def add_label_field(self):
+        self.logger.info("Click 'add_label_field'")
 
         add_label_dialog = AddLabelDialog(self, dataset_id=self.cur_dataset_idx, db=self.db_manager)
         add_label_dialog.show()
 
-    def delete_label(self):
-        self.logger.info("Click 'delete_label'")
+    def delete_label_field(self):
+        self.logger.info("Click 'delete_label_field'")
 
         delete_label_dialog = DeleteLabelDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
         delete_label_dialog.show()
@@ -331,7 +331,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info(f"Success drawing label_field - label_field_id: {label_field_id}")
 
-    def add_label_field(self, db_id, data_format, data_type, field_name, is_duplicate, classes):
+    def draw_one_label_field(self, db_id, data_format, data_type, field_name, is_duplicate, classes):
         # image-cap
         if data_format == 1 and data_type == 1:
             q_label = create_label(self,
