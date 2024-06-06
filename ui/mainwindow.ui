@@ -24,12 +24,12 @@
     <item>
      <layout class="QHBoxLayout" name="hlo_header">
       <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
+       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
       </property>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -45,19 +45,17 @@
          <string>AddDataset</string>
         </property>
         <property name="icon">
-         <iconset theme="document-new">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="document-new"/>
         </property>
        </widget>
       </item>
-      <item alignment="Qt::AlignRight">
+      <item alignment="Qt::AlignmentFlag::AlignRight">
        <widget class="QToolButton" name="tB_header_uploadDir">
         <property name="text">
          <string>UploadDir</string>
         </property>
         <property name="icon">
-         <iconset theme="folder-open">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="folder-open"/>
         </property>
        </widget>
       </item>
@@ -74,8 +72,7 @@
          <string>DeleteDataset</string>
         </property>
         <property name="icon">
-         <iconset theme="edit-delete">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="edit-delete"/>
         </property>
        </widget>
       </item>
@@ -86,14 +83,14 @@
         </property>
        </widget>
       </item>
-      <item alignment="Qt::AlignRight">
+      <item alignment="Qt::AlignmentFlag::AlignRight">
        <widget class="QToolButton" name="tB_header_delSelectedImage">
         <property name="text">
          <string>DeleteSelectedImage</string>
         </property>
        </widget>
       </item>
-      <item alignment="Qt::AlignRight">
+      <item alignment="Qt::AlignmentFlag::AlignRight">
        <widget class="QToolButton" name="tB_header_delCurLabel">
         <property name="text">
          <string>DeleteCurLabel</string>
@@ -105,19 +102,19 @@
     <item>
      <widget class="Line" name="line">
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
      </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="hlo_main" stretch="1,8,1">
       <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
+       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
       </property>
       <item>
        <layout class="QVBoxLayout" name="vlo_letf" stretch="24,1">
         <property name="sizeConstraint">
-         <enum>QLayout::SetDefaultConstraint</enum>
+         <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
         </property>
         <item>
          <widget class="ImagesTableWidget" name="tW_images">
@@ -134,7 +131,7 @@
           <item>
            <spacer name="horizontalSpacer_3">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -144,7 +141,7 @@
             </property>
            </spacer>
           </item>
-          <item alignment="Qt::AlignHCenter">
+          <item alignment="Qt::AlignmentFlag::AlignHCenter">
            <widget class="QToolButton" name="tB_img_up">
             <property name="mouseTracking">
              <bool>false</bool>
@@ -156,15 +153,14 @@
              <string>...</string>
             </property>
             <property name="icon">
-             <iconset theme="go-up">
-              <normaloff>.</normaloff>.</iconset>
+             <iconset theme="go-up"/>
             </property>
             <property name="arrowType">
-             <enum>Qt::UpArrow</enum>
+             <enum>Qt::ArrowType::UpArrow</enum>
             </property>
            </widget>
           </item>
-          <item alignment="Qt::AlignHCenter">
+          <item alignment="Qt::AlignmentFlag::AlignHCenter">
            <widget class="QToolButton" name="tB_img_down">
             <property name="toolTip">
              <string extracomment="Below Image"/>
@@ -173,11 +169,10 @@
              <string>...</string>
             </property>
             <property name="icon">
-             <iconset theme="go-down">
-              <normaloff>.</normaloff>.</iconset>
+             <iconset theme="go-down"/>
             </property>
             <property name="arrowType">
-             <enum>Qt::DownArrow</enum>
+             <enum>Qt::ArrowType::DownArrow</enum>
             </property>
            </widget>
           </item>
@@ -190,15 +185,14 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset theme="user-trash">
-              <normaloff>.</normaloff>.</iconset>
+             <iconset theme="user-trash"/>
             </property>
            </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -232,7 +226,7 @@
       <item>
        <layout class="QVBoxLayout" name="vlo_right" stretch="4,1,10,1">
         <property name="sizeConstraint">
-         <enum>QLayout::SetDefaultConstraint</enum>
+         <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
         </property>
         <item>
          <widget class="QListWidget" name="lw_labels">
@@ -252,7 +246,7 @@
           <item>
            <spacer name="horizontalSpacer_5">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -262,41 +256,40 @@
             </property>
            </spacer>
           </item>
-          <item alignment="Qt::AlignLeft">
+          <item alignment="Qt::AlignmentFlag::AlignLeft">
            <widget class="QToolButton" name="tb_box_up">
             <property name="text">
              <string>...</string>
             </property>
             <property name="arrowType">
-             <enum>Qt::UpArrow</enum>
+             <enum>Qt::ArrowType::UpArrow</enum>
             </property>
            </widget>
           </item>
-          <item alignment="Qt::AlignHCenter">
+          <item alignment="Qt::AlignmentFlag::AlignHCenter">
            <widget class="QToolButton" name="tb_box_down">
             <property name="text">
              <string>...</string>
             </property>
             <property name="arrowType">
-             <enum>Qt::DownArrow</enum>
+             <enum>Qt::ArrowType::DownArrow</enum>
             </property>
            </widget>
           </item>
-          <item alignment="Qt::AlignRight">
+          <item alignment="Qt::AlignmentFlag::AlignRight">
            <widget class="QToolButton" name="tb_box_rm">
             <property name="text">
              <string>...</string>
             </property>
             <property name="icon">
-             <iconset theme="list-remove">
-              <normaloff>.</normaloff>.</iconset>
+             <iconset theme="list-remove"/>
             </property>
            </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -311,7 +304,7 @@
         <item>
          <layout class="QVBoxLayout" name="vlo_label_field" stretch="1,0,1">
           <property name="sizeConstraint">
-           <enum>QLayout::SetMinimumSize</enum>
+           <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
           </property>
           <item>
            <layout class="QVBoxLayout" name="vlo_img_label_field"/>
@@ -319,7 +312,7 @@
           <item>
            <widget class="Line" name="line_2">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
            </widget>
           </item>
@@ -333,7 +326,7 @@
           <item>
            <spacer name="horizontalSpacer_6">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -391,7 +384,7 @@
           <item>
            <spacer name="horizontalSpacer_7">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -415,13 +408,14 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>22</height>
+     <height>33</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionSave_label"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -578,6 +572,11 @@
   <action name="actionClassification_current_bounding_box_of_current_image">
    <property name="text">
     <string>Classification current bounding box of current image</string>
+   </property>
+  </action>
+  <action name="actionSave_label">
+   <property name="text">
+    <string>Save label</string>
    </property>
   </action>
  </widget>
