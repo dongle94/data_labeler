@@ -33,10 +33,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.weed_manager = SeaWeedFS(cfg=cfg, logger=self.logger)
 
         # Set params
-        self.cur_tab_idx = -1
         self.cur_dataset_idx = -1
+        self.cur_tab_idx = -1
         self.cur_tab_name = None
         self.cur_label_fields = []
+        self.cur_label_fields_idx_dict = {}
         self.cur_image_idx = -1
 
         # label fields
@@ -103,8 +104,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info("이미지 디렉토리 선택 취소")
             return
         else:
-            dataset_id = self.cur_dataset_idx
-
             upload_images = []
             for file in os.listdir(dirname):
                 basename, ext = os.path.splitext(file)
@@ -296,6 +295,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_label_field(self):
         self.cur_label_fields = []
+        self.cur_label_fields_idx_dict = {}
 
         rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
         image_cap, image_cls = [], []
@@ -327,6 +327,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.cur_label_fields.append([ret[0], field_name])
                 image_cls.append([field_name, is_duplicate, classes])
 
+        for label_field in self.cur_label_fields:
+            self.cur_label_fields_idx_dict[label_field[1]] = label_field[0]
+
         # image-cap
         for f_name in image_cap:
             q_label = create_label(self,
@@ -352,10 +355,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
                                             clicked_callback=self.is_valid_change_img_cls)
             self.vlo_img_label_field.addWidget(group_box)
-
-            for c in group_box.children():
-                if type(c) in [QRadioButton, QCheckBox]:
-                    self.lb_image_cls.append(c)
+            self.lb_image_cls.append([f_name, group_box])
 
         # boxes-box
         for classes in boxes_box:
@@ -417,10 +417,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
                                             clicked_callback=self.is_valid_change_img_cls)
             self.vlo_img_label_field.addWidget(group_box)
-
-            for c in group_box.children():
-                if type(c) in [QRadioButton, QCheckBox]:
-                    self.lb_image_cls.append(c)
+            self.lb_image_cls.append([field_name, group_box])
 
         # boxes-box
         elif data_format == 0 and data_type == 0:
@@ -471,11 +468,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def is_valid_change_img_cls(self):
         if self.cur_image_idx == -1:
-            for button in self.lb_image_cls:
-                if button.isChecked():
-                    msgBox = QMessageBox(text="이미지 클래스 라벨은 이미지 선택 후 입력 가능합니다.")
-                    msgBox.exec()
-                    self.clear_img_label_cls()
+            for cls_data in self.lb_image_cls:
+                group_box = cls_data[1]
+                for c in group_box.children():
+                    if type(c) in [QRadioButton, QCheckBox]:
+                        if c.isChecked():
+                            msgBox = QMessageBox(text="이미지 클래스 라벨은 이미지 선택 후 입력 가능합니다.")
+                            msgBox.exec()
+                            self.clear_img_label_cls()
         else:
             return
 
@@ -485,17 +485,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             plain_text.clear()
 
     def clear_img_label_cls(self):
-        for button in self.lb_image_cls:
-            button.setAutoExclusive(False)
-            button.setChecked(False)
-            if isinstance(button, QRadioButton):
-                button.setAutoExclusive(True)
-            else:       # checkbox
-                button.setAutoExclusive(False)
+        for cls_data in self.lb_image_cls:
+            group_box = cls_data[1]
+            for c in group_box.children():
+                if type(c) in [QRadioButton, QCheckBox]:
+                    c.setAutoExclusive(False)
+                    c.setChecked(False)
+                    if isinstance(c, QRadioButton):
+                        c.setAutoExclusive(True)
+                    else:  # checkbox
+                        c.setAutoExclusive(False)
 
     def save_labels(self):
         # 현재 이미지, 라벨 필드 목록
         print(self.cur_image_idx, self.cur_label_fields)
+        print(self.cur_label_fields_idx_dict)
 
         # DB에서 현재 데이터셋 필드 조회
 
