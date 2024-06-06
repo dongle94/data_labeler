@@ -553,6 +553,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info(f"load {self.cur_image_idx} idx image caption fields: {captions_idx}")
 
+    def keyPressEvent(self, event):
+        if Qt.Key.Key_Comma == event.key():
+            self.window().get_upper_image()
+        elif Qt.Key.Key_Period == event.key():
+            self.window().get_lower_image()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
