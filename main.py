@@ -2,8 +2,8 @@
 import os
 import sys
 import json
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit, \
-    QGroupBox, QCheckBox, QRadioButton, QHBoxLayout
+from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
+                               QMessageBox, QRadioButton, QCheckBox)
 from PySide6.QtCore import Qt
 
 from utils.config import get_config, set_config
@@ -33,11 +33,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.weed_manager = SeaWeedFS(cfg=cfg, logger=self.logger)
 
         # Set params
-        self.cur_tab_idx = -1
         self.cur_dataset_idx = -1
+        self.cur_tab_idx = -1
         self.cur_tab_name = None
         self.cur_label_fields = []
+        self.cur_label_fields_idx_dict = {}
         self.cur_image_idx = -1
+
+        # label fields
+        self.lb_image_caps = []
+        self.lb_image_cls = []
 
         # init drawing
         self.draw_dataset()
@@ -57,6 +62,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tB_header_delSelectedImage.clicked.connect(self.delete_images)
         self.actionDelete_Selected_Image.triggered.connect(self.delete_images)
+
+        self.actionSave_label.triggered.connect(self.save_labels)
 
         self.tW_img.currentChanged.connect(self.change_tab)
 
@@ -97,8 +104,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info("이미지 디렉토리 선택 취소")
             return
         else:
-            dataset_id = self.cur_dataset_idx
-
             upload_images = []
             for file in os.listdir(dirname):
                 basename, ext = os.path.splitext(file)
@@ -256,6 +261,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
         self.cur_image_idx = img_idx
 
+        # clear label field
+        self.clear_img_label_captions()
+        self.clear_img_label_cls()
+        # clear boxes-cap label
+        # clear boxes-cls label
+
+        # Draw label field
+        # draw current img-cap label
+        # draw current img-cls label
+
         self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
 
     def change_tab(self, index):
@@ -280,6 +295,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_label_field(self):
         self.cur_label_fields = []
+        self.cur_label_fields_idx_dict = {}
 
         rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
         image_cap, image_cls = [], []
@@ -311,6 +327,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.cur_label_fields.append([ret[0], field_name])
                 image_cls.append([field_name, is_duplicate, classes])
 
+        for label_field in self.cur_label_fields:
+            self.cur_label_fields_idx_dict[label_field[1]] = label_field[0]
+
         # image-cap
         for f_name in image_cap:
             q_label = create_label(self,
@@ -320,7 +339,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.vlo_img_label_field.addWidget(q_label)
             q_ptext = QPlainTextEdit(self)
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            q_ptext.textChanged.connect(self.is_valid_change_img_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
+            self.lb_image_caps.append([f_name, q_ptext])
 
         # image-cls
         for data in image_cls:
@@ -331,8 +352,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                    alignment=Qt.AlignmentFlag.AlignTop,
                                    stylesheet="font-weight: bold")
             self.vlo_img_label_field.addWidget(q_label)
-            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
+                                            clicked_callback=self.is_valid_change_img_cls)
             self.vlo_img_label_field.addWidget(group_box)
+            self.lb_image_cls.append([f_name, group_box])
 
         # boxes-box
         for classes in boxes_box:
@@ -380,7 +403,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.vlo_img_label_field.addWidget(q_label)
             q_ptext = QPlainTextEdit(self)
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            q_ptext.textChanged.connect(self.is_valid_change_img_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
+            self.lb_image_caps.append([field_name, q_ptext])
 
         # image-cls
         elif data_format == 1 and data_type == 2:
@@ -389,8 +414,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                    alignment=Qt.AlignmentFlag.AlignTop,
                                    stylesheet="font-weight: bold")
             self.vlo_img_label_field.addWidget(q_label)
-            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
+                                            clicked_callback=self.is_valid_change_img_cls)
             self.vlo_img_label_field.addWidget(group_box)
+            self.lb_image_cls.append([field_name, group_box])
 
         # boxes-box
         elif data_format == 0 and data_type == 0:
@@ -427,6 +454,67 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.cur_label_fields.append([db_id, field_name])
         self.logger.info(f"Success add label_field - label_field_id: {db_id}")
+
+    def is_valid_change_img_caption(self):
+        if self.cur_image_idx == -1:
+            for cap_data in self.lb_image_caps:
+                plain_text = cap_data[1]
+                if len(plain_text.toPlainText()):
+                    msgBox = QMessageBox(text="이미지 캡션 라벨은 이미지를 선택 후 입력할 수 있습니다.")
+                    msgBox.exec()
+                    self.clear_img_label_captions()
+        else:
+            return
+
+    def is_valid_change_img_cls(self):
+        if self.cur_image_idx == -1:
+            for cls_data in self.lb_image_cls:
+                group_box = cls_data[1]
+                for c in group_box.children():
+                    if type(c) in [QRadioButton, QCheckBox]:
+                        if c.isChecked():
+                            msgBox = QMessageBox(text="이미지 클래스 라벨은 이미지 선택 후 입력 가능합니다.")
+                            msgBox.exec()
+                            self.clear_img_label_cls()
+        else:
+            return
+
+    def clear_img_label_captions(self):
+        for cap_data in self.lb_image_caps:
+            plain_text = cap_data[1]
+            plain_text.clear()
+
+    def clear_img_label_cls(self):
+        for cls_data in self.lb_image_cls:
+            group_box = cls_data[1]
+            for c in group_box.children():
+                if type(c) in [QRadioButton, QCheckBox]:
+                    c.setAutoExclusive(False)
+                    c.setChecked(False)
+                    if isinstance(c, QRadioButton):
+                        c.setAutoExclusive(True)
+                    else:  # checkbox
+                        c.setAutoExclusive(False)
+
+    def save_labels(self):
+        # 현재 이미지, 라벨 필드 목록
+        print(self.cur_image_idx, self.cur_label_fields)
+        print(self.cur_label_fields_idx_dict)
+
+        # DB에서 현재 데이터셋 필드 조회
+
+
+        # 이미지 - 캡션
+        print(self.lb_image_caps)
+
+        # 이미지 - 클래스
+        print(self.lb_image_cls)
+
+        # 박스 - 박스
+
+        # 박스 - 캡션
+
+        # 박스 - 클래스
 
 
 if __name__ == "__main__":

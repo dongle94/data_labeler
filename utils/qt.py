@@ -13,13 +13,15 @@ def create_label(parent, text, alignment=None, stylesheet=None):
     return q_label
 
 
-def create_button_group(parent, horizontal=True, names=None, duplication=False):
+def create_button_group(parent, horizontal=True, names=None, duplication=False, clicked_callback=None):
     gb = QGroupBox(parent)
     gb_lo = QHBoxLayout(gb) if horizontal else QVBoxLayout(gb)
     if names:
         for name in names:
             widget = QCheckBox(parent=gb) if duplication else QRadioButton(parent=gb)
             widget.setText(name)
+            if clicked_callback:
+                widget.clicked.connect(clicked_callback)
             gb_lo.addWidget(widget)
     return gb
 
