@@ -62,6 +62,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tB_header_delSelectedImage.clicked.connect(self.delete_images)
         self.actionDelete_Selected_Image.triggered.connect(self.delete_images)
 
+        self.actionSave_label.triggered.connect(self.save_labels)
+
         self.tW_img.currentChanged.connect(self.change_tab)
 
         self.tB_img_up.clicked.connect(self.get_upper_image)
@@ -263,8 +265,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # clear label field
         self.clear_img_label_captions()
         self.clear_img_label_cls()
+        # clear boxes-cap label
+        # clear boxes-cls label
 
         # Draw label field
+        # draw current img-cap label
+        # draw current img-cls label
 
         self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
 
@@ -332,7 +338,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
             q_ptext.textChanged.connect(self.is_valid_change_img_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
-            self.lb_image_caps.append(q_ptext)
+            self.lb_image_caps.append([f_name, q_ptext])
 
         # image-cls
         for data in image_cls:
@@ -399,7 +405,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
             q_ptext.textChanged.connect(self.is_valid_change_img_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
-            self.lb_image_caps.append(q_ptext)
+            self.lb_image_caps.append([field_name, q_ptext])
 
         # image-cls
         elif data_format == 1 and data_type == 2:
@@ -454,7 +460,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def is_valid_change_img_caption(self):
         if self.cur_image_idx == -1:
-            for plain_text in self.lb_image_caps:
+            for cap_data in self.lb_image_caps:
+                plain_text = cap_data[1]
                 if len(plain_text.toPlainText()):
                     msgBox = QMessageBox(text="이미지 캡션 라벨은 이미지를 선택 후 입력할 수 있습니다.")
                     msgBox.exec()
@@ -473,7 +480,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
     def clear_img_label_captions(self):
-        for plain_text in self.lb_image_caps:
+        for cap_data in self.lb_image_caps:
+            plain_text = cap_data[1]
             plain_text.clear()
 
     def clear_img_label_cls(self):
@@ -484,6 +492,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 button.setAutoExclusive(True)
             else:       # checkbox
                 button.setAutoExclusive(False)
+
+    def save_labels(self):
+        # 현재 이미지, 라벨 필드 목록
+        print(self.cur_image_idx, self.cur_label_fields)
+
+        # DB에서 현재 데이터셋 필드 조회
+
+
+        # 이미지 - 캡션
+        print(self.lb_image_caps)
+
+        # 이미지 - 클래스
+        print(self.lb_image_cls)
+
+        # 박스 - 박스
+
+        # 박스 - 캡션
+
+        # 박스 - 클래스
 
 
 if __name__ == "__main__":
