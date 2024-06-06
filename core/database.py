@@ -146,11 +146,54 @@ class DBManager(object):
 
         self.logger.info("label_field_id '%s' is deleted.", label_field_id)
 
-    def create_label_data(self):
-        pass
+    def create_label_data(self, image_data_id, label_field_id, ref_box_id=None,
+                          is_box=0, coord=None, cls=None, caption=None):
+        sql = ("INSERT INTO label_data "
+               "(image_data_id, label_field_id, ref_box_id, is_box, coord, cls, caption) "
+               "VALUES (%s, %s, %s, %s, %s, %s, %s)")
+        data = (image_data_id, label_field_id, ref_box_id, is_box, coord, cls, caption)
 
-    def read_label_data(self):
-        pass
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        log_text = f"Create label_data - image_idx: {image_data_id}, label_field_idx: {label_field_id}"
+        if is_box:
+            log_text += f", ref_box_id: {ref_box_id}"
+        if coord:
+            log_text += f", coord: {coord}"
+        if cls:
+            log_text += f", class: {cls}"
+        if caption:
+            log_text += f", caption: {caption}"
+        self.logger.info(log_text)
+        return cursor.lastrowid
+
+    def read_label_data(self, image_data_id, label_field_id=None):
+        sql = "SELECT * FROM label_data WHERE image_data_id = (%s)"
+        data = [image_data_id,]
+        if label_field_id is not None:
+            sql += " AND label_field_id = (%s)"
+            data.append(label_field_id)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        ret = cursor.fetchall()
+        cursor.close()
+
+        return ret
+
+    def delete_label_data_by_image_data_id(self, image_data_id):
+        sql = "DELETE FROM label_data WHERE image_data_id = (%s)"
+        data = (image_data_id,)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        self.logger.info("image_data: %s of label_data are deleted.", image_data_id)
 
 
 if __name__ == "__main__":
