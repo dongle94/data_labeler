@@ -3,7 +3,7 @@ import os
 import sys
 import json
 from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
-                               QMessageBox)
+                               QMessageBox, QRadioButton, QCheckBox)
 from PySide6.QtCore import Qt
 
 from utils.config import get_config, set_config
@@ -41,6 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # label fields
         self.lb_image_caps = []
+        self.lb_image_cls = []
 
         # init drawing
         self.draw_dataset()
@@ -261,6 +262,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # clear label field
         self.clear_img_label_captions()
+        self.clear_img_label_cls()
 
         # Draw label field
 
@@ -328,7 +330,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.vlo_img_label_field.addWidget(q_label)
             q_ptext = QPlainTextEdit(self)
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
-            q_ptext.textChanged.connect(self.is_valid_change_caption)
+            q_ptext.textChanged.connect(self.is_valid_change_img_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
             self.lb_image_caps.append(q_ptext)
 
@@ -341,8 +343,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                    alignment=Qt.AlignmentFlag.AlignTop,
                                    stylesheet="font-weight: bold")
             self.vlo_img_label_field.addWidget(q_label)
-            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
+                                            clicked_callback=self.is_valid_change_img_cls)
             self.vlo_img_label_field.addWidget(group_box)
+
+            for c in group_box.children():
+                if type(c) in [QRadioButton, QCheckBox]:
+                    self.lb_image_cls.append(c)
 
         # boxes-box
         for classes in boxes_box:
@@ -390,7 +397,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.vlo_img_label_field.addWidget(q_label)
             q_ptext = QPlainTextEdit(self)
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            q_ptext.textChanged.connect(self.is_valid_change_img_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
+            self.lb_image_caps.append(q_ptext)
 
         # image-cls
         elif data_format == 1 and data_type == 2:
@@ -399,8 +408,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                    alignment=Qt.AlignmentFlag.AlignTop,
                                    stylesheet="font-weight: bold")
             self.vlo_img_label_field.addWidget(q_label)
-            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
+                                            clicked_callback=self.is_valid_change_img_cls)
             self.vlo_img_label_field.addWidget(group_box)
+
+            for c in group_box.children():
+                if type(c) in [QRadioButton, QCheckBox]:
+                    self.lb_image_cls.append(c)
 
         # boxes-box
         elif data_format == 0 and data_type == 0:
@@ -442,16 +456,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.cur_image_idx == -1:
             for plain_text in self.lb_image_caps:
                 if len(plain_text.toPlainText()):
-                    msgBox = QMessageBox()
-                    msgBox.setText("이미지 캡션 라벨은 이미지를 선택 후 입력할 수 있습니다.")
+                    msgBox = QMessageBox(text="이미지 캡션 라벨은 이미지를 선택 후 입력할 수 있습니다.")
                     msgBox.exec()
                     self.clear_img_label_captions()
+        else:
+            return
+
+    def is_valid_change_img_cls(self):
+        if self.cur_image_idx == -1:
+            for button in self.lb_image_cls:
+                if button.isChecked():
+                    msgBox = QMessageBox(text="이미지 클래스 라벨은 이미지 선택 후 입력 가능합니다.")
+                    msgBox.exec()
+                    self.clear_img_label_cls()
         else:
             return
 
     def clear_img_label_captions(self):
         for plain_text in self.lb_image_caps:
             plain_text.clear()
+
+    def clear_img_label_cls(self):
+        for button in self.lb_image_cls:
+            button.setAutoExclusive(False)
+            button.setChecked(False)
+            if isinstance(button, QRadioButton):
+                button.setAutoExclusive(True)
+            else:       # checkbox
+                button.setAutoExclusive(False)
 
 
 if __name__ == "__main__":
