@@ -606,7 +606,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info(f"load {self.cur_image_idx} idx image-class fields: {fields}")
 
-
     def keyPressEvent(self, event):
         if Qt.Key.Key_Comma == event.key():
             self.window().get_upper_image()
