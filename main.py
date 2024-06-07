@@ -259,6 +259,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         img = self.weed_manager.get_image(fid=image_fid)
 
+        self.tW_img.currentWidget().pos_click = []
+
         cur_tab = self.tW_img.currentWidget()
         cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
         self.cur_image_idx = img_idx

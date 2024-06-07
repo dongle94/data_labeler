@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget, QWidge
 from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush, Qt, QPixmap, QImage, QKeyEvent
 
 from ui.label import ImgLabel, BoxOverlayLabel
+from utils.coord import get_box_point
 
 
 class ImageTabInnerWidget(QWidget):
@@ -10,10 +11,11 @@ class ImageTabInnerWidget(QWidget):
 
         self.bg_label = ImgLabel()
 
-        layout = QVBoxLayout()
-        self.img_labels = []
-        layout.addWidget(self.bg_label)
+        self.pos_click = []
+        self.boxes = []
 
+        layout = QVBoxLayout()
+        layout.addWidget(self.bg_label)
         self.setLayout(layout)
 
     def set_image(self, img, scale=False):
@@ -37,8 +39,47 @@ class ImageTabInnerWidget(QWidget):
         self.bg_label.setScaledContents(scale)
 
     def add_box(self):
-        self.img_labels.append(BoxOverlayLabel())
+        self.boxes.append(BoxOverlayLabel())
         # TODO add box
+        print(self.pos_click)
+
+        pt1, pt2 = get_box_point(self.pos_click[0], self.pos_click[1])
+        print(pt1, pt2)
+
+    def mousePressEvent(self, event):
+        if self.window().cur_image_idx == -1:
+            return
+
+        # Left click event -> create box
+        if event.button() == Qt.MouseButton.LeftButton:
+            rel_x, rel_y = self.get_rel_img_pos(event.position())
+            self.pos_click.append([rel_x, rel_y])
+
+            # create box
+            if len(self.pos_click) == 2:
+                self.add_box()
+                self.pos_click = []
+
+    def get_rel_img_pos(self, position):
+        click_x, click_y = position.x(), position.y()
+        offset_width = int((self.size().width() - self.bg_label.size().width())/2)
+        offset_height = int((self.size().height() - self.bg_label.size().height())/2)
+        x = 0
+        y = 0
+        if click_x < offset_width:
+            x = 0
+        elif offset_width <= click_x <= self.bg_label.size().width() + offset_width:
+            x = int(click_x - offset_width)
+        elif self.bg_label.size().width() + offset_width < click_x:
+            x = self.bg_label.size().width()
+        if click_y < offset_height:
+            y = 0
+        elif offset_height <= click_y <= self.bg_label.size().height() + offset_height:
+            y = int(click_y - offset_height)
+        elif self.bg_label.size().height() + offset_height < click_y:
+            y = self.bg_label.size().height()
+
+        return x / self.bg_label.size().width(), y / self.bg_label.size().height()
 
 
 class ImagesTableWidget(QTableWidget):
