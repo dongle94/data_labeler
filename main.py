@@ -37,6 +37,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_tab_idx = -1
         self.cur_tab_name = None
         self.cur_label_fields = []
+        self.cur_label_fields_class = {}
         self.cur_label_fields_idx_dict = {}
         self.cur_image_idx = -1
         self.is_label_change = False
@@ -296,6 +297,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_label_field(self):
         self.cur_label_fields = []
+        self.cur_label_fields_class = {}
         self.cur_label_fields_idx_dict = {}
 
         self.lb_image_caps = []
@@ -350,6 +352,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # image-cls
         for data in image_cls:
             f_name, is_duplicate, classes = data
+
+            if f_name not in self.cur_label_fields_class:
+                self.cur_label_fields_class[f_name] = {}
+            for idx, label_name in classes.items():
+                self.cur_label_fields_class[f_name][label_name] = idx
 
             q_label = create_label(self,
                                    text=f_name,
@@ -513,8 +520,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Save image-cap label
         self.save_img_caption_label()
 
-        # 이미지 - 클래스
-        # print(self.lb_image_cls)
+        # Save image-cls label
+        self.save_img_classification_label()
 
         # 박스 - 박스
 
@@ -552,6 +559,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 plain_text.setPlainText(caption_text)
 
         self.logger.info(f"load {self.cur_image_idx} idx image caption fields: {captions_idx}")
+
+    def save_img_classification_label(self):
+        field_idx_class = []
+        for cls_label in self.lb_image_cls:
+            field_name, group_box = cls_label
+            for c in group_box.children():
+                if type(c) in [QRadioButton, QCheckBox]:
+                    if c.isChecked():
+                        field_idx = self.cur_label_fields_idx_dict[field_name]
+                        label_cls = self.cur_label_fields_class[field_name][c.text()]
+                        field_idx_class.append([field_idx, label_cls])
+                else:   # hlo
+                    continue
+        for cls_data in field_idx_class:
+            label_field_id, cls = cls_data
+            lastrowid = self.db_manager.create_label_data(
+                image_data_id=self.cur_image_idx,
+                label_field_id=label_field_id,
+                is_box=0,
+                cls=cls
+            )
+
+            self.logger.info(f"Success save image-classes label_data_id: {lastrowid}")
 
     def keyPressEvent(self, event):
         if Qt.Key.Key_Comma == event.key():
