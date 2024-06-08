@@ -42,12 +42,13 @@ class ImageTabInnerWidget(QWidget):
         self.bg_label.setScaledContents(scale)
 
     def add_box(self):
-        self.boxes.append(BoxOverlayLabel())
         # TODO add box
-        print(self.pos_click)
-
         pt1, pt2 = get_box_point(self.pos_click[0], self.pos_click[1])
-        print(pt1, pt2)
+        self.bg_label.add_rectangle(pt1[0], pt1[1], pt2[0], pt2[1])
+        # box_overlay = BoxOverlayLabel(self, [pt1, pt2])
+        # self.bg_label.boxes.append(box_overlay)
+        # self.layout.addWidget(box_overlay)
+        # box_overlay.show()
 
     def mousePressEvent(self, event):
         if self.window().cur_image_idx == -1:
