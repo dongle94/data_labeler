@@ -9,7 +9,7 @@ class ImageTabInnerWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
-        self.bg_label = ImgLabel()
+        self.bg_label = ImgLabel(self)
 
         self.pos_click = []
         self.boxes = []
@@ -17,6 +17,9 @@ class ImageTabInnerWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.bg_label)
         self.setLayout(layout)
+
+        # Event
+        self.bg_label.setMouseTracking(True)
 
     def set_image(self, img, scale=False):
         self.bg_label.setPixmap(QPixmap().fromImage(img))
