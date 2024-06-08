@@ -264,6 +264,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         cur_tab = self.tW_img.currentWidget()
         cur_tab.bg_label.bg_img = img
         cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
+        cur_tab.bg_label.boxes_rect = []
         self.cur_image_idx = img_idx
 
         # clear label field
