@@ -25,11 +25,12 @@ class ImgLabel(QLabel):
             label_w, label_h = self.size().width(), self.size().height()
             img_w, img_h = self.bg_img.size
             abs_x, abs_y = int(x / label_w * img_w), int(y / label_h * img_h)
+
             img = copy(self.bg_img)
             draw = ImageDraw.Draw(img)
-
-            draw.line((abs_x, 0, abs_x, img_h), fill=(0, 0, 0), width=1)
-            draw.line((0, abs_y, img_w, abs_y), fill=(0, 0, 0), width=1)
+            line_width = 1 + max(img_w, img_h) // 1000
+            draw.line((abs_x, 0, abs_x, img_h), fill='red', width=line_width)
+            draw.line((0, abs_y, img_w, abs_y), fill='red', width=line_width)
 
             self.setPixmap(img.toqpixmap())
 

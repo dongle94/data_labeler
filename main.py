@@ -262,6 +262,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tW_img.currentWidget().pos_click = []
 
         cur_tab = self.tW_img.currentWidget()
+        cur_tab.bg_label.bg_img = img
         cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
         self.cur_image_idx = img_idx
 
