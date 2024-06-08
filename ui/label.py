@@ -1,4 +1,6 @@
-import numpy
+import numpy as np
+from copy import copy
+from PIL import ImageDraw
 
 from PySide6.QtWidgets import QLabel, QWidget, QVBoxLayout
 from PySide6.QtCore import Signal, QRect
@@ -6,11 +8,30 @@ from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush,
 
 
 class ImgLabel(QLabel):
-    draw = Signal(numpy.ndarray)
+    draw = Signal(np.ndarray)
     updateText = Signal(str)
 
     def __init__(self, *args):
         super().__init__(*args)
+
+        self.bg_img = None
+
+    def mouseMoveEvent(self, event):
+        if self.window().cur_image_idx == -1:
+            return
+
+        if self.bg_img is not None:
+            x, y = event.pos().x(), event.pos().y()
+            label_w, label_h = self.size().width(), self.size().height()
+            img_w, img_h = self.bg_img.size
+            abs_x, abs_y = int(x / label_w * img_w), int(y / label_h * img_h)
+            img = copy(self.bg_img)
+            draw = ImageDraw.Draw(img)
+
+            draw.line((abs_x, 0, abs_x, img_h), fill=(0, 0, 0), width=1)
+            draw.line((0, abs_y, img_w, abs_y), fill=(0, 0, 0), width=1)
+
+            self.setPixmap(img.toqpixmap())
 
 
 class BoxOverlayLabel(ImgLabel):
