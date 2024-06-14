@@ -1,45 +1,74 @@
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget, QWidget, QVBoxLayout, QSizePolicy
+from math import sqrt
+from PySide6.QtCore import QPointF
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget, QWidget, QVBoxLayout, QSizePolicy, \
+    QApplication
 from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush, Qt, QPixmap, QImage, QKeyEvent
 
 from ui.label import ImgLabel, BoxOverlayLabel
 from utils.coord import get_box_point
+from core.qt.shape import Shape
 
 
 class ImageTabInnerWidget(QWidget):
+    CREATE, EDIT = [0, 1]
+    drawing_line_color = QColor(0, 0, 255)
+    drawing_rect_color = QColor(0, 0, 255)
+    CURSOR_DEFAULT = Qt.CursorShape.ArrowCursor
+    CURSOR_POINT = Qt.CursorShape.PointingHandCursor
+    CURSOR_DRAW = Qt.CursorShape.CrossCursor
+    CURSOR_MOVE = Qt.CursorShape.ClosedHandCursor
+    CURSOR_GRAB = Qt.CursorShape.OpenHandCursor
+
+    epsilon = 24.0
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
-        self.bg_label = ImgLabel(self)
+        # self.bg_label = ImgLabel(self)
 
         self.pos_click = []
         self.boxes = []
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.bg_label)
-        self.setLayout(layout)
+        # layout = QVBoxLayout()
+        # layout.addWidget(self.bg_label)
+        # self.setLayout(layout)
+
+        # Param
+        self.mode = self.CREATE
+        self.shapes = []
+        self.current = None
+        self.line = Shape(line_color=self.drawing_line_color)
+        self.prev_point = QPointF()
+        self.pixmap = QPixmap()
+        self.scale = 1.0
+        self.label_font_size = 8
+        self.visible = {}
+        self.hide_background = False
+        self.draw_square = False
+
+        # Inner param
+        self._painter = QPainter()
+        self._cursor = self.CURSOR_DEFAULT
+        self._hide_background = False
 
         # Event
-        self.bg_label.setMouseTracking(True)
+        self.setMouseTracking(True)
+        self.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
 
-    def set_image(self, img, scale=False):
-        self.bg_label.setPixmap(QPixmap().fromImage(img))
-        self.bg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.bg_label.setScaledContents(scale)
+    def is_visible(self, shape):
+        return self.visible.get(shape, True)
 
-    def set_array(self, arr, scale=False):
-        img = QImage(arr.data, arr.shape[1], arr.shape[0], QImage.Format.Format_BGR888)
-        self.set_image(img, scale=scale)
+    def is_drawing(self):
+        return self.mode == self.CREATE
 
-    def set_file(self, path, scale=False):
-        qpixmap = QPixmap().load(path)
-        self.bg_label.setPixmap(qpixmap)
-        self.bg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.bg_label.setScaledContents(scale)
+    def is_editing(self):
+        return self.mode == self.EDIT
 
     def set_qpixmap(self, pixmap: QPixmap, scale=False):
-        self.bg_label.setPixmap(pixmap)
-        self.bg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.bg_label.setScaledContents(scale)
+        # self.bg_label.setPixmap(pixmap)
+        # self.bg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.bg_label.setScaledContents(scale)
+        self.pixmap = pixmap
 
     def add_box(self):
         # TODO add box
@@ -50,40 +79,161 @@ class ImageTabInnerWidget(QWidget):
         # self.layout.addWidget(box_overlay)
         # box_overlay.show()
 
+    def mouseMoveEvent(self, event):
+        if self.window().cur_image_idx == -1:
+            return
+
+        pos = self.transform_pos(event.position())
+        # Polygon drawing.
+        if self.is_drawing():
+            self.override_cursor(self.CURSOR_DRAW)
+            if self.current:
+                current_width = abs(self.current[0].x() - pos.x())
+                current_height = abs(self.current[0].y() - pos.y())
+
+                color = self.drawing_line_color
+                if self.out_of_pixmap(pos):
+                    pass
+                elif len(self.current) > 1 and self.close_enough(pos, self.current[0]):
+                    pass
+
+                if self.draw_square:
+                    pass
+                else:
+                    self.line[1] = pos
+
+                self.line.line_color = color
+                self.prev_point = QPointF()
+                self.current.highlight_clear()
+            else:
+                self.prev_point = pos
+            self.repaint()
+            return
+
     def mousePressEvent(self, event):
         if self.window().cur_image_idx == -1:
             return
 
+        pos = self.transform_pos(event.position())
+
         # Left click event -> create box
         if event.button() == Qt.MouseButton.LeftButton:
-            rel_x, rel_y = self.get_rel_img_pos(event.position())
-            self.pos_click.append([rel_x, rel_y])
+            if self.is_drawing():
+                self.handle_drawing(pos)
+            else:       # editing
+                pass
+            # rel_x, rel_y = self.get_rel_img_pos(event.position())
+            # self.pos_click.append([rel_x, rel_y])
+            #
+            # # create box
+            # if len(self.pos_click) == 2:
+            #     self.add_box()
+            #     self.pos_click = []
 
-            # create box
-            if len(self.pos_click) == 2:
-                self.add_box()
-                self.pos_click = []
+    def handle_drawing(self, pos):
+        if self.current and self.current.reach_max_points() is False:
+            pass
+        elif not self.out_of_pixmap(pos):
+            self.current = Shape()
+            self.current.add_point(pos)
+            self.line.points = [pos, pos]
+            self.set_hiding()
+            # self.drawingPolygon.emit(True)
+            self.update()
 
-    def get_rel_img_pos(self, position):
-        click_x, click_y = position.x(), position.y()
-        offset_width = int((self.size().width() - self.bg_label.size().width())/2)
-        offset_height = int((self.size().height() - self.bg_label.size().height())/2)
-        x = 0
-        y = 0
-        if click_x < offset_width:
-            x = 0
-        elif offset_width <= click_x <= self.bg_label.size().width() + offset_width:
-            x = int(click_x - offset_width)
-        elif self.bg_label.size().width() + offset_width < click_x:
-            x = self.bg_label.size().width()
-        if click_y < offset_height:
-            y = 0
-        elif offset_height <= click_y <= self.bg_label.size().height() + offset_height:
-            y = int(click_y - offset_height)
-        elif self.bg_label.size().height() + offset_height < click_y:
-            y = self.bg_label.size().height()
+    def set_hiding(self, enable=True):
+        self._hide_background = self.hide_background if enable else False
 
-        return x / self.bg_label.size().width(), y / self.bg_label.size().height()
+    # def get_rel_img_pos(self, position):
+    #     click_x, click_y = position.x(), position.y()
+    #     offset_width = int((self.size().width() - self.bg_label.size().width())/2)
+    #     offset_height = int((self.size().height() - self.bg_label.size().height())/2)
+    #     x = 0
+    #     y = 0
+    #     if click_x < offset_width:
+    #         x = 0
+    #     elif offset_width <= click_x <= self.bg_label.size().width() + offset_width:
+    #         x = int(click_x - offset_width)
+    #     elif self.bg_label.size().width() + offset_width < click_x:
+    #         x = self.bg_label.size().width()
+    #     if click_y < offset_height:
+    #         y = 0
+    #     elif offset_height <= click_y <= self.bg_label.size().height() + offset_height:
+    #         y = int(click_y - offset_height)
+    #     elif self.bg_label.size().height() + offset_height < click_y:
+    #         y = self.bg_label.size().height()
+    #
+    #     return x / self.bg_label.size().width(), y / self.bg_label.size().height()
+    
+    def paintEvent(self, event):
+        if not self.pixmap:
+            return super().paintEvent(event)
+
+        p = self._painter
+        p.begin(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+
+        p.scale(self.scale, self.scale)
+        p.translate(self.offset_to_center())
+
+        tmp = self.pixmap
+
+        p.drawPixmap(0, 0, tmp)
+        Shape.scale = self.scale
+        Shape.label_font_size = self.label_font_size
+        for shape in self.shapes:
+            if shape.selected and self.is_visible(shape):
+                shape.fill = shape.selected
+                shape.paint(p)
+        if self.current:
+            self.current.paint(p)
+            self.line.paint(p)
+
+        if self.is_drawing() and not self.prev_point.isNull() and not self.out_of_pixmap(self.prev_point):
+            p.setPen(QColor(0, 0, 0))
+            p.drawLine(int(self.prev_point.x()), 0, int(self.prev_point.x()), self.pixmap.height())
+            p.drawLine(0, int(self.prev_point.y()), self.pixmap.width(), int(self.prev_point.y()))
+
+
+        self.setAutoFillBackground(True)
+
+        p.end()
+
+    def transform_pos(self, point):
+        p = point / self.scale - self.offset_to_center()
+        return p
+
+    def offset_to_center(self):
+        s = self.scale
+        area = self.size()
+        w, h = self.pixmap.width(), self.pixmap.height()
+        aw, ah = area.width(), area.height()
+        x = (aw - w) / (2 * s) if aw > w else 0
+        y = (ah - h) / (2 * s) if ah > h else 0
+        return QPointF(x, y)
+
+    def out_of_pixmap(self, p):
+        w, h = self.pixmap.width(), self.pixmap.height()
+        return not (0 <= p.x() <= w and 0 <= p.y() <= h)
+
+    def close_enough(self, p1, p2):
+        x, y = (p1 - p2).x(), (p1-p2).y()
+        d = sqrt(x * x + y * y)
+        return d < self.epsilon
+
+    def current_cursor(self):
+        cursor = QApplication.overrideCursor()
+        if cursor is not None:
+            cursor = cursor.shape()
+        return cursor
+
+    def override_cursor(self, cursor):
+        self._cursor = cursor
+        if self.current_cursor() is None:
+            QApplication.setOverrideCursor(cursor)
+        else:
+            QApplication.changeOverrideCursor(cursor)
 
 
 class ImagesTableWidget(QTableWidget):
