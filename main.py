@@ -242,15 +242,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_image_list_widget(self):
         # get current tab dataset_id
-        ret = self.db_manager.read_dataset_detail(self.cur_tab_name)[0]
-        dataset_id = ret[0]
-        self.cur_dataset_idx = dataset_id
+        ret = self.db_manager.read_dataset_detail(self.cur_tab_name)
+        if ret:
+            dataset_id = ret[0][0]
+            self.cur_dataset_idx = dataset_id
 
-        images = self.db_manager.read_image_data_by_dataset_id(dataset_id)
-        self.tW_images.draw_image_list(images)
+            images = self.db_manager.read_image_data_by_dataset_id(dataset_id)
+            self.tW_images.draw_image_list(images)
 
-        self.logger.info(f"Success drawing image_list - Current tab index, dataset_id, image_len: "
-                         f"{self.cur_tab_idx}-{dataset_id}, {len(images)} images")
+            self.logger.info(f"Success drawing image_list - Current tab index, dataset_id, image_len: "
+                             f"{self.cur_tab_idx}-{dataset_id}, {len(images)} images")
 
     def draw_image(self, item: QTableWidgetItem):
         img_idx = self.tW_images.item(item.row(), 0).text()
@@ -262,9 +263,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tW_img.currentWidget().pos_click = []
 
         cur_tab = self.tW_img.currentWidget()
-        cur_tab.bg_label.bg_img = img
+        # cur_tab.bg_label.bg_img = img
         cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
-        cur_tab.bg_label.boxes_rect = []
+        # cur_tab.bg_label.boxes_rect = []
         self.cur_image_idx = img_idx
 
         # clear label field
