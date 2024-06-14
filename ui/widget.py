@@ -11,8 +11,8 @@ from core.qt.shape import Shape
 
 class ImageTabInnerWidget(QWidget):
     CREATE, EDIT = [0, 1]
-    drawing_line_color = QColor(0, 0, 255)
-    drawing_rect_color = QColor(0, 0, 255)
+    drawing_line_color = QColor(255, 0, 0)
+    drawing_rect_color = QColor(255, 0, 0)
     CURSOR_DEFAULT = Qt.CursorShape.ArrowCursor
     CURSOR_POINT = Qt.CursorShape.PointingHandCursor
     CURSOR_DRAW = Qt.CursorShape.CrossCursor
@@ -189,6 +189,18 @@ class ImageTabInnerWidget(QWidget):
         if self.current:
             self.current.paint(p)
             self.line.paint(p)
+
+        # Paint rect
+        if self.current is not None and len(self.line) == 2:
+            left_top = self.line[0]
+            right_bottom = self.line[1]
+            rect_width = right_bottom.x() - left_top.x()
+            rect_height = right_bottom.y() - left_top.y()
+            p.setPen(self.drawing_rect_color)
+            brush = QBrush(Qt.BrushStyle.BDiagPattern)
+            p.setBrush(brush)
+            p.drawRect(left_top.x(), left_top.y(), rect_width, rect_height)
+
 
         if self.is_drawing() and not self.prev_point.isNull() and not self.out_of_pixmap(self.prev_point):
             p.setPen(QColor(0, 0, 0))
