@@ -79,21 +79,35 @@ class ImageTabInnerWidget(QWidget):
         # self.layout.addWidget(box_overlay)
         # box_overlay.show()
 
+    def mousePressEvent(self, event):
+        if self.window().cur_image_idx == -1:
+            return
+
+        pos = self.transform_pos(event.position())
+
+        # Left click event -> create box
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self.is_drawing():
+                self.handle_drawing(pos)
+            else:       # editing
+                pass
+
     def mouseMoveEvent(self, event):
         if self.window().cur_image_idx == -1:
             return
 
         pos = self.transform_pos(event.position())
+
         # Polygon drawing.
         if self.is_drawing():
             self.override_cursor(self.CURSOR_DRAW)
             if self.current:
-                current_width = abs(self.current[0].x() - pos.x())
-                current_height = abs(self.current[0].y() - pos.y())
-
                 color = self.drawing_line_color
                 if self.out_of_pixmap(pos):
-                    pass
+                    size = self.pixmap.size()
+                    clipped_x = min(max(0, pos.x()), size.width())
+                    clipped_y = min(max(0, pos.y()), size.height())
+                    pos = QPointF(clipped_x, clipped_y)
                 elif len(self.current) > 1 and self.close_enough(pos, self.current[0]):
                     pass
 
@@ -110,29 +124,27 @@ class ImageTabInnerWidget(QWidget):
             self.repaint()
             return
 
-    def mousePressEvent(self, event):
-        if self.window().cur_image_idx == -1:
-            return
-
+    def mouseReleaseEvent(self, event):
         pos = self.transform_pos(event.position())
 
-        # Left click event -> create box
         if event.button() == Qt.MouseButton.LeftButton:
             if self.is_drawing():
                 self.handle_drawing(pos)
-            else:       # editing
+            else:
                 pass
-            # rel_x, rel_y = self.get_rel_img_pos(event.position())
-            # self.pos_click.append([rel_x, rel_y])
-            #
-            # # create box
-            # if len(self.pos_click) == 2:
-            #     self.add_box()
-            #     self.pos_click = []
 
     def handle_drawing(self, pos):
         if self.current and self.current.reach_max_points() is False:
-            pass
+            init_pos = self.current[0]
+            min_x = init_pos.x()
+            min_y = init_pos.y()
+            target_pos = self.line[1]
+            max_x = target_pos.x()
+            max_y = target_pos.y()
+            self.current.add_point(QPointF(max_x, min_y))
+            self.current.add_point(target_pos)
+            self.current.add_point(QPointF(min_x, max_y))
+            self.finalize()
         elif not self.out_of_pixmap(pos):
             self.current = Shape()
             self.current.add_point(pos)
@@ -144,27 +156,6 @@ class ImageTabInnerWidget(QWidget):
     def set_hiding(self, enable=True):
         self._hide_background = self.hide_background if enable else False
 
-    # def get_rel_img_pos(self, position):
-    #     click_x, click_y = position.x(), position.y()
-    #     offset_width = int((self.size().width() - self.bg_label.size().width())/2)
-    #     offset_height = int((self.size().height() - self.bg_label.size().height())/2)
-    #     x = 0
-    #     y = 0
-    #     if click_x < offset_width:
-    #         x = 0
-    #     elif offset_width <= click_x <= self.bg_label.size().width() + offset_width:
-    #         x = int(click_x - offset_width)
-    #     elif self.bg_label.size().width() + offset_width < click_x:
-    #         x = self.bg_label.size().width()
-    #     if click_y < offset_height:
-    #         y = 0
-    #     elif offset_height <= click_y <= self.bg_label.size().height() + offset_height:
-    #         y = int(click_y - offset_height)
-    #     elif self.bg_label.size().height() + offset_height < click_y:
-    #         y = self.bg_label.size().height()
-    #
-    #     return x / self.bg_label.size().width(), y / self.bg_label.size().height()
-    
     def paintEvent(self, event):
         if not self.pixmap:
             return super().paintEvent(event)
@@ -177,9 +168,7 @@ class ImageTabInnerWidget(QWidget):
         p.scale(self.scale, self.scale)
         p.translate(self.offset_to_center())
 
-        tmp = self.pixmap
-
-        p.drawPixmap(0, 0, tmp)
+        p.drawPixmap(0, 0, self.pixmap)
         Shape.scale = self.scale
         Shape.label_font_size = self.label_font_size
         for shape in self.shapes:
@@ -200,13 +189,11 @@ class ImageTabInnerWidget(QWidget):
             brush = QBrush(Qt.BrushStyle.BDiagPattern)
             p.setBrush(brush)
             p.drawRect(left_top.x(), left_top.y(), rect_width, rect_height)
-
-
+        # Paint Cross line
         if self.is_drawing() and not self.prev_point.isNull() and not self.out_of_pixmap(self.prev_point):
             p.setPen(QColor(0, 0, 0))
             p.drawLine(int(self.prev_point.x()), 0, int(self.prev_point.x()), self.pixmap.height())
             p.drawLine(0, int(self.prev_point.y()), self.pixmap.width(), int(self.prev_point.y()))
-
 
         self.setAutoFillBackground(True)
 
@@ -228,6 +215,21 @@ class ImageTabInnerWidget(QWidget):
     def out_of_pixmap(self, p):
         w, h = self.pixmap.width(), self.pixmap.height()
         return not (0 <= p.x() <= w and 0 <= p.y() <= h)
+
+    def finalize(self):
+        assert self.current
+        if self.current.points[0] == self.current.points[-1]:
+            self.current = None
+            # self.drawPolygon.emit(False)
+            self.update()
+            return
+
+        self.current.close()
+        self.shapes.append(self.current)
+        self.current = None
+        self.set_hiding(False)
+        self.newShape.emit()
+        self.update()
 
     def close_enough(self, p1, p2):
         x, y = (p1 - p2).x(), (p1-p2).y()
