@@ -174,7 +174,7 @@ class ImageTabInnerWidget(QWidget):
         Shape.scale = self.scale
         Shape.label_font_size = self.label_font_size
         for shape in self.shapes:
-            if shape.selected and self.is_visible(shape):
+            if (shape.selected or not self._hide_background) and self.is_visible(shape):
                 shape.fill = shape.selected
                 shape.paint(p)
         if self.current:
