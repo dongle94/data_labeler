@@ -2,21 +2,25 @@ import sys
 
 from PySide6.QtGui import QColor, QPen, QPainterPath, QFont
 
+from utils.qt import distance
+
 
 class Shape(object):
     P_SQUARE, P_ROUND = 0, 1
+    MOVE_VERTEX, NEAR_VERTEX = 0, 1
 
     line_color = QColor(0, 255, 0, 128)
     fill_color = QColor(255, 0, 0, 128)
     select_line_color = QColor(255, 255, 255)
     select_fill_color = QColor(0, 128, 255, 155)
-    vertex_fill_color = QColor(0, 255, 0, 255)
+    vertex_fill_color = QColor(255, 255, 255, 255)
+    h_vertex_fill_color = QColor(255, 0, 0)
     point_type = P_SQUARE
     point_size = 16
     scale = 1.0
     label_font_size = 8
 
-    def __init__(self, label=None, line_color=None, paint_label=False):
+    def __init__(self, label=None, line_color=None, paint_label=True):
         self.label = label
         self.points = []
         self.fill = False
@@ -25,8 +29,12 @@ class Shape(object):
 
         # Inner param
         self._closed = False
-
         self._highlight_index = None
+        self._highlight_mode = self.NEAR_VERTEX
+        self._highlight_settings = {
+            self.NEAR_VERTEX: (4, self.P_ROUND),
+            self.MOVE_VERTEX: (1.5, self.P_SQUARE),
+        }
 
         if line_color is not None:
             self.line_color = line_color
@@ -102,13 +110,38 @@ class Shape(object):
         d = self.point_size / self.scale
         shape = self.point_type
         point = self.points[i]
-
+        if i == self._highlight_index:
+            size, shape = self._highlight_settings[self._highlight_mode]
+            d *= size
+        if self._highlight_index is not None:
+            self.vertex_fill_color = self.h_vertex_fill_color
+        else:
+            self.vertex_fill_color = Shape.vertex_fill_color
         if shape == self.P_SQUARE:
             path.addRect(point.x() - d / 2, point.y() - d / 2, d, d)
         elif shape == self.P_ROUND:
             path.addEllipse(point, d / 2.0, d / 2.0)
         else:
             assert False, "unsupported vertex shape"
+
+    def nearest_vertex(self, point, epsilon):
+        for i, p in enumerate(self.points):
+            if distance(p - point) <= epsilon:
+                return i
+        return None
+
+    def contains_point(self, point):
+        return self.make_path().contains(point)
+
+    def make_path(self):
+        path = QPainterPath(self.points[0])
+        for p in self.points[1:]:
+            path.lineTo(p)
+        return path
+
+    def highlight_vertex(self, i, action):
+        self._highlight_index = i
+        self._highlight_mode = action
 
     def highlight_clear(self):
         self._highlight_index = None

@@ -6,6 +6,7 @@ from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush,
 
 from ui.label import ImgLabel, BoxOverlayLabel
 from utils.coord import get_box_point
+from utils.qt import distance
 from core.qt.shape import Shape
 
 
@@ -46,6 +47,8 @@ class ImageTabInnerWidget(QWidget):
         self.label_font_size = 8
         self.visible = {}
         self.hide_background = False
+        self.h_shape = None
+        self.h_vertex = None
         self.draw_square = False
 
         # Inner param
@@ -65,6 +68,15 @@ class ImageTabInnerWidget(QWidget):
 
     def is_editing(self):
         return self.mode == self.EDIT
+
+    def set_editing(self, value=True):
+        self.mode = self.EDIT if value else self.CREATE
+
+        self.prev_point = QPointF()
+        self.repaint()
+
+    def selected_vertex(self):
+        return self.h_vertex is not None
 
     def set_qpixmap(self, pixmap: QPixmap, scale=False):
         # self.bg_label.setPixmap(pixmap)
@@ -125,6 +137,34 @@ class ImageTabInnerWidget(QWidget):
                 self.prev_point = pos
             self.repaint()
             return
+
+        # Just hovering over the widget, 2 possibilities:
+        # - Highlight shapes
+        # - Highlight vertex
+        for shape in reversed([s for s in self.shapes if self.is_visible(s)]):
+            index = shape.nearest_vertex(pos, self.epsilon)
+            if index is not None:
+                if self.selected_vertex():
+                    self.h_shape.highlight_clear()
+                self.h_vertex, self.h_shape = index, shape
+                shape.highlight_vertex(index, shape.MOVE_VERTEX)
+                self.override_cursor(self.CURSOR_POINT)
+                self.update()
+                break
+            elif shape.contains_point(pos):
+                if self.selected_vertex():
+                    self.h_shape.highlight_clear()
+                self.h_vertex, self.h_shape = None, shape
+                self.override_cursor(self.CURSOR_GRAB)
+                self.update()
+
+                break
+        else:
+            if self.h_shape:
+                self.h_shape.highlight_clear()
+                self.update()
+            self.h_vertex, self.h_shape = None, None
+            self.override_cursor(self.CURSOR_DEFAULT)
 
     def mouseReleaseEvent(self, event):
         pos = self.transform_pos(event.position())
@@ -234,9 +274,7 @@ class ImageTabInnerWidget(QWidget):
         self.update()
 
     def close_enough(self, p1, p2):
-        x, y = (p1 - p2).x(), (p1-p2).y()
-        d = sqrt(x * x + y * y)
-        return d < self.epsilon
+        return distance(p1 - p2) < self.epsilon
 
     def set_last_label(self, text, line_color=None, fill_color=None):
         assert text
