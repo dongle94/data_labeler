@@ -1,5 +1,5 @@
 from math import sqrt
-from PySide6.QtCore import QPointF
+from PySide6.QtCore import QPointF, Signal
 from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget, QWidget, QVBoxLayout, QSizePolicy, \
     QApplication
 from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush, Qt, QPixmap, QImage, QKeyEvent
@@ -20,6 +20,8 @@ class ImageTabInnerWidget(QWidget):
     CURSOR_GRAB = Qt.CursorShape.OpenHandCursor
 
     epsilon = 24.0
+
+    newShape = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -235,6 +237,27 @@ class ImageTabInnerWidget(QWidget):
         x, y = (p1 - p2).x(), (p1-p2).y()
         d = sqrt(x * x + y * y)
         return d < self.epsilon
+
+    def set_last_label(self, text, line_color=None, fill_color=None):
+        assert text
+        self.shapes[-1].label = text
+        if line_color:
+            self.shapes[-1].line_color = line_color
+
+        if fill_color:
+            self.shapes[-1].fill_color = fill_color
+
+        return self.shapes[-1]
+
+    def reset_all_lines(self):
+        assert self.shapes
+        self.current = self.shapes.pop()
+        self.current.set_open()
+        self.line.points = [self.current[-1], self.current[0]]
+        # self.drawingPolygon.emit(True)
+        self.current = None
+        # self.drawingPolygon.emit(False)
+        self.update()
 
     def current_cursor(self):
         cursor = QApplication.overrideCursor()

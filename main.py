@@ -2,18 +2,21 @@
 import os
 import sys
 import json
+
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
                                QMessageBox, QRadioButton, QCheckBox)
 from PySide6.QtCore import Qt
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
-from utils.qt import create_label, create_button_group
+from utils.qt import create_label, create_button_group, generate_color_by_text
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, DeleteLabelDialog
 from ui.widget import ImageTabInnerWidget
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
+from core.qt.item import BoxQListWidgetItem
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -45,6 +48,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # label fields
         self.lb_image_caps = []
         self.lb_image_cls = []
+        self.lb_items_to_shapes = {}
+        self.lb_shapes_to_items = {}
+        self.prev_label_text = ''
+
+        # Inner param
+        # self._beginner = True
 
         # init drawing
         self.draw_dataset()
@@ -234,6 +243,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for d in ds:
             ds_name = d[1]
             wg = ImageTabInnerWidget(self)
+            wg.newShape.connect(self.new_shape)
             self.tW_img.addTab(wg, ds_name)
 
         self.cur_tab_idx = self.tW_img.currentIndex()
@@ -616,6 +626,46 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.window().get_upper_image()
         elif Qt.Key.Key_Period == event.key():
             self.window().get_lower_image()
+
+    def new_shape(self):
+        # box 클래스 라벨이 없을 때 예외 다이어로그 처리
+        ret = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
+        is_exist_box_label = False
+        classes = None
+        for r in ret:
+            data_subject, data_type = r[3], r[4]
+            if data_subject == 0 and data_type == 0:
+                is_exist_box_label = True
+                classes = json.loads(r[6])
+
+        if is_exist_box_label is False:
+            msgBox = QMessageBox(text="박스형 라벨 필드가 존재하지 않습니다.")
+            msgBox.exec()
+            self.tW_img.currentWidget().reset_all_lines()
+
+        # 있다면
+        text = classes[list(classes.keys())[0]]     # default_class_name: 0번 클래스 이름
+        self.prev_label_text = text
+        g_color = generate_color_by_text(text)
+        shape = self.tW_img.currentWidget().set_last_label(text, line_color=g_color, fill_color=g_color)
+        self.add_box_label(shape)
+        # if self.beginner():
+        #     pass
+        # else:
+        #     pass
+
+    def add_box_label(self, shape):
+        shape.paint_label = True
+        item = BoxQListWidgetItem(shape.label)
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+        item.setCheckState(Qt.CheckState.Checked)
+        item.setBackground(generate_color_by_text(shape.label))
+        self.lb_items_to_shapes[item] = shape
+        self.lb_shapes_to_items[shape] = item
+        self.lw_labels.addItem(item)
+        # for action in self.actions.onShapesPresent:
+        #     action.setEnabled(True)
+        # self.update_combo_box()
 
 
 if __name__ == "__main__":
