@@ -86,20 +86,12 @@ class ImageTabInnerWidget(QWidget):
     def selected_vertex(self):
         return self.h_vertex is not None
 
-    def set_qpixmap(self, pixmap: QPixmap, scale=False):
+    def set_pixmap(self, pixmap: QPixmap, scale=False):
         # self.bg_label.setPixmap(pixmap)
         # self.bg_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         # self.bg_label.setScaledContents(scale)
+        pixmap = pixmap.scaled(self.size(), Qt.AspectRatioMode.IgnoreAspectRatio)
         self.pixmap = pixmap
-
-    def add_box(self):
-        # TODO add box
-        pt1, pt2 = get_box_point(self.pos_click[0], self.pos_click[1])
-        self.bg_label.add_rectangle(pt1[0], pt1[1], pt2[0], pt2[1])
-        # box_overlay = BoxOverlayLabel(self, [pt1, pt2])
-        # self.bg_label.boxes.append(box_overlay)
-        # self.layout.addWidget(box_overlay)
-        # box_overlay.show()
 
     def mousePressEvent(self, event):
         if self.window().cur_image_idx == -1:
@@ -325,6 +317,10 @@ class ImageTabInnerWidget(QWidget):
             QApplication.setOverrideCursor(cursor)
         else:
             QApplication.changeOverrideCursor(cursor)
+
+    def reset_label(self):
+        self.shapes = []
+        self.repaint()
 
 
 class ImagesTableWidget(QTableWidget):

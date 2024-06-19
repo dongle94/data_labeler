@@ -48,9 +48,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # label fields
         self.lb_image_caps = []
         self.lb_image_cls = []
+        self.lb_boxes_box = []
         self.lb_items_to_shapes = {}
         self.lb_shapes_to_items = {}
-        self.prev_label_text = ''
 
         # Inner param
         self._beginner = True
@@ -274,19 +274,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         cur_tab = self.tW_img.currentWidget()
         # cur_tab.bg_label.bg_img = img
-        cur_tab.set_qpixmap(img.toqpixmap(), scale=True)
+        cur_tab.set_pixmap(img.toqpixmap(), scale=True)
         # cur_tab.bg_label.boxes_rect = []
         self.cur_image_idx = img_idx
 
         # clear label field
         self.clear_img_label_captions()
         self.clear_img_label_cls()
+        self.clear_boxes_label_box()
         # clear boxes-cap label
         # clear boxes-cls label
 
         # Draw label field
         self.draw_cur_img_caption_label()
         self.draw_cur_img_classification_label()
+        self.draw_cur_boxes_box_label()
 
         self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
 
@@ -317,6 +319,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.lb_image_caps = []
         self.lb_image_cls = []
+        self.lb_boxes_box = []
 
         rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
         image_cap, image_cls = [], []
@@ -326,7 +329,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for ret in rets:
             label_field_id.append(ret[0])
             field_name = ret[1]
-            # dataset_id = ret[2]
+            # dataset_id = ret[2]       # self.cur_dataset_idx
             data_format = ret[3]
             data_type = ret[4]
             is_duplicate = ret[5]
@@ -393,6 +396,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                    alignment=Qt.AlignmentFlag.AlignTop,
                                    stylesheet="color: blue; font-weight: bold;")
             self.vlo_box_label_field.addWidget(q_label)
+            self.lb_boxes_box = [self.cur_label_fields_idx_dict['boxes-box'], self.lw_labels]
 
         # boxes-cap
         for f_name in boxes_cap:
@@ -523,6 +527,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     else:  # checkbox
                         c.setAutoExclusive(False)
 
+    def clear_boxes_label_box(self):
+        # List widget clear
+        self.lw_labels.clear()
+
+        # Image tab widget clear
+        self.tW_img.currentWidget().reset_label()
+
+        # parameter clear
+        self.lb_items_to_shapes = {}
+        self.lb_shapes_to_items = {}
+
     def save_labels(self):
         # 현재 이미지, 라벨 필드 목록
         # print(self.cur_image_idx, self.cur_label_fields)
@@ -539,7 +554,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Save image-cls label
         self.save_img_classification_label()
 
-        # 박스 - 박스
+        # Save boxes-box label
+        self.save_boxes_box_label()
 
         # 박스 - 캡션
 
@@ -622,14 +638,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info(f"load {self.cur_image_idx} idx image-class fields: {fields}")
 
-    def keyPressEvent(self, event):
-        if Qt.Key.Key_Comma == event.key():
-            self.window().get_upper_image()
-        elif Qt.Key.Key_Period == event.key():
-            self.window().get_lower_image()
+    def save_boxes_box_label(self):
+        pass
 
-    def beginner(self):
-        return self._beginner
+    def draw_cur_boxes_box_label(self):
+        pass
+
 
     def draw_new_box_label(self):
         # box 클래스 라벨이 없을 때 예외 다이어로그 처리
@@ -649,7 +663,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 있다면
         text = classes[list(classes.keys())[0]]     # default_class_name: 0번 클래스 이름
-        self.prev_label_text = text
         g_color = generate_color_by_text(text)
         shape = self.tW_img.currentWidget().set_last_label(text, line_color=g_color, fill_color=g_color)
         self.add_box_label(shape)
@@ -657,6 +670,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tW_img.currentWidget().set_editing(True)
         # else:
         #     pass
+
+    def keyPressEvent(self, event):
+        if Qt.Key.Key_Comma == event.key():
+            self.window().get_upper_image()
+        elif Qt.Key.Key_Period == event.key():
+            self.window().get_lower_image()
+
+    def beginner(self):
+        return self._beginner
 
     def add_box_label(self, shape):
         shape.paint_label = True
@@ -670,6 +692,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # for action in self.actions.onShapesPresent:
         #     action.setEnabled(True)
         # self.update_combo_box()
+
+        self.lb_boxes_box.append(['boxes-box', item])
 
 
 if __name__ == "__main__":
