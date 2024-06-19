@@ -1,21 +1,27 @@
-from PySide6.QtGui import QColor, QPen, QPainterPath
+import sys
+
+from PySide6.QtGui import QColor, QPen, QPainterPath, QFont
 
 
 class Shape(object):
     P_SQUARE, P_ROUND = 0, 1
 
     line_color = QColor(0, 255, 0, 128)
+    fill_color = QColor(255, 0, 0, 128)
     select_line_color = QColor(255, 255, 255)
-    point_type = P_ROUND
+    select_fill_color = QColor(0, 128, 255, 155)
+    vertex_fill_color = QColor(0, 255, 0, 255)
+    point_type = P_SQUARE
     point_size = 16
     scale = 1.0
     label_font_size = 8
 
-    def __init__(self, label=None, line_color=None):
+    def __init__(self, label=None, line_color=None, paint_label=False):
         self.label = label
         self.points = []
         self.fill = False
         self.selected = False
+        self.paint_label = paint_label
 
         # Inner param
         self._closed = False
@@ -67,6 +73,30 @@ class Shape(object):
 
             painter.drawPath(line_path)
             painter.drawPath(vertex_path)
+            painter.fillPath(vertex_path, self.vertex_fill_color)
+
+            # Draw label text
+            if self.paint_label:
+                min_x = sys.maxsize
+                min_y = sys.maxsize
+                min_y_label = int(1.25 * self.label_font_size)
+                for point in self.points:
+                    min_x = min(min_x, point.x())
+                    min_y = min(min_y, point.y())
+                if min_x != sys.maxsize and min_y != sys.maxsize:
+                    font = QFont()
+                    font.setPointSize(self.label_font_size)
+                    font.setBold(True)
+                    painter.setFont(font)
+                    if self.label is None:
+                        self.label = ""
+                    if min_y < min_y_label:
+                        min_y += min_y_label
+                    painter.drawText(min_x, min_y, self.label)
+
+            if self.fill:
+                color = self.select_fill_color if self.selected else self.fill_color
+                painter.fillPath(line_path, color)
 
     def draw_vertex(self, path, i):
         d = self.point_size / self.scale
