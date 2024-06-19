@@ -40,6 +40,7 @@ class ImageTabInnerWidget(QWidget):
         self.mode = self.CREATE
         self.shapes = []
         self.current = None
+        self.selected_shape = None
         self.line = Shape(line_color=self.drawing_line_color)
         self.prev_point = QPointF()
         self.pixmap = QPixmap()
@@ -71,9 +72,16 @@ class ImageTabInnerWidget(QWidget):
 
     def set_editing(self, value=True):
         self.mode = self.EDIT if value else self.CREATE
-
+        if not value:  # Create
+            self.un_highlight()
+            self.de_select_shape()
         self.prev_point = QPointF()
         self.repaint()
+
+    def un_highlight(self):
+        if self.h_shape:
+            self.h_shape.highlight_clear()
+        self.h_vertex = self.h_shape = None
 
     def selected_vertex(self):
         return self.h_vertex is not None
@@ -198,6 +206,14 @@ class ImageTabInnerWidget(QWidget):
     def set_hiding(self, enable=True):
         self._hide_background = self.hide_background if enable else False
 
+    def de_select_shape(self):
+        if self.selected_shape:
+            self.selected_shape.selected = False
+            self.selected_shape = None
+            self.set_hiding(False)
+            # self.selectionChanged.emit(False)
+            self.update()
+
     def paintEvent(self, event):
         if not self.pixmap:
             return super().paintEvent(event)
@@ -215,7 +231,7 @@ class ImageTabInnerWidget(QWidget):
         Shape.label_font_size = self.label_font_size
         for shape in self.shapes:
             if (shape.selected or not self._hide_background) and self.is_visible(shape):
-                shape.fill = shape.selected
+                shape.fill = shape.selected or shape == self.h_shape
                 shape.paint(p)
         if self.current:
             self.current.paint(p)
