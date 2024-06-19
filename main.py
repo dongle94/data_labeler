@@ -243,7 +243,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for d in ds:
             ds_name = d[1]
             wg = ImageTabInnerWidget(self)
-            wg.newShape.connect(self.new_shape)
+            wg.newShape.connect(self.draw_new_box_label)
             self.tW_img.addTab(wg, ds_name)
 
         self.cur_tab_idx = self.tW_img.currentIndex()
@@ -387,7 +387,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for classes in boxes_box:
             text = ""
             for idx, cls_name in classes.items():
-                text += f"{idx}: {cls_name} "
+                text += f"{idx}: {cls_name} / "
             q_label = create_label(self,
                                    text=text,
                                    alignment=Qt.AlignmentFlag.AlignTop,
@@ -479,6 +479,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.vlo_box_label_field.addWidget(group_box)
 
         self.cur_label_fields.append([db_id, field_name])
+        self.cur_label_fields_idx_dict[field_name] = db_id
         self.logger.info(f"Success add label_field - label_field_id: {db_id}")
 
     def is_valid_change_img_caption(self):
@@ -630,7 +631,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def beginner(self):
         return self._beginner
 
-    def new_shape(self):
+    def draw_new_box_label(self):
         # box 클래스 라벨이 없을 때 예외 다이어로그 처리
         ret = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
         is_exist_box_label = False
