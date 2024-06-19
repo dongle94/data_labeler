@@ -40,3 +40,25 @@ def generate_color_by_text(text):
 
 def distance(p):
     return sqrt(p.x() * p.x() + p.y() * p.y())
+
+
+def get_xyxy(points):
+    print(points)
+    x1, y1 = float('inf'), float('inf')
+    x2, y2 = -1, -1
+
+    for p in points:
+        x, y = p.x(), p.y()
+        x1, y1 = min(x1, x), min(y1, y)
+        x2, y2 = max(x2, x), max(y2, y)
+    return x1, y1, x2, y2
+
+
+def xyxy_to_rel(points, size):
+    x1, y1, x2, y2 = points
+    w, h = size.width(), size.height()
+
+    rel_x1, rel_y1 = round(x1 / w, 6), round(y1 / h, 6)
+    rel_x2, rel_y2 = round(x2 / w, 6), round(y2 / h, 6)
+
+    return rel_x1, rel_y1, rel_x2, rel_y2
