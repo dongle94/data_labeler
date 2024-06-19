@@ -1,4 +1,5 @@
 import hashlib
+from math import sqrt
 
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, QCheckBox, QRadioButton
@@ -36,3 +37,6 @@ def generate_color_by_text(text):
     b = int((hash_code / 16581375) % 255)
     return QColor(r, g, b, 100)
 
+
+def distance(p):
+    return sqrt(p.x() * p.x() + p.y() * p.y())
