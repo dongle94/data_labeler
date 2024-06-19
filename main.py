@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
-from utils.qt import create_label, create_button_group, generate_color_by_text
+from utils.qt import create_label, create_button_group, generate_color_by_text, get_xyxy, xyxy_to_rel
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, DeleteLabelDialog
 from ui.widget import ImageTabInnerWidget
@@ -639,7 +639,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info(f"load {self.cur_image_idx} idx image-class fields: {fields}")
 
     def save_boxes_box_label(self):
-        pass
+        boxes = []
+        label_field_idx, list_widget = self.lb_boxes_box
+
+        for box_shape, list_widget_item in self.lb_shapes_to_items.items():
+            points = box_shape.points
+            xyxy = get_xyxy(points)
+            pixmap_size = self.tW_img.currentWidget().pixmap.size()
+            rel_xyxy = xyxy_to_rel(xyxy, pixmap_size)
+
+            lastrowid = self.db_manager.create_label_data(
+                image_data_id=self.cur_image_idx,
+                label_field_id=label_field_idx,
+                is_box=1,
+                coord=str(list(rel_xyxy))
+            )
+            boxes.append(lastrowid)
+
+        self.logger.info(f"Success save {len(boxes)} boxes-box ids: {boxes}")
 
     def draw_cur_boxes_box_label(self):
         pass
@@ -692,8 +709,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # for action in self.actions.onShapesPresent:
         #     action.setEnabled(True)
         # self.update_combo_box()
-
-        self.lb_boxes_box.append(['boxes-box', item])
 
 
 if __name__ == "__main__":
