@@ -53,7 +53,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.prev_label_text = ''
 
         # Inner param
-        # self._beginner = True
+        self._beginner = True
 
         # init drawing
         self.draw_dataset()
@@ -627,6 +627,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif Qt.Key.Key_Period == event.key():
             self.window().get_lower_image()
 
+    def beginner(self):
+        return self._beginner
+
     def new_shape(self):
         # box 클래스 라벨이 없을 때 예외 다이어로그 처리
         ret = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
@@ -649,8 +652,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         g_color = generate_color_by_text(text)
         shape = self.tW_img.currentWidget().set_last_label(text, line_color=g_color, fill_color=g_color)
         self.add_box_label(shape)
-        # if self.beginner():
-        #     pass
+        if self.beginner():
+            self.tW_img.currentWidget().set_editing(True)
         # else:
         #     pass
 
