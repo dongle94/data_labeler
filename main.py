@@ -388,6 +388,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # boxes-box
         for classes in boxes_box:
+
+            if 'boxes-box' not in self.cur_label_fields_class:
+                self.cur_label_fields_class['boxes-box'] = {}
+            for idx, label_name in classes.items():
+                self.cur_label_fields_class['boxes-box'][label_name] = idx
+
             text = ""
             for idx, cls_name in classes.items():
                 text += f"{idx}: {cls_name} / "
@@ -648,6 +654,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             pixmap_size = self.tW_img.currentWidget().pixmap.size()
             rel_xyxy = xyxy_to_rel(xyxy, pixmap_size)
 
+            # TODO Save box cls info
             lastrowid = self.db_manager.create_label_data(
                 image_data_id=self.cur_image_idx,
                 label_field_id=label_field_idx,
@@ -659,7 +666,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info(f"Success save {len(boxes)} boxes-box ids: {boxes}")
 
     def draw_cur_boxes_box_label(self):
-        pass
+        label_field_idx, list_widget = self.lb_boxes_box
+
+        rets = self.db_manager.read_label_data(
+            image_data_id=self.cur_image_idx,
+            label_field_id=label_field_idx
+        )
+        for ret in rets:
+            is_box = ret[4]
+            if is_box != 1:
+                continue
+            elif is_box == 1:
+                coord = eval(ret[5])
+                cls = ret[6]
+                cls_name = None
+                for label_name, label_idx in self.cur_label_fields_class['boxes-box'].items():
+                    if int(label_idx) == cls:
+                        cls_name = label_name
+                        break
+                print(cls, cls_name, coord)
 
 
     def draw_new_box_label(self):
