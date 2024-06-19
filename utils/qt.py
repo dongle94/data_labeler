@@ -1,4 +1,7 @@
+import hashlib
+from math import sqrt
 
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, QCheckBox, QRadioButton
 
 
@@ -26,3 +29,14 @@ def create_button_group(parent, horizontal=True, names=None, duplication=False, 
     return gb
 
 
+def generate_color_by_text(text):
+    s = text
+    hash_code = int(hashlib.sha256(s.encode('utf-8')).hexdigest(), 16)
+    r = int((hash_code / 255) % 255)
+    g = int((hash_code / 65025) % 255)
+    b = int((hash_code / 16581375) % 255)
+    return QColor(r, g, b, 100)
+
+
+def distance(p):
+    return sqrt(p.x() * p.x() + p.y() * p.y())

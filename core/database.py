@@ -1,3 +1,4 @@
+import time
 import logging
 
 import mysql.connector
@@ -14,6 +15,7 @@ class DBManager(object):
         sql = open('./core/init.sql').read()
         cur.execute(sql)
         con.close()
+        time.sleep(1)
         self.con = mysql.connector.connect(
             user=user,
             password=password,
@@ -197,7 +199,6 @@ class DBManager(object):
 
 
 if __name__ == "__main__":
-    import time
     import os
     import sys
 

@@ -61,6 +61,7 @@ class DSCreate(QDialog, Ui_DS_Create):
 
         # (GUI)Draw dataset in tabWidget
         wg = ImageTabInnerWidget(self)
+        wg.newShape.connect(self.parent().draw_new_box_label)
         self.parent().tW_img.addTab(wg, ds_name)
 
         # TODO add dataset desc

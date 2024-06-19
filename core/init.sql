@@ -24,14 +24,14 @@ CREATE TABLE IF NOT EXISTS label_field (
     detail VARCHAR(400) NULL,
     FOREIGN KEY(dataset_id) REFERENCES ANNODATA.dataset(dataset_id) ON DELETE CASCADE
 )
-ENGINE=InnoDB
-DEFAULT CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    ENGINE=InnoDB
+    DEFAULT CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS image_data (
     image_data_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     dataset_id INT NOT NULL,
     filename VARCHAR(50) NOT NULL,
-    image_fid VARCHAR(20), NOT NULL,
+    image_fid VARCHAR(20) NOT NULL,
     image_url VARCHAR(200) NOT NULL,
     width SMALLINT NOT NULL,
     height SMALLINT NOT NULL,
