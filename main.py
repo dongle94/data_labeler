@@ -65,23 +65,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Signal and Slot
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
         self.actionCreate_Dataset.triggered.connect(self.create_dataset)
-        self.tB_header_uploadDir.clicked.connect(self.upload_dir)
-        self.actionUpload_folder.triggered.connect(self.upload_dir)
         self.tB_header_uploadImage.clicked.connect(self.upload_images)
         self.actionUpload_Image.triggered.connect(self.upload_images)
+        self.tB_header_uploadDir.clicked.connect(self.upload_dir)
+        self.actionUpload_folder.triggered.connect(self.upload_dir)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
 
         self.tB_header_delSelectedImage.clicked.connect(self.delete_images)
         self.actionDelete_Selected_Image.triggered.connect(self.delete_images)
-
         self.actionSave_label.triggered.connect(self.save_labels)
 
-        self.tW_img.currentChanged.connect(self.change_tab)
+        self.actionCreate_Mode.triggered.connect(self.set_create_mode)
+        self.actionEdit_Mode.triggered.connect(self.set_edit_mode)
+        self.actionSelect_up_image.triggered.connect(self.get_upper_image)
+        self.actionSelect_down_image.triggered.connect(self.get_lower_image)
 
         self.tB_img_up.clicked.connect(self.get_upper_image)
         self.tB_img_down.clicked.connect(self.get_lower_image)
         self.tB_img_del.clicked.connect(self.delete_images)
+
+        self.tW_img.currentChanged.connect(self.change_tab)
 
         self.tW_images.itemClicked.connect(self.draw_image)
 
@@ -193,9 +197,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info("Click 'Delete Image'")
 
         if len(self.tW_images.selectedItems()):
-            self.statusbar.showMessage(f"{len(self.tW_images.selectedItems())} 개의 이미지 삭제 요청")
+            rows = set()
+            for item in self.tW_images.selectedItems():
+                rows.add(item.row())
+            self.statusbar.showMessage(f"{len(rows)} 개의 이미지 삭제 요청")
             q_delete = ImageDeleteDialog(self,
-                                         image_num=len(self.tW_images.selectedItems()),
+                                         image_num=len(rows),
                                          weed=self.weed_manager,
                                          db=self.db_manager)
             q_delete.exec()
@@ -728,6 +735,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.window().get_upper_image()
         elif Qt.Key.Key_Period == event.key():
             self.window().get_lower_image()
+
+    def set_create_mode(self):
+        self.tW_img.currentWidget().set_editing(False)
+        # self.actionCreate_Mode.setEnabled(False)
+        # self.actionEdit_Mode.setEnabled(True)
+
+    def set_edit_mode(self):
+        self.tW_img.currentWidget().set_editing(True)
+        # self.actionCreate_Mode.setEnabled(True)
+        # self.actionEdit_Mode.setEnabled(False)
 
     def beginner(self):
         return self._beginner

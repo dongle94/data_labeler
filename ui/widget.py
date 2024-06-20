@@ -37,7 +37,7 @@ class ImageTabInnerWidget(QWidget):
         # self.setLayout(layout)
 
         # Param
-        self.mode = self.CREATE
+        self.mode = self.EDIT
         self.shapes = []
         self.current = None
         self.selected_shape = None
