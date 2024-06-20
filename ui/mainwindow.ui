@@ -435,6 +435,9 @@
     </property>
     <addaction name="actionCreate_Mode"/>
     <addaction name="actionEdit_Mode"/>
+    <addaction name="separator"/>
+    <addaction name="actionSelect_up_image"/>
+    <addaction name="actionSelect_down_image"/>
    </widget>
    <widget class="QMenu" name="menuInfer">
     <property name="title">
@@ -599,6 +602,22 @@
    </property>
    <property name="shortcut">
     <string>E</string>
+   </property>
+  </action>
+  <action name="actionSelect_up_image">
+   <property name="text">
+    <string>Select up image</string>
+   </property>
+   <property name="shortcut">
+    <string>,</string>
+   </property>
+  </action>
+  <action name="actionSelect_down_image">
+   <property name="text">
+    <string>Select down image</string>
+   </property>
+   <property name="shortcut">
+    <string>.</string>
    </property>
   </action>
  </widget>
