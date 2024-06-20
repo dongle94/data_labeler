@@ -6,17 +6,18 @@ import json
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
                                QMessageBox, QRadioButton, QCheckBox)
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QPointF
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
-from utils.qt import create_label, create_button_group, generate_color_by_text, get_xyxy, xyxy_to_rel
+from utils.qt import *
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, DeleteLabelDialog
 from ui.widget import ImageTabInnerWidget
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
 from core.qt.item import BoxQListWidgetItem
+from core.qt.shape import Shape
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -668,6 +669,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_cur_boxes_box_label(self):
         label_field_idx, list_widget = self.lb_boxes_box
+        tab_widget = self.tW_img.currentWidget()
 
         rets = self.db_manager.read_label_data(
             image_data_id=self.cur_image_idx,
@@ -685,8 +687,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     if int(label_idx) == cls:
                         cls_name = label_name
                         break
-                print(cls, cls_name, coord)
 
+                x1, y1, x2, y2 = rel_to_xyxy(coord, tab_widget.pixmap.size())
+                _box = Shape(label=cls_name)
+                _box.add_point(QPointF(x1, y1))
+                _box.add_point(QPointF(x2, y1))
+                _box.add_point(QPointF(x2, y2))
+                _box.add_point(QPointF(x1, y2))
+                tab_widget.current = _box
+                tab_widget.finalize()
 
     def draw_new_box_label(self):
         # box 클래스 라벨이 없을 때 예외 다이어로그 처리
