@@ -43,7 +43,6 @@ def distance(p):
 
 
 def get_xyxy(points):
-    print(points)
     x1, y1 = float('inf'), float('inf')
     x2, y2 = -1, -1
 
