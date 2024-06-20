@@ -61,3 +61,11 @@ def xyxy_to_rel(points, size):
     rel_x2, rel_y2 = round(x2 / w, 6), round(y2 / h, 6)
 
     return rel_x1, rel_y1, rel_x2, rel_y2
+
+
+def rel_to_xyxy(points, size):
+    x1, y1, x2, y2 = points
+    w, h = size.width(), size.height()
+
+    abs_x1, abs_y1, abs_x2, abs_y2 = int(x1 * w), int(y1 * h), int(x2 * w), int(y2 * h)
+    return abs_x1, abs_y1, abs_x2, abs_y2
