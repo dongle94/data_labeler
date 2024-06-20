@@ -16,7 +16,7 @@ class Shape(object):
     vertex_fill_color = QColor(255, 255, 255, 255)
     h_vertex_fill_color = QColor(255, 0, 0)
     point_type = P_SQUARE
-    point_size = 16
+    point_size = 10
     scale = 1.0
     label_font_size = 8
 
@@ -32,7 +32,7 @@ class Shape(object):
         self._highlight_index = None
         self._highlight_mode = self.NEAR_VERTEX
         self._highlight_settings = {
-            self.NEAR_VERTEX: (4, self.P_ROUND),
+            self.NEAR_VERTEX: (1, self.P_ROUND),
             self.MOVE_VERTEX: (1.5, self.P_SQUARE),
         }
 
