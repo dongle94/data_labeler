@@ -653,13 +653,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             xyxy = get_xyxy(points)
             pixmap_size = self.tW_img.currentWidget().pixmap.size()
             rel_xyxy = xyxy_to_rel(xyxy, pixmap_size)
+            cls = self.cur_label_fields_class['boxes-box'][list_widget_item.text()]
 
-            # TODO Save box cls info
             lastrowid = self.db_manager.create_label_data(
                 image_data_id=self.cur_image_idx,
                 label_field_id=label_field_idx,
                 is_box=1,
-                coord=str(list(rel_xyxy))
+                coord=str(list(rel_xyxy)),
+                cls=cls
             )
             boxes.append(lastrowid)
 
