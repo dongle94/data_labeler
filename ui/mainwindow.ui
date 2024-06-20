@@ -581,15 +581,24 @@
    <property name="text">
     <string>Save label</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionCreate_Mode">
    <property name="text">
     <string>Create Mode</string>
    </property>
+   <property name="shortcut">
+    <string>W</string>
+   </property>
   </action>
   <action name="actionEdit_Mode">
    <property name="text">
     <string>Edit Mode</string>
+   </property>
+   <property name="shortcut">
+    <string>E</string>
    </property>
   </action>
  </widget>
