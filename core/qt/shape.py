@@ -142,6 +142,9 @@ class Shape(object):
     def bounding_rect(self):
         return self.make_path().boundingRect()
 
+    def move_shape_by(self, offset):
+        self.points = [p + offset for p in self.points]
+
     def move_vertex_by(self, i, offset):
         self.points[i] = self.points[i] + offset
 

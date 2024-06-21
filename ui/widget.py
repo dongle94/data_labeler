@@ -23,6 +23,7 @@ class ImageTabInnerWidget(QWidget):
     epsilon = 24.0
 
     newShape = Signal()
+    # selectionChanged = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -113,6 +114,8 @@ class ImageTabInnerWidget(QWidget):
                     QApplication.setOverrideCursor(QCursor(Qt.CursorShape.OpenHandCursor))
                     self.pan_initial_pos = pos
 
+        self.update()
+
     def mouseMoveEvent(self, event):
         if self.window().cur_image_idx == -1:
             return
@@ -150,7 +153,10 @@ class ImageTabInnerWidget(QWidget):
                 # self.shapeMoved.emit()
                 self.repaint()
             elif self.selected_shape and self.prev_point:       # move
-                pass
+                self.override_cursor(self.CURSOR_MOVE)
+                self.bounded_move_shape(self.selected_shape, pos)
+                # self.shapeMoved.emit()
+                self.repaint()
             else:
                 # panning
                 delta_x = pos.x() - self.pan_initial_pos.x()
@@ -158,6 +164,7 @@ class ImageTabInnerWidget(QWidget):
                 # self.scrollRequest.emit(delta_x, Qt.Orientation.Horizontal)
                 # self.scrollRequest.emit(delta_y, Qt.Orientation.Vertical)
                 self.update()
+            return
 
         # Just hovering over the widget, 2 possibilities:
         # - Highlight shapes
@@ -294,6 +301,26 @@ class ImageTabInnerWidget(QWidget):
             right_shift = QPointF(0, shift_pos.y())
         shape.move_vertex_by(right_index, right_shift)
         shape.move_vertex_by(left_index, left_shift)
+
+    def bounded_move_shape(self, shape, pos):
+        if self.out_of_pixmap(pos):
+            return False
+
+        o1 = pos + self.offsets[0]
+        if self.out_of_pixmap(o1):
+            pos += QPointF(min(0, o1.x()), min(0, o1.y()))
+
+        o2 = pos + self.offsets[1]
+        if self.out_of_pixmap(o2):
+            pos += QPointF(min(0, self.pixmap.width() - o2.x()),
+                           min(0, self.pixmap.height() - o2.y()))
+
+        dp = pos - self.prev_point
+        if dp:
+            shape.move_shape_by(dp)
+            self.prev_point = pos
+            return True
+        return False
 
     def paintEvent(self, event):
         if not self.pixmap:
