@@ -1,8 +1,8 @@
 from math import sqrt
-from PySide6.QtCore import QPointF, Signal
+from PySide6.QtCore import QPointF, Signal, QPoint
 from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget, QWidget, QVBoxLayout, QSizePolicy, \
     QApplication
-from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush, Qt, QPixmap, QImage, QKeyEvent
+from PySide6.QtGui import QPainter, QPaintEvent, QPolygon, QPen, QColor, QBrush, Qt, QPixmap, QImage, QKeyEvent, QCursor
 
 from ui.label import ImgLabel, BoxOverlayLabel
 from utils.coord import get_box_point
@@ -43,6 +43,7 @@ class ImageTabInnerWidget(QWidget):
         self.selected_shape = None
         self.line = Shape(line_color=self.drawing_line_color)
         self.prev_point = QPointF()
+        self.offsets = QPointF(), QPointF()
         self.pixmap = QPixmap()
         self.scale = 1.0
         self.label_font_size = 8
@@ -51,6 +52,8 @@ class ImageTabInnerWidget(QWidget):
         self.h_shape = None
         self.h_vertex = None
         self.draw_square = False
+        # initialisation for panning
+        self.pan_initial_pos = QPoint()
 
         # Inner param
         self._painter = QPainter()
@@ -104,7 +107,11 @@ class ImageTabInnerWidget(QWidget):
             if self.is_drawing():
                 self.handle_drawing(pos)
             else:       # editing
-                pass
+                selection = self.select_shape_point(pos)
+                self.prev_point = pos
+                if selection is None:
+                    QApplication.setOverrideCursor(QCursor(Qt.CursorShape.OpenHandCursor))
+                    self.pan_initial_pos = pos
 
     def mouseMoveEvent(self, event):
         if self.window().cur_image_idx == -1:
@@ -198,6 +205,37 @@ class ImageTabInnerWidget(QWidget):
     def set_hiding(self, enable=True):
         self._hide_background = self.hide_background if enable else False
 
+    def select_shape_point(self, point):
+        """Click the shape created which contains this point.
+
+        Args:
+            point:
+
+        Returns:
+
+        """
+        self.de_select_shape()
+        if self.selected_vertex():
+            index, shape = self.h_vertex, self.h_shape
+            print(self.h_shape, self.h_vertex)
+            shape.highlight_vertex(index, shape.MOVE_VERTEX)
+            self.select_shape(shape)
+            return self.h_vertex
+        for shape in reversed(self.shapes):
+            if self.is_visible(shape) and shape.contains_point(point):
+                self.select_shape(shape)
+                self.calculate_offsets(shape, point)
+                return self.selected_shape
+        return None
+
+    def select_shape(self, shape):
+        self.de_select_shape()
+        shape.selected = True
+        self.selected_shape = shape
+        self.set_hiding()
+        # self.selectionChanged.emit(True)
+        self.update()
+
     def de_select_shape(self):
         if self.selected_shape:
             self.selected_shape.selected = False
@@ -205,6 +243,14 @@ class ImageTabInnerWidget(QWidget):
             self.set_hiding(False)
             # self.selectionChanged.emit(False)
             self.update()
+
+    def calculate_offsets(self, shape, point):
+        rect = shape.bounding_rect()
+        x1 = rect.x() - point.x()
+        y1 = rect.y() - point.y()
+        x2 = (rect.x() + rect.width()) - point.x()
+        y2 = (rect.y() + rect.height()) - point.y()
+        self.offsets = QPointF(x1, y1), QPointF(x2, y2)
 
     def paintEvent(self, event):
         if not self.pixmap:

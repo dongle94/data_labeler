@@ -139,6 +139,9 @@ class Shape(object):
             path.lineTo(p)
         return path
 
+    def bounding_rect(self):
+        return self.make_path().boundingRect()
+
     def highlight_vertex(self, i, action):
         self._highlight_index = i
         self._highlight_mode = action
