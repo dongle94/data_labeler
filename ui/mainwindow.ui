@@ -438,6 +438,8 @@
     <addaction name="separator"/>
     <addaction name="actionSelect_up_image"/>
     <addaction name="actionSelect_down_image"/>
+    <addaction name="separator"/>
+    <addaction name="actionDelete_selected_box"/>
    </widget>
    <widget class="QMenu" name="menuInfer">
     <property name="title">
@@ -618,6 +620,14 @@
    </property>
    <property name="shortcut">
     <string>.</string>
+   </property>
+  </action>
+  <action name="actionDelete_selected_box">
+   <property name="text">
+    <string>Delete selected box</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
    </property>
   </action>
  </widget>
