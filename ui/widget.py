@@ -23,7 +23,7 @@ class ImageTabInnerWidget(QWidget):
     epsilon = 24.0
 
     newShape = Signal()
-    # selectionChanged = Signal(bool)
+    selectionChanged = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -259,7 +259,7 @@ class ImageTabInnerWidget(QWidget):
         shape.selected = True
         self.selected_shape = shape
         self.set_hiding()
-        # self.selectionChanged.emit(True)
+        self.selectionChanged.emit(True)
         self.update()
 
     def de_select_shape(self):
@@ -267,7 +267,7 @@ class ImageTabInnerWidget(QWidget):
             self.selected_shape.selected = False
             self.selected_shape = None
             self.set_hiding(False)
-            # self.selectionChanged.emit(False)
+            self.selectionChanged.emit(False)
             self.update()
 
     def calculate_offsets(self, shape, point):

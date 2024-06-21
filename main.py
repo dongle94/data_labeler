@@ -40,6 +40,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_dataset_idx = -1
         self.cur_tab_idx = -1
         self.cur_tab_name = None
+        self.cur_inner_tab = None
         self.cur_label_fields = []
         self.cur_label_fields_class = {}
         self.cur_label_fields_idx_dict = {}
@@ -55,6 +56,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Inner param
         self._beginner = True
+        self._no_selection_slot = False
 
         # init drawing
         self.draw_dataset()
@@ -88,6 +90,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tW_img.currentChanged.connect(self.change_tab)
 
         self.tW_images.itemClicked.connect(self.draw_image)
+
+        self.lw_labels.itemActivated.connect(self.label_selection_changed)
+        self.lw_labels.itemSelectionChanged.connect(self.label_selection_changed)
 
         self.pB_label_add.clicked.connect(self.add_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
@@ -252,10 +257,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ds_name = d[1]
             wg = ImageTabInnerWidget(self)
             wg.newShape.connect(self.draw_new_box_label)
+            wg.selectionChanged.connect(self.shape_selection_changed)
             self.tW_img.addTab(wg, ds_name)
 
         self.cur_tab_idx = self.tW_img.currentIndex()
         self.cur_tab_name = self.tW_img.tabText(self.cur_tab_idx)
+        self.cur_inner_tab = self.tW_img.currentWidget()
         self.logger.info(f"Success drawing datasets - Current tab index, name: {self.cur_tab_idx}-{self.cur_tab_name}")
 
     def draw_image_list_widget(self):
@@ -278,12 +285,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         img = self.weed_manager.get_image(fid=image_fid)
 
-        self.tW_img.currentWidget().pos_click = []
+        self.cur_inner_tab.pos_click = []
 
-        cur_tab = self.tW_img.currentWidget()
-        # cur_tab.bg_label.bg_img = img
-        cur_tab.set_pixmap(img.toqpixmap(), scale=True)
-        # cur_tab.bg_label.boxes_rect = []
+        # self.cur_inner_tab.bg_label.bg_img = img
+        self.cur_inner_tab.set_pixmap(img.toqpixmap(), scale=True)
+        # self.cur_inner_tab.bg_label.boxes_rect = []
         self.cur_image_idx = img_idx
 
         # clear label field
@@ -303,6 +309,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def change_tab(self, index):
         self.cur_tab_idx = index
         self.cur_tab_name = self.tW_img.tabText(index)
+        self.cur_inner_tab = self.tW_img.currentWidget()
 
         self.draw_image_list_widget()
         self.clean_label_field()
@@ -546,7 +553,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lw_labels.clear()
 
         # Image tab widget clear
-        self.tW_img.currentWidget().reset_label()
+        self.cur_inner_tab.reset_label()
 
         # parameter clear
         self.lb_items_to_shapes = {}
@@ -659,7 +666,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for box_shape, list_widget_item in self.lb_shapes_to_items.items():
             points = box_shape.points
             xyxy = get_xyxy(points)
-            pixmap_size = self.tW_img.currentWidget().pixmap.size()
+            pixmap_size = self.cur_inner_tab.pixmap.size()
             rel_xyxy = xyxy_to_rel(xyxy, pixmap_size)
             cls = self.cur_label_fields_class['boxes-box'][list_widget_item.text()]
 
@@ -676,7 +683,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_cur_boxes_box_label(self):
         label_field_idx, list_widget = self.lb_boxes_box
-        tab_widget = self.tW_img.currentWidget()
+        tab_widget = self.cur_inner_tab
 
         rets = self.db_manager.read_label_data(
             image_data_id=self.cur_image_idx,
@@ -718,15 +725,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if is_exist_box_label is False:
             msgBox = QMessageBox(text="박스형 라벨 필드가 존재하지 않습니다.")
             msgBox.exec()
-            self.tW_img.currentWidget().reset_all_lines()
+            self.cur_inner_tab.reset_all_lines()
 
         # 있다면
         text = classes[list(classes.keys())[0]]     # default_class_name: 0번 클래스 이름
         g_color = generate_color_by_text(text)
-        shape = self.tW_img.currentWidget().set_last_label(text, line_color=g_color, fill_color=g_color)
+        shape = self.cur_inner_tab.set_last_label(text, line_color=g_color, fill_color=g_color)
         self.add_box_label(shape)
         if self.beginner():
-            self.tW_img.currentWidget().set_editing(True)
+            self.cur_inner_tab.set_editing(True)
         # else:
         #     pass
 
@@ -736,15 +743,39 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif Qt.Key.Key_Period == event.key():
             self.window().get_lower_image()
 
+    def current_item(self):
+        items = self.lw_labels.selectedItems()
+        if items:
+            return items[0]
+        return None
+
     def set_create_mode(self):
-        self.tW_img.currentWidget().set_editing(False)
+        self.cur_inner_tab.set_editing(False)
         # self.actionCreate_Mode.setEnabled(False)
         # self.actionEdit_Mode.setEnabled(True)
 
     def set_edit_mode(self):
-        self.tW_img.currentWidget().set_editing(True)
+        self.cur_inner_tab.set_editing(True)
         # self.actionCreate_Mode.setEnabled(True)
         # self.actionEdit_Mode.setEnabled(False)
+        self.label_selection_changed()
+
+    def shape_selection_changed(self):
+        if self._no_selection_slot:
+            self._no_selection_slot = False
+        else:
+            shape = self.cur_inner_tab.selected_shape
+            if shape:
+                self.lb_shapes_to_items[shape].setSelected(True)
+            else:
+                self.lw_labels.clearSelection()
+
+    def label_selection_changed(self):
+        item = self.current_item()
+        if item and self.cur_inner_tab.is_editing():
+            self._no_selection_slot = True
+            shape = self.lb_items_to_shapes[item]
+            self.cur_inner_tab.select_shape(shape)
 
     def beginner(self):
         return self._beginner
