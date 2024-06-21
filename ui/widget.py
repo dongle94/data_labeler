@@ -144,6 +144,20 @@ class ImageTabInnerWidget(QWidget):
                 self.prev_point = pos
             self.repaint()
             return
+        if event.buttons() & Qt.MouseButton.LeftButton:
+            if self.selected_vertex():      # scale
+                self.bounded_move_vertex(pos)
+                # self.shapeMoved.emit()
+                self.repaint()
+            elif self.selected_shape and self.prev_point:       # move
+                pass
+            else:
+                # panning
+                delta_x = pos.x() - self.pan_initial_pos.x()
+                delta_y = pos.y() - self.pan_initial_pos.y()
+                # self.scrollRequest.emit(delta_x, Qt.Orientation.Horizontal)
+                # self.scrollRequest.emit(delta_y, Qt.Orientation.Vertical)
+                self.update()
 
         # Just hovering over the widget, 2 possibilities:
         # - Highlight shapes
@@ -176,11 +190,17 @@ class ImageTabInnerWidget(QWidget):
     def mouseReleaseEvent(self, event):
         pos = self.transform_pos(event.position())
 
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton and self.selected_shape:
+            if self.selected_vertex():
+                self.override_cursor(self.CURSOR_POINT)
+            else:
+                self.override_cursor(self.CURSOR_GRAB)
+        elif event.button() == Qt.MouseButton.LeftButton:
             if self.is_drawing():
                 self.handle_drawing(pos)
             else:
-                pass
+                # pan
+                QApplication.restoreOverrideCursor()
 
     def handle_drawing(self, pos):
         if self.current and self.current.reach_max_points() is False:
@@ -217,7 +237,6 @@ class ImageTabInnerWidget(QWidget):
         self.de_select_shape()
         if self.selected_vertex():
             index, shape = self.h_vertex, self.h_shape
-            print(self.h_shape, self.h_vertex)
             shape.highlight_vertex(index, shape.MOVE_VERTEX)
             self.select_shape(shape)
             return self.h_vertex
@@ -251,6 +270,30 @@ class ImageTabInnerWidget(QWidget):
         x2 = (rect.x() + rect.width()) - point.x()
         y2 = (rect.y() + rect.height()) - point.y()
         self.offsets = QPointF(x1, y1), QPointF(x2, y2)
+
+    def bounded_move_vertex(self, pos):
+        index, shape = self.h_vertex, self.h_shape
+        point = shape[index]
+
+        if self.out_of_pixmap(pos):     # 나갔을 때
+            size = self.pixmap.size()
+            clipped_x = min(max(0, pos.x()), size.width())
+            clipped_y = min(max(0, pos.y()), size.height())
+            pos = QPointF(clipped_x, clipped_y)
+
+        # if self.draw_square:        # 정사각형 모드
+        shift_pos = pos - point
+        shape.move_vertex_by(index, shift_pos)
+        left_index = (index + 1) % 4
+        right_index = (index + 3) % 4
+        if index % 2 == 0:
+            right_shift = QPointF(shift_pos.x(), 0)
+            left_shift = QPointF(0, shift_pos.y())
+        else:
+            left_shift = QPointF(shift_pos.x(), 0)
+            right_shift = QPointF(0, shift_pos.y())
+        shape.move_vertex_by(right_index, right_shift)
+        shape.move_vertex_by(left_index, left_shift)
 
     def paintEvent(self, event):
         if not self.pixmap:

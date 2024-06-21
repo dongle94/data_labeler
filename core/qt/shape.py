@@ -142,6 +142,9 @@ class Shape(object):
     def bounding_rect(self):
         return self.make_path().boundingRect()
 
+    def move_vertex_by(self, i, offset):
+        self.points[i] = self.points[i] + offset
+
     def highlight_vertex(self, i, action):
         self._highlight_index = i
         self._highlight_mode = action
