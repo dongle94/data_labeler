@@ -270,6 +270,14 @@ class ImageTabInnerWidget(QWidget):
             self.selectionChanged.emit(False)
             self.update()
 
+    def delete_selected_shape(self):
+        if self.selected_shape:
+            shape = self.selected_shape
+            self.shapes.remove(shape)
+            self.selected_shape = None
+            self.update()
+            return shape
+
     def calculate_offsets(self, shape, point):
         rect = shape.bounding_rect()
         x1 = rect.x() - point.x()

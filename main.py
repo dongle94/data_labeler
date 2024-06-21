@@ -82,6 +82,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionEdit_Mode.triggered.connect(self.set_edit_mode)
         self.actionSelect_up_image.triggered.connect(self.get_upper_image)
         self.actionSelect_down_image.triggered.connect(self.get_lower_image)
+        self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
 
         self.tB_img_up.clicked.connect(self.get_upper_image)
         self.tB_img_down.clicked.connect(self.get_lower_image)
@@ -737,11 +738,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # else:
         #     pass
 
+    def delete_selected_boxes_box_label(self):
+        # shape = self.cur_inner_tab.delete_selected_shape()
+        shape = self.cur_inner_tab.selected_shape
+        print(shape)
+        if shape is None:
+            return
+        item = self.lb_shapes_to_items[shape]
+        print(item, self.lw_labels.row(item))
+        # self.lw_labels.takeItem(self.lw_labels.row(item))
+        # del self.lb_shapes_to_items[shape]
+        # del self.lb_items_to_shapes[item]
+        # self.update_combo_box()
+
     def keyPressEvent(self, event):
         if Qt.Key.Key_Comma == event.key():
-            self.window().get_upper_image()
+            self.get_upper_image()
         elif Qt.Key.Key_Period == event.key():
-            self.window().get_lower_image()
+            self.get_lower_image()
+        elif Qt.Key.Key_Delete == event.key():
+            print("????")
+            self.delete_selected_boxes_box_label()
 
     def current_item(self):
         items = self.lw_labels.selectedItems()
