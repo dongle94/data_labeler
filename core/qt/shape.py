@@ -26,6 +26,7 @@ class Shape(object):
         self.fill = False
         self.selected = False
         self.paint_label = paint_label
+        self.class_idx = -1
 
         # Inner param
         self._closed = False
@@ -154,6 +155,9 @@ class Shape(object):
 
     def highlight_clear(self):
         self._highlight_index = None
+
+    def set_class(self, class_idx):
+        self.class_idx = class_idx
 
     def __len__(self):
         return len(self.points)
