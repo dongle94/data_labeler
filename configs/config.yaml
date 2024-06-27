@@ -12,7 +12,7 @@ WEED:
   MASTER_URL: 'http://localhost:9333'
   COLLECTION: annotation
   COLLECTION_COUNT: 2
-  USE_PUBLIC_URL: True
+  USE_PUBLIC_URL: False
 
 
 # Environments
