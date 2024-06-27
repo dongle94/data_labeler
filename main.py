@@ -57,6 +57,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Inner param
         self._beginner = True
         self._no_selection_slot = False
+        self._is_change_box_class = False
+        self._change_box_class = []
 
         # init drawing
         self.draw_dataset()
@@ -709,8 +711,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 _box.add_point(QPointF(x2, y1))
                 _box.add_point(QPointF(x2, y2))
                 _box.add_point(QPointF(x1, y2))
-                tab_widget.current = _box
-                tab_widget.finalize()
+                tab_widget.shapes.append(_box)
+                g_color = generate_color_by_text(cls_name)
+                shape = self.cur_inner_tab.set_last_label(cls_name, line_color=g_color, fill_color=g_color)
+                self.add_box_label(shape)
 
     def draw_new_box_label(self):
         # box 클래스 라벨이 없을 때 예외 다이어로그 처리
@@ -732,6 +736,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         text = classes[list(classes.keys())[0]]     # default_class_name: 0번 클래스 이름
         g_color = generate_color_by_text(text)
         shape = self.cur_inner_tab.set_last_label(text, line_color=g_color, fill_color=g_color)
+        shape.set_class(0)
         self.add_box_label(shape)
         if self.beginner():
             self.cur_inner_tab.set_editing(True)
@@ -753,6 +758,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.get_upper_image()
         elif Qt.Key.Key_Period == event.key():
             self.get_lower_image()
+
+        if self.cur_inner_tab.selected_shape is not None:
+            shape = self.cur_inner_tab.selected_shape
+            if self._is_change_box_class is False and event.key() == Qt.Key.Key_Alt:
+                self._is_change_box_class = True
+                self.statusbar.showMessage("Enable to change class number")
+                return
+            if self._is_change_box_class is True and event.text().isdigit():
+                press_num = event.text()
+                self._change_box_class.append(press_num)
+                _change_cls = "".join(self._change_box_class)
+                if _change_cls in list(self.cur_label_fields_class['boxes-box'].values()):
+                    shape.set_class(int(_change_cls))
+                    for cls_name, cls_idx in self.cur_label_fields_class['boxes-box'].items():
+                        if cls_idx == _change_cls:
+                            shape.label = cls_name
+                            break
+                    item = self.lb_shapes_to_items[shape]
+                    item.setText(shape.label)
+                    item.setBackground(generate_color_by_text(shape.label))
+                    self.cur_inner_tab.repaint()
+                    self.statusbar.showMessage(f"Update to change class number: {_change_cls, shape.label}")
+
+    def keyReleaseEvent(self, event):
+        if self._is_change_box_class is True:
+            if event.key() == Qt.Key.Key_Alt:
+                self._is_change_box_class = False
+                self._change_box_class = []
+                self.statusbar.showMessage("Finish to change class number")
 
     def current_item(self):
         items = self.lw_labels.selectedItems()
