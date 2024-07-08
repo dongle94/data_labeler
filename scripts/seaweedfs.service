@@ -1,0 +1,15 @@
+[Unit]
+Description=SeaweedFS Server master+volume
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Restart=on-failure
+RestartSec=30s
+ExecStart=/data/data_labeler/scripts/weed.sh
+WorkingDirectory=/data/data_labeler
+
+[Install]
+WantedBy=multi-user.target
