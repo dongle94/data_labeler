@@ -235,3 +235,7 @@ CMakeLists.txt.user*
 *.exe
 
 *.user
+
+
+# Intellij
+.idea
