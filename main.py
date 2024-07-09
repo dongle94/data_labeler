@@ -774,7 +774,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     shape.set_class(int(_change_cls))
                     for cls_name, cls_idx in self.cur_label_fields_class['boxes-box'].items():
                         if cls_idx == _change_cls:
+                            g_color = generate_color_by_text(cls_name)
                             shape.label = cls_name
+                            shape.line_color = g_color
+                            shape.fill_color = g_color
                             break
                     item = self.lb_shapes_to_items[shape]
                     item.setText(shape.label)
