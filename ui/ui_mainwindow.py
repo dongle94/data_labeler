@@ -86,6 +86,8 @@ class Ui_MainWindow(object):
         self.actionSelect_down_image.setObjectName(u"actionSelect_down_image")
         self.actionDelete_selected_box = QAction(MainWindow)
         self.actionDelete_selected_box.setObjectName(u"actionDelete_selected_box")
+        self.actionExport_YOLO_detect_dataset = QAction(MainWindow)
+        self.actionExport_YOLO_detect_dataset.setObjectName(u"actionExport_YOLO_detect_dataset")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -397,6 +399,7 @@ class Ui_MainWindow(object):
         self.menuInfer.addAction(self.actionClassification_entire_bounding_boxes_of_all_images)
         self.menuInfer.addAction(self.actionClassification_entire_bounding_boxes_of_current_image)
         self.menuInfer.addAction(self.actionClassification_current_bounding_box_of_current_image)
+        self.menuExport.addAction(self.actionExport_YOLO_detect_dataset)
 
         self.retranslateUi(MainWindow)
 
@@ -454,6 +457,7 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(shortcut)
         self.actionDelete_selected_box.setShortcut(QCoreApplication.translate("MainWindow", u"Del", None))
 #endif // QT_CONFIG(shortcut)
+        self.actionExport_YOLO_detect_dataset.setText(QCoreApplication.translate("MainWindow", u"Export YOLO detection dataset", None))
         self.tB_header_addDataset.setText(QCoreApplication.translate("MainWindow", u"AddDataset", None))
         self.tB_header_uploadDir.setText(QCoreApplication.translate("MainWindow", u"UploadDir", None))
         self.tB_header_uploadImage.setText(QCoreApplication.translate("MainWindow", u"UploadImage", None))

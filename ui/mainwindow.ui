@@ -465,6 +465,7 @@
     <property name="title">
      <string>Export</string>
     </property>
+    <addaction name="actionExport_YOLO_detect_dataset"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuData"/>
@@ -628,6 +629,11 @@
    </property>
    <property name="shortcut">
     <string>Del</string>
+   </property>
+  </action>
+  <action name="actionExport_YOLO_detect_dataset">
+   <property name="text">
+    <string>Export YOLO detection dataset</string>
    </property>
   </action>
  </widget>
