@@ -13,9 +13,9 @@ from utils.logger import init_logger, get_logger
 from utils.qt import *
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, DeleteLabelDialog
-from ui.widget import ImageTabInnerWidget
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
+from core.qt.inner_tab import ImageTabInnerWidget
 from core.qt.item import BoxQListWidgetItem
 from core.qt.shape import Shape
 
@@ -306,6 +306,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.draw_cur_img_caption_label()
         self.draw_cur_img_classification_label()
         self.draw_cur_boxes_box_label()
+        self.cur_inner_tab.repaint()
 
         self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
 
@@ -773,7 +774,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     shape.set_class(int(_change_cls))
                     for cls_name, cls_idx in self.cur_label_fields_class['boxes-box'].items():
                         if cls_idx == _change_cls:
+                            g_color = generate_color_by_text(cls_name)
                             shape.label = cls_name
+                            shape.line_color = g_color
+                            shape.fill_color = g_color
                             break
                     item = self.lb_shapes_to_items[shape]
                     item.setText(shape.label)
