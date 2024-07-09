@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QDialog, QDialogButtonBox
 from utils.logger import get_logger
 from ui.ui_export_dialog import Ui_Dialog
 from utils.qt import get_dir_dialog
+from utils.checks import is_empty
 
 
 class ExportDialog(QDialog, Ui_Dialog):
@@ -17,6 +18,9 @@ class ExportDialog(QDialog, Ui_Dialog):
 
         # Signal & Slot
         self.toolButton.clicked.connect(self.get_path)
+        self.le_train.textChanged.connect(self.is_valid)
+        self.le_val.textChanged.connect(self.is_valid)
+        self.le_test.textChanged.connect(self.is_valid)
 
         self.buttonBox.rejected.connect(self.cancel)
         self.buttonBox.accepted.connect(self.export)
@@ -25,11 +29,26 @@ class ExportDialog(QDialog, Ui_Dialog):
         dirname = get_dir_dialog(self)
         self.dirname = dirname
         self.lineEdit.setText(dirname)
-        self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(bool(dirname))
+        self.is_valid()
 
     def export(self):
-        self.parent().export_yolo_detection_dataset(self.dirname)
+        train_ratio = float(self.le_train.text())
+        val_ratio = float(self.le_val.text())
+        test_ratio = float(self.le_test.text())
+        is_shuffle = self.checkBox.isChecked()
+        self.parent().export_yolo_detection_dataset(self.dirname, train_ratio, val_ratio, test_ratio, is_shuffle)
 
     def cancel(self):
         self.close()
         self.logger.info("내보내기 취소")
+
+    def is_valid(self):
+        self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(False)
+        if self.dirname and not is_empty(self.le_train.text()) and not is_empty(self.le_val.text()) \
+                and not is_empty(self.le_test.text()):
+            rtrain, rval, rtest = float(self.le_train.text()), float(self.le_val.text()), float(self.le_test.text())
+            if int(rtrain * 1000) + int(rval * 1000) + int(rtest * 1000) == 1000:
+                self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(True)
+        # else:
+
+
