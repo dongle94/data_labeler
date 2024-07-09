@@ -16,6 +16,7 @@ from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, Del
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
 from core.qt.inner_tab import ImageTabInnerWidget
+from core.qt.export_dialog import ExportDialog
 from core.qt.item import BoxQListWidgetItem
 from core.qt.shape import Shape
 
@@ -85,6 +86,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSelect_up_image.triggered.connect(self.get_upper_image)
         self.actionSelect_down_image.triggered.connect(self.get_lower_image)
         self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
+
+        self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_dialog)
 
         self.tB_img_up.clicked.connect(self.get_upper_image)
         self.tB_img_down.clicked.connect(self.get_lower_image)
@@ -842,6 +845,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #     action.setEnabled(True)
         # self.update_combo_box()
 
+    def export_dialog(self):
+        dialog = ExportDialog(self)
+        dialog.show()
+
+    def export_yolo_detection_dataset(self):
+        pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
