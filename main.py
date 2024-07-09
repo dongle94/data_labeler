@@ -306,6 +306,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.draw_cur_img_caption_label()
         self.draw_cur_img_classification_label()
         self.draw_cur_boxes_box_label()
+        self.cur_inner_tab.repaint()
 
         self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
 
