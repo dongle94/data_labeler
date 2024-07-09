@@ -5,9 +5,9 @@ from PySide6.QtWidgets import QDialog, QMessageBox, QDialogButtonBox, QLineEdit,
 from PySide6.QtCore import Qt, Signal
 
 from utils.logger import get_logger
+from core.qt.inner_tab import ImageTabInnerWidget
 from ui.ui_dataset import Ui_DS_Create
 from ui.ui_basic_dialog import Ui_Basic_Dialog
-from ui.widget import ImageTabInnerWidget
 from ui.ui_add_label_field import Ui_add_field
 from utils.checks import is_empty
 

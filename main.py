@@ -13,9 +13,9 @@ from utils.logger import init_logger, get_logger
 from utils.qt import *
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, DeleteLabelDialog
-from ui.widget import ImageTabInnerWidget
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
+from core.qt.inner_tab import ImageTabInnerWidget
 from core.qt.item import BoxQListWidgetItem
 from core.qt.shape import Shape
 
