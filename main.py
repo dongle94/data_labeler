@@ -112,21 +112,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def upload_dir(self):
         self.logger.info("Click 'Upload dir'")
-        fileDialog = QFileDialog(self)
-        fileDialog.setFileMode(QFileDialog.FileMode.Directory)
-        fileDialog.setViewMode(QFileDialog.ViewMode.List)
-
-        fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
-        fileDialog.setOption(QFileDialog.Option.ReadOnly, True)
-        fileDialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
-        fileDialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
-
-        dirname = fileDialog.getExistingDirectory(
-            parent=self,
-            caption='Select Directory',
-            dir=""
-        )
-
+        dirname = get_dir_dialog(self)
         if not dirname:
             self.logger.info("이미지 디렉토리 선택 취소")
             return
@@ -847,10 +833,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def export_dialog(self):
         dialog = ExportDialog(self)
-        dialog.show()
+        dialog.exec()
 
-    def export_yolo_detection_dataset(self):
-        pass
+    def export_yolo_detection_dataset(self, path):
+        print("Exporting YOLO detection dataset...", path)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
