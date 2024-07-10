@@ -2,7 +2,7 @@ import hashlib
 from math import sqrt
 
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, QCheckBox, QRadioButton
+from PySide6.QtWidgets import QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, QCheckBox, QRadioButton, QFileDialog
 
 
 def create_label(parent, text, alignment=None, stylesheet=None):
@@ -69,3 +69,25 @@ def rel_to_xyxy(points, size):
 
     abs_x1, abs_y1, abs_x2, abs_y2 = int(x1 * w), int(y1 * h), int(x2 * w), int(y2 * h)
     return abs_x1, abs_y1, abs_x2, abs_y2
+
+
+def get_dir_dialog(parent=None):
+    fileDialog = QFileDialog(parent)
+    fileDialog.setFileMode(QFileDialog.FileMode.Directory)
+    fileDialog.setViewMode(QFileDialog.ViewMode.List)
+
+    fileDialog.setOption(QFileDialog.Option.ShowDirsOnly, True)
+    fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+    fileDialog.setOption(QFileDialog.Option.ReadOnly, True)
+    fileDialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
+    fileDialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+
+    dirname = fileDialog.getExistingDirectory(
+        parent=parent,
+        caption='Select Directory',
+        dir=""
+    )
+    if not dirname:
+        dirname = None
+
+    return dirname

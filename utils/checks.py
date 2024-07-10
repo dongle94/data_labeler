@@ -1,7 +1,7 @@
 
 
 def is_empty(data):
-    if type(data) == str:
+    if isinstance(data, str):
         return data.strip() == ""
 
     return False

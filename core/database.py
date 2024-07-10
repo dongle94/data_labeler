@@ -102,6 +102,17 @@ class DBManager(object):
 
         return ret
 
+    def read_image_data_by_image_data_id(self, image_data_id):
+        sql = "SELECT * FROM image_data WHERE image_data_id = (%s)"
+        data = (image_data_id,)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        ret = cursor.fetchall()
+        cursor.close()
+
+        return ret
+
     def delete_image_data_by_image_id(self, image_id):
         sql = "DELETE FROM image_data WHERE image_data_id = (%s)"
         data = (image_id,)
