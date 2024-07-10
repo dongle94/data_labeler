@@ -2,6 +2,10 @@
 import os
 import sys
 import json
+import yaml
+import time
+import random
+from datetime import datetime
 
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
@@ -118,7 +122,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         else:
             upload_images = []
-            for file in os.listdir(dirname):
+            for file in sorted(os.listdir(dirname)):
                 basename, ext = os.path.splitext(file)
                 file_path = os.path.join(dirname, file)
                 if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp']:
@@ -835,8 +839,145 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = ExportDialog(self)
         dialog.exec()
 
-    def export_yolo_detection_dataset(self, path):
-        print("Exporting YOLO detection dataset...", path)
+    def export_yolo_detection_dataset(self, path, train, val, test, is_shuffle=False):
+        self.logger.info(f"Start Exporting YOLO detection dataset: {self.cur_tab_name}")
+        st = time.time()
+        imgs_idx = set()
+        # All images
+        if len(self.tW_images.selectedItems()) == 0:
+            for idx in range(self.tW_images.rowCount()):
+                imgs_idx.add(int(self.tW_images.item(idx, 0).text()))
+        # Selected images
+        else:
+            for item in self.tW_images.selectedItems():
+                imgs_idx.add(int(self.tW_images.item(item.row(), 0).text()))
+
+        # check shuffle is needed
+        imgs_idx = list(imgs_idx)
+        if is_shuffle is True:
+            random.shuffle(imgs_idx)
+        if is_shuffle is False:
+            imgs_idx = sorted(imgs_idx)
+        train_num = int(len(imgs_idx) * train)
+        val_num = int(len(imgs_idx) * (train + val))
+        test_num = int(len(imgs_idx) * (train + val + test))
+
+        # Set save path
+        dirname = path
+        dataset_name = self.cur_tab_name + f"_{datetime.now().strftime('%y%m%d_%H%M%S')}"
+        dataset_path = os.path.join(dirname, dataset_name)
+        os.makedirs(dataset_path, exist_ok=True)
+
+        # save meta yaml
+        label_field_info = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
+        boxes_box_field = None
+        for label_field in label_field_info:
+            if label_field[3] == 0 and label_field[4] == 0:
+                boxes_box_field = eval(label_field[6])
+                break
+        meta_data = {}
+        if boxes_box_field:
+            meta_data['names'] = [cls_name for cls_name in boxes_box_field.values()]
+            meta_data['nc'] = len(boxes_box_field)
+        meta_data['path'] = dataset_path
+        if train != 0.:
+            meta_data['train'] = './train/images'
+        if val != 0.:
+            meta_data['val'] = './val/images'
+        if test != 0.:
+            meta_data['test'] = './test/images'
+        with open(os.path.join(str(dataset_path), 'data.yaml'), 'w', encoding='utf8') as f:
+            yaml.dump(meta_data, f, allow_unicode=True, sort_keys=False)
+
+        # Save Train set
+        if train != 0.:
+            # make train, images, labels dirs
+            train_dir = os.path.join(str(dataset_path), "train")
+            t_img_dir, t_lb_dir = os.path.join(train_dir, "images"), os.path.join(train_dir, "labels")
+            os.makedirs(train_dir, exist_ok=True)
+            os.makedirs(t_img_dir, exist_ok=True)
+            os.makedirs(t_lb_dir, exist_ok=True)
+            for i in imgs_idx[:train_num]:
+                img_info = self.db_manager.read_image_data_by_image_data_id(i)[0]
+                img_file = f"{i:06d}_{img_info[2]}"
+                img_path = os.path.join(t_img_dir, img_file)
+
+                # save img
+                image_fid = self.tW_images.fid_dict[i]
+                img = self.weed_manager.get_image(fid=image_fid)
+                img.save(img_path)
+
+                # save label
+                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=2)
+                if label_info:
+                    label_path = os.path.join(t_lb_dir, os.path.splitext(img_file)[0] + '.txt')
+                    with open(label_path, 'w', encoding='utf8') as f:
+                        for l_info in label_info:
+                            box_coord = eval(l_info[5])
+                            box_class = l_info[6]
+                            box_xywh = (f"{box_coord[0]} {box_coord[1]} "
+                                        f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
+                            label_str = f"{box_class} {box_xywh}\n"
+                            f.write(label_str)
+        # Save Val set
+        if val != 0.:
+            val_dir = os.path.join(str(dataset_path), "val")
+            v_img_dir, v_lb_dir = os.path.join(val_dir, "images"), os.path.join(val_dir, "labels")
+            os.makedirs(val_dir, exist_ok=True)
+            os.makedirs(v_img_dir, exist_ok=True)
+            os.makedirs(v_lb_dir, exist_ok=True)
+            for i in imgs_idx[train_num:val_num]:
+                img_info = self.db_manager.read_image_data_by_image_data_id(i)[0]
+                img_file = f"{i:06d}_{img_info[2]}"
+                img_path = os.path.join(v_img_dir, img_file)
+
+                # save img
+                image_fid = self.tW_images.fid_dict[i]
+                img = self.weed_manager.get_image(fid=image_fid)
+                img.save(img_path)
+
+                # save label
+                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=2)
+                if label_info:
+                    label_path = os.path.join(v_lb_dir, os.path.splitext(img_file)[0] + '.txt')
+                    with open(label_path, 'w', encoding='utf8') as f:
+                        for l_info in label_info:
+                            box_coord = eval(l_info[5])
+                            box_class = l_info[6]
+                            box_xywh = (f"{box_coord[0]} {box_coord[1]} "
+                                        f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
+                            label_str = f"{box_class} {box_xywh}\n"
+                            f.write(label_str)
+        # Save Test set
+        if test != 0.:
+            test_dir = os.path.join(str(dataset_path), "test")
+            te_img_dir, te_lb_dir = os.path.join(test_dir, "images"), os.path.join(test_dir, "labels")
+            os.makedirs(test_dir, exist_ok=True)
+            os.makedirs(te_img_dir, exist_ok=True)
+            os.makedirs(te_lb_dir, exist_ok=True)
+            for i in imgs_idx[val_num:]:
+                img_info = self.db_manager.read_image_data_by_image_data_id(i)[0]
+                img_file = f"{i:06d}_{img_info[2]}"
+                img_path = os.path.join(te_img_dir, img_file)
+
+                # save img
+                image_fid = self.tW_images.fid_dict[i]
+                img = self.weed_manager.get_image(fid=image_fid)
+                img.save(img_path)
+
+                # save label
+                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=2)
+                if label_info:
+                    label_path = os.path.join(te_lb_dir, os.path.splitext(img_file)[0] + '.txt')
+                    with open(label_path, 'w', encoding='utf8') as f:
+                        for l_info in label_info:
+                            box_coord = eval(l_info[5])
+                            box_class = l_info[6]
+                            box_xywh = (f"{box_coord[0]} {box_coord[1]} "
+                                        f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
+                            label_str = f"{box_class} {box_xywh}\n"
+                            f.write(label_str)
+        self.logger.info(f"End Exporting YOLO detection dataset: {self.cur_tab_name} / {time.time()-st:.3f} sec")
 
 
 if __name__ == "__main__":
