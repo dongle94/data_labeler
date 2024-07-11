@@ -16,9 +16,10 @@ from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
 from utils.qt import *
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, DeleteLabelDialog
+from ui.dialog import DSCreate, AddLabelDialog
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
+from core.qt.simple_dialog import DatasetDeleteDialog, ImagesDeleteDialog, LabelsFieldDeleteDialog
 from core.qt.inner_tab import ImageTabInnerWidget
 from core.qt.export_dialog import ExportDialog
 from core.qt.item import BoxQListWidgetItem
@@ -188,10 +189,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         cur_idx = self.tW_img.currentIndex()
         cur_tab_name = self.tW_img.tabText(cur_idx)
 
-        q_delete = DSDelete(self,
-                            ds_name=cur_tab_name,
-                            weed=self.weed_manager,
-                            db=self.db_manager)
+        q_delete = DatasetDeleteDialog(self,
+                                       ds_name=cur_tab_name,
+                                       weed=self.weed_manager,
+                                       db=self.db_manager)
         q_delete.exec()
 
     def delete_images(self):
@@ -202,10 +203,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for item in self.tW_images.selectedItems():
                 rows.add(item.row())
             self.statusbar.showMessage(f"{len(rows)} 개의 이미지 삭제 요청")
-            q_delete = ImageDeleteDialog(self,
-                                         image_num=len(rows),
-                                         weed=self.weed_manager,
-                                         db=self.db_manager)
+            q_delete = ImagesDeleteDialog(self,
+                                          image_num=len(rows),
+                                          weed=self.weed_manager,
+                                          db=self.db_manager)
             q_delete.exec()
         else:
             self.statusbar.showMessage("이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다.")
@@ -220,7 +221,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def delete_label_field(self):
         self.logger.info("Click 'delete_label_field'")
 
-        delete_label_dialog = DeleteLabelDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
+        delete_label_dialog = LabelsFieldDeleteDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
         delete_label_dialog.show()
 
     def get_upper_image(self):
