@@ -35,10 +35,10 @@ def set_config(file):
     config.det_conf_thres = _config['DET']['CONF_THRES']
     config.det_obj_classes = _config['DET']['OBJ_CLASSES']
     # YOLO
-    config.yolov_img_size = _config['DET']['YOLO']['IMG_SIZE']
-    config.yolov_nms_iou = _config['DET']['YOLO']['NMS_IOU']
-    config.yolov_agnostic_nms = _config['DET']['YOLO']['AGNOSTIC_NMS']
-    config.yolov_max_det = _config['DET']['YOLO']['MAX_DET']
+    config.yolo_img_size = _config['DET']['YOLO']['IMG_SIZE']
+    config.yolo_nms_iou = _config['DET']['YOLO']['NMS_IOU']
+    config.yolo_agnostic_nms = _config['DET']['YOLO']['AGNOSTIC_NMS']
+    config.yolo_max_det = _config['DET']['YOLO']['MAX_DET']
 
     # Logger
     config.log_level = _config['LOG']['LOG_LEVEL']
