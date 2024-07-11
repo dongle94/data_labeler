@@ -10,6 +10,7 @@ from datetime import datetime
 from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
                                QMessageBox, QRadioButton, QCheckBox, QDialog)
 from PySide6.QtCore import Qt, QPointF
+from PySide6.QtGui import QPixmap
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
@@ -317,7 +318,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Reset left list
         self.draw_image_list_widget()
-        # Reset box list and shape, item
+        # Reset pixmap, box list and shape, item
+        self.cur_inner_tab.pixmap = QPixmap()
+        self.cur_image_idx = -1
         self.clear_boxes_box_label()
         # Reset boxes label field and image label field
         self.clean_label_field()
