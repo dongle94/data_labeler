@@ -445,11 +445,11 @@
     <property name="title">
      <string>Infer</string>
     </property>
-    <addaction name="actionObject_Detection_for_whole_Image"/>
-    <addaction name="actionObject_Detection_for_selected_Image"/>
-    <addaction name="actionObject_Detection_for_current_Image"/>
+    <addaction name="actionObject_Detection_for_entire_images"/>
+    <addaction name="actionObject_Detection_for_selected_images"/>
+    <addaction name="actionObject_Detection_for_current_image"/>
     <addaction name="separator"/>
-    <addaction name="actionObject_Detection_for_whole_Image_without_removing"/>
+    <addaction name="actionObject_Detection_for_entire_images_without_removing"/>
     <addaction name="actionObject_Detection_for_selected_images_without_removing"/>
     <addaction name="actionObject_Detection_for_current_image_without_removing"/>
     <addaction name="separator"/>
@@ -523,22 +523,22 @@
     <string>Delete Current Label</string>
    </property>
   </action>
-  <action name="actionObject_Detection_for_whole_Image">
+  <action name="actionObject_Detection_for_entire_images">
    <property name="text">
     <string>Object Detection for entire Images</string>
    </property>
   </action>
-  <action name="actionObject_Detection_for_selected_Image">
+  <action name="actionObject_Detection_for_selected_images">
    <property name="text">
     <string>Object Detection for selected images</string>
    </property>
   </action>
-  <action name="actionObject_Detection_for_current_Image">
+  <action name="actionObject_Detection_for_current_image">
    <property name="text">
     <string>Object Detection for current Image</string>
    </property>
   </action>
-  <action name="actionObject_Detection_for_whole_Image_without_removing">
+  <action name="actionObject_Detection_for_entire_images_without_removing">
    <property name="text">
     <string>Object Detection for entire image without removing labels</string>
    </property>
