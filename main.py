@@ -97,7 +97,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSelect_down_image.triggered.connect(self.get_lower_image)
         self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
 
-        self.actionObject_Detection_for_current_Image.triggered.connect(self.create_box_label_by_detection_one_image)
+        # Menubar - infer
+        self.actionObject_Detection_for_entire_images.triggered.connect(self.create_box_label_by_detection_entire_images)
+        self.actionObject_Detection_for_selected_images.triggered.connect(self.create_box_label_by_detection_selected_images)
+        self.actionObject_Detection_for_current_image.triggered.connect(self.create_box_label_by_detection_current_image)
 
         self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_yolo_detection_dataset)
 
@@ -318,6 +321,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Reset left list
         self.draw_image_list_widget()
+        self.tW_images.clearSelection()
         # Reset pixmap, box list and shape, item
         self.cur_inner_tab.pixmap = QPixmap()
         self.cur_image_idx = -1
@@ -846,13 +850,65 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lb_items_to_shapes[item] = shape
         self.lb_shapes_to_items[shape] = item
         self.lw_labels.addItem(item)
-        # for action in self.actions.onShapesPresent:
-        #     action.setEnabled(True)
-        # self.update_combo_box()
 
-    def create_box_label_by_detection_one_image(self):
+    def create_box_label_by_detection_entire_images(self):
+        item_cnt = self.tW_images.rowCount()
+        dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=item_cnt)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            box_num = 0
+            for row_idx in range(item_cnt):
+                img_idx_item = self.tW_images.item(row_idx, 0)
+                img_idx = int(img_idx_item.text())
+                self.tW_images.selectRow(row_idx)
+                self.draw_image(img_idx_item)
+                n = self.create_box_label_by_detection_one_image(img_idx)
+                box_num += n
+
+            self.statusbar.showMessage(f"Bounding box for {item_cnt} images created successfully: {box_num}")
+            self.logger.info(f"Bounding box for {item_cnt} images created successfully: {box_num}")
+
+    def create_box_label_by_detection_selected_images(self):
         if len(self.tW_images.selectedItems()) == 0:
-            self.statusbar.showMessage("1장의 이미지를 선택해주세요.")
+            self.statusbar.showMessage("1장 이상의 이미지를 선택해주세요.")
+            msgBox = QMessageBox(text="이미지를 선택해주세요.")
+            msgBox.setWindowTitle("이미지 미선택 오류")
+            msgBox.exec()
+            return
+
+        imgs_idx = dict()
+        for item in self.tW_images.selectedItems():
+            if int(self.tW_images.item(item.row(), 0).text()) not in imgs_idx:
+                imgs_idx[int(self.tW_images.item(item.row(), 0).text())] = item
+        dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=len(imgs_idx))
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            box_num = 0
+            for img_idx, item in imgs_idx.items():
+                self.tW_images.selectRow(item.row())
+                self.draw_image(item)
+                n = self.create_box_label_by_detection_one_image(img_idx)
+                box_num += n
+
+            self.statusbar.showMessage(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
+            self.logger.info(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
+
+    def create_box_label_by_detection_current_image(self):
+        if len(self.tW_images.selectedItems()) == 0:
+            self.statusbar.showMessage("이미지를 선택해주세요.")
+            msgBox = QMessageBox(text="이미지를 선택해주세요.")
+            msgBox.setWindowTitle("이미지 미선택 오류")
+            msgBox.exec()
+            return
+        elif len(self.tW_images.selectedItems()) > 1:
+            self.statusbar.showMessage("이미지를 1장만 선택해주세요.")
+            msgBox = QMessageBox(text="이미지를 1장만 선택해주세요.")
+            msgBox.setWindowTitle("다중 이미지 선택 오류")
+            msgBox.exec()
             return
 
         dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=1)
@@ -860,43 +916,48 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ret == QDialog.DialogCode.Rejected:
             return
         elif ret == QDialog.DialogCode.Accepted:
-            # Delete Current image box label
-            self.db_manager.delete_boxes_box_label_data_by_image_data_id(self.cur_image_idx)
-            self.clear_boxes_box_label()
+            box_num = self.create_box_label_by_detection_one_image(self.cur_image_idx)
 
-            if self.detector is None:
-                self.detector = ObjectDetector(cfg=_cfg)
-            image_fid = self.tW_images.fid_dict[self.cur_image_idx]
-            img = self.weed_manager.get_image(fid=image_fid, pil=False)
-            det = self.detector.run_np(img)
-            img_h, img_w = img.shape[:2]
-            cls_idx_to_name = {int(v): k for k, v in self.cur_label_fields_class['boxes-box'].items()}
-            ret_num = 0
-            for d in det:
-                abs_xyxy = d[:4]
-                rel_xyxy = absxyxy_to_relxyxy(abs_xyxy, img_w, img_h)
-                cls = int(d[5])
-                if cls not in cls_idx_to_name.keys():
-                    continue
-                ret_num += 1
-                cls_name = cls_idx_to_name[cls]
+            self.statusbar.showMessage(f"Bounding box created successfully: {box_num}")
+            self.logger.info(f"Bounding box for current image created successfully: {box_num}")
 
-                x1, y1, x2, y2 = rel_to_xyxy(rel_xyxy, self.cur_inner_tab.pixmap.size())
-                _box = Shape(label=cls_name)
-                _box.add_point(QPointF(x1, y1))
-                _box.add_point(QPointF(x2, y1))
-                _box.add_point(QPointF(x2, y2))
-                _box.add_point(QPointF(x1, y2))
-                self.cur_inner_tab.shapes.append(_box)
-                g_color = generate_color_by_text(cls_name)
-                shape = self.cur_inner_tab.set_last_label(cls_name, line_color=g_color, fill_color=g_color)
-                self.add_box_label(shape)
+    def create_box_label_by_detection_one_image(self, image_idx):
+        # Delete Current image box label
+        self.db_manager.delete_boxes_box_label_data_by_image_data_id(image_idx)
+        self.clear_boxes_box_label()
 
-            self.statusbar.showMessage(f"Bounding box created successfully: {ret_num}")
-            self.logger.info(f"Bounding box created successfully: {ret_num}")
+        if self.detector is None:
+            self.detector = ObjectDetector(cfg=_cfg)
+        image_fid = self.tW_images.fid_dict[image_idx]
+        img = self.weed_manager.get_image(fid=image_fid, pil=False)
+        det = self.detector.run_np(img)
+        img_h, img_w = img.shape[:2]
+        cls_idx_to_name = {int(v): k for k, v in self.cur_label_fields_class['boxes-box'].items()}
+        ret_num = 0
+        for d in det:
+            abs_xyxy = d[:4]
+            rel_xyxy = absxyxy_to_relxyxy(abs_xyxy, img_w, img_h)
+            cls = int(d[5])
+            if cls not in cls_idx_to_name.keys():
+                continue
+            ret_num += 1
+            cls_name = cls_idx_to_name[cls]
 
-            # Save label in DB
-            self.save_boxes_box_label()
+            x1, y1, x2, y2 = rel_to_xyxy(rel_xyxy, self.cur_inner_tab.pixmap.size())
+            _box = Shape(label=cls_name)
+            _box.add_point(QPointF(x1, y1))
+            _box.add_point(QPointF(x2, y1))
+            _box.add_point(QPointF(x2, y2))
+            _box.add_point(QPointF(x1, y2))
+            self.cur_inner_tab.shapes.append(_box)
+            g_color = generate_color_by_text(cls_name)
+            shape = self.cur_inner_tab.set_last_label(cls_name, line_color=g_color, fill_color=g_color)
+            self.add_box_label(shape)
+
+        # Save label in DB
+        self.save_boxes_box_label()
+
+        return ret_num
 
     def export_yolo_detection_dataset(self):
         dialog = ExportDialog(self)
