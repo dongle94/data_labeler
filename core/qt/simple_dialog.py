@@ -187,5 +187,8 @@ class DetectionLabelsCreateDialog(QDialog, Ui_Basic_Dialog):
              f"{img_num} 장의 이미지에 박스 라벨을 생성합니다.")
         self.label.setText(t)
 
+        # trigger
+        self.buttonBox.rejected.connect(self.cancel)
+
     def cancel(self):
         self.logger.info("디텍션 라벨 생성 취소")
