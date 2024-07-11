@@ -15,6 +15,10 @@ class ExportDialog(QDialog, Ui_Dialog):
         self.logger = get_logger()
 
         self.dirname = ""
+        self.train_ratio = 0.
+        self.val_ratio = 0.
+        self.test_ratio = 0.
+        self.is_shuffle = False
 
         # Signal & Slot
         self.toolButton.clicked.connect(self.get_path)
@@ -32,11 +36,10 @@ class ExportDialog(QDialog, Ui_Dialog):
         self.is_valid()
 
     def export(self):
-        train_ratio = float(self.le_train.text())
-        val_ratio = float(self.le_val.text())
-        test_ratio = float(self.le_test.text())
-        is_shuffle = self.checkBox.isChecked()
-        self.parent().export_yolo_detection_dataset(self.dirname, train_ratio, val_ratio, test_ratio, is_shuffle)
+        self.train_ratio = float(self.le_train.text())
+        self.val_ratio = float(self.le_val.text())
+        self.test_ratio = float(self.le_test.text())
+        self.is_shuffle = self.checkBox.isChecked()
 
     def cancel(self):
         self.close()
@@ -49,6 +52,3 @@ class ExportDialog(QDialog, Ui_Dialog):
             rtrain, rval, rtest = float(self.le_train.text()), float(self.le_val.text()), float(self.le_test.text())
             if int(rtrain * 1000) + int(rval * 1000) + int(rtest * 1000) == 1000:
                 self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(True)
-        # else:
-
-

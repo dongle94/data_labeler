@@ -95,7 +95,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionObject_Detection_for_current_Image.triggered.connect(self.create_box_label_by_detection_one_image)
 
-        self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_dialog)
+        self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_yolo_detection_dataset)
 
         self.tB_img_up.clicked.connect(self.get_upper_image)
         self.tB_img_down.clicked.connect(self.get_lower_image)
@@ -851,11 +851,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif ret == QDialog.DialogCode.Accepted:
             print("성공")
 
-    def export_dialog(self):
+    def export_yolo_detection_dataset(self):
         dialog = ExportDialog(self)
-        dialog.exec()
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
 
-    def export_yolo_detection_dataset(self, path, train, val, test, is_shuffle=False):
+        path = dialog.dirname
+        train, val, test = dialog.train_ratio, dialog.val_ratio, dialog.test_ratio
+        is_shuffle = dialog.is_shuffle
         self.logger.info(f"Start Exporting YOLO detection dataset: {self.cur_tab_name}")
         st = time.time()
         imgs_idx = set()
