@@ -7,18 +7,20 @@ import time
 import random
 from datetime import datetime
 
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
                                QMessageBox, QRadioButton, QCheckBox, QDialog)
 from PySide6.QtCore import Qt, QPointF
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
-from utils.qt import *
+from utils.qt import (create_label, create_button_group, generate_color_by_text, get_xyxy, xyxy_to_rel, rel_to_xyxy,
+                      get_dir_dialog)
+from utils.coord import absxyxy_to_relxyxy
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, AddLabelDialog
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
+from core.obj_detector import ObjectDetector
 from core.qt.simple_dialog import (DatasetDeleteDialog, ImagesDeleteDialog, LabelsFieldDeleteDialog,
                                    DetectionLabelsCreateDialog)
 from core.qt.inner_tab import ImageTabInnerWidget
@@ -53,6 +55,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_label_fields_idx_dict = {}
         self.cur_image_idx = -1
         self.is_label_change = False
+        self.detector = None
 
         # label fields
         self.lb_image_caps = []
@@ -279,9 +282,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                              f"{self.cur_tab_idx}-{dataset_id}, {len(images)} images")
 
     def draw_image(self, item: QTableWidgetItem):
-        img_idx = self.tW_images.item(item.row(), 0).text()
+        img_idx = int(self.tW_images.item(item.row(), 0).text())
         img_name = self.tW_images.item(item.row(), 1).text()
-        image_fid = self.tW_images.fid_dict[int(img_idx)]
+        image_fid = self.tW_images.fid_dict[img_idx]
 
         img = self.weed_manager.get_image(fid=image_fid)
 
@@ -847,9 +850,40 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=1)
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
-            print("취소")
+            return
         elif ret == QDialog.DialogCode.Accepted:
-            print("성공")
+            if self.detector is None:
+                self.detector = ObjectDetector(cfg=_cfg)
+            image_fid = self.tW_images.fid_dict[self.cur_image_idx]
+            img = self.weed_manager.get_image(fid=image_fid, pil=False)
+            det = self.detector.run_np(img)
+            img_h, img_w = img.shape[:2]
+            cls_idx_to_name = {int(v): k for k, v in self.cur_label_fields_class['boxes-box'].items()}
+            ret_num = 0
+            for d in det:
+                abs_xyxy = d[:4]
+                rel_xyxy = absxyxy_to_relxyxy(abs_xyxy, img_w, img_h)
+                cls = int(d[5])
+                if cls not in cls_idx_to_name.keys():
+                    continue
+                ret_num += 1
+                cls_name = cls_idx_to_name[cls]
+
+                x1, y1, x2, y2 = rel_to_xyxy(rel_xyxy, self.cur_inner_tab.pixmap.size())
+                _box = Shape(label=cls_name)
+                _box.add_point(QPointF(x1, y1))
+                _box.add_point(QPointF(x2, y1))
+                _box.add_point(QPointF(x2, y2))
+                _box.add_point(QPointF(x1, y2))
+                self.cur_inner_tab.shapes.append(_box)
+                g_color = generate_color_by_text(cls_name)
+                shape = self.cur_inner_tab.set_last_label(cls_name, line_color=g_color, fill_color=g_color)
+                self.add_box_label(shape)
+
+            self.statusbar.showMessage(f"Bounding box created successfully: {ret_num}")
+            self.logger.info(f"Bounding box created successfully: {ret_num}")
+
+            # TODO save in DB
 
     def export_yolo_detection_dataset(self):
         dialog = ExportDialog(self)
