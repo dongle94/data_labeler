@@ -298,7 +298,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # clear label field
         self.clear_img_label_captions()
         self.clear_img_label_cls()
-        self.clear_boxes_label_box()
+        self.clear_boxes_box_label()
         # clear boxes-cap label
         # clear boxes-cls label
 
@@ -552,7 +552,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     else:  # checkbox
                         c.setAutoExclusive(False)
 
-    def clear_boxes_label_box(self):
+    def clear_boxes_box_label(self):
         # List widget clear
         self.lw_labels.clear()
 
@@ -852,6 +852,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ret == QDialog.DialogCode.Rejected:
             return
         elif ret == QDialog.DialogCode.Accepted:
+            # Delete Current image box label
+            self.db_manager.delete_boxes_box_label_data_by_image_data_id(self.cur_image_idx)
+            self.clear_boxes_box_label()
+
             if self.detector is None:
                 self.detector = ObjectDetector(cfg=_cfg)
             image_fid = self.tW_images.fid_dict[self.cur_image_idx]
@@ -883,7 +887,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(f"Bounding box created successfully: {ret_num}")
             self.logger.info(f"Bounding box created successfully: {ret_num}")
 
-            # TODO save in DB
+            # Save label in DB
+            self.save_boxes_box_label()
 
     def export_yolo_detection_dataset(self):
         dialog = ExportDialog(self)

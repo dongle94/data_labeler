@@ -208,6 +208,17 @@ class DBManager(object):
 
         self.logger.info("image_data: %s of label_data are deleted.", image_data_id)
 
+    def delete_boxes_box_label_data_by_image_data_id(self, image_data_id):
+        sql = "DELETE FROM label_data WHERE image_data_id = (%s) AND is_box = 1"
+        data = (image_data_id,)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+
+        self.logger.info(f"image_data: {image_data_id} of boxes-box label_data are deleted.")
+
 
 if __name__ == "__main__":
     import os
