@@ -105,12 +105,13 @@ class LabelsFieldDeleteDialog(QDialog, Ui_Basic_Dialog):
 
         # trigger
         self.buttonBox.rejected.connect(self.cancel)
-        self.buttonBox.accepted.connect(self.delete_label)
 
     def draw_init_ui(self):
         widget_item = self.verticalLayout.takeAt(0)
         q_label = widget_item.widget()
+        q_label.setParent(None)
         q_label.deleteLater()
+        del q_label
         self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(False)
 
         hlo = QHBoxLayout()
@@ -144,32 +145,6 @@ class LabelsFieldDeleteDialog(QDialog, Ui_Basic_Dialog):
                 self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(True)
                 return
         self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(False)
-
-    def delete_label(self):
-        delete_field_name = []
-        delete_idx = []
-        for db_idx, label_item in self.field_dict.items():
-            checkbox, label_field = label_item
-            if checkbox.isChecked():
-                delete_field_name.append(label_field)
-                delete_idx.append(db_idx)
-
-        # Remove in DB
-        for idx in delete_idx:
-            self.db_manager.delete_label_field_by_label_field_id(idx)
-
-        text = f"'{delete_field_name.pop(0)}'"
-        for label_field in delete_field_name:
-            text += f", '{label_field}'"
-        msgBox = QMessageBox()
-        msgBox.setText(f"{len(delete_idx)}개의 필드 {text}을(를) 삭제하였습니다.")
-        msgBox.exec()
-
-        # Update UI
-        self.parent().clean_label_field()
-        self.parent().draw_label_field()
-
-        self.logger.info(f"{len(delete_idx)}개의 라벨 필드 삭제: {delete_idx}")
 
     def cancel(self):
         self.logger.info("라벨 필드 삭제 취소")
