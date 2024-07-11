@@ -277,10 +277,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(f"라벨 포맷: {label_format} / 라벨 타입: {label_type} - 라벨 필드 추가 완료")
 
     def delete_label_field(self):
-        self.logger.info("Click 'delete_label_field'")
+        self.logger.info("클릭 - 라벨 필드 삭제")
 
-        delete_label_dialog = LabelsFieldDeleteDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
-        delete_label_dialog.show()
+        dialog = LabelsFieldDeleteDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            delete_field_name = []
+            delete_idx = []
+            for db_idx, label_item in dialog.field_dict.items():
+                checkbox, label_field = label_item
+                if checkbox.isChecked():
+                    delete_field_name.append(label_field)
+                    delete_idx.append(db_idx)
+
+            # Remove in DB
+            for idx in delete_idx:
+                self.db_manager.delete_label_field_by_label_field_id(idx)
+
+            text = f"'{delete_field_name.pop(0)}'"
+            for label_field in delete_field_name:
+                text += f", '{label_field}'"
+            self.logger.info(f"{len(delete_idx)}개의 라벨 필드 삭제: {delete_idx}")
+            msgBox = QMessageBox()
+            msgBox.setText(f"{len(delete_idx)}개의 필드 {text}을(를) 삭제하였습니다.")
+            msgBox.exec()
+
+            # Update UI
+            self.clean_label_field()
+            self.draw_label_field()
 
     def get_upper_image(self):
         self.logger.info("Click 'upper image'")
@@ -506,7 +532,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
             self.vlo_box_label_field.addWidget(group_box)
 
-        self.logger.info(f"Success drawing label_field - label_field_id: {label_field_id}")
+        self.logger.info(f"전체 라벨 필드 그리기 완료 - label_field_id: {label_field_id}")
 
     def draw_one_label_field(self, db_id, data_format, data_type, field_name, is_duplicate, classes):
         # image-cap

@@ -109,8 +109,9 @@ class LabelsFieldDeleteDialog(QDialog, Ui_Basic_Dialog):
     def draw_init_ui(self):
         widget_item = self.verticalLayout.takeAt(0)
         q_label = widget_item.widget()
-        q_label.hide()
+        q_label.setParent(None)
         q_label.deleteLater()
+        del q_label
         self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(False)
 
         hlo = QHBoxLayout()
