@@ -447,11 +447,11 @@
     </property>
     <addaction name="actionObject_Detection_for_whole_Image"/>
     <addaction name="actionObject_Detection_for_selected_Image"/>
-    <addaction name="actionObject_Detection_for_Current_Image"/>
+    <addaction name="actionObject_Detection_for_current_Image"/>
     <addaction name="separator"/>
-    <addaction name="actionObject_Detection_for_whole_Image_without_remove_label"/>
-    <addaction name="actionObject_Detection_for_selected_images"/>
-    <addaction name="actionObject_Detection_for_current_image"/>
+    <addaction name="actionObject_Detection_for_whole_Image_without_removing"/>
+    <addaction name="actionObject_Detection_for_selected_images_without_removing"/>
+    <addaction name="actionObject_Detection_for_current_image_without_removing"/>
     <addaction name="separator"/>
     <addaction name="actionClassification_for_entire_Images"/>
     <addaction name="actionClassification_for_Selected_Images"/>
@@ -533,24 +533,24 @@
     <string>Object Detection for selected images</string>
    </property>
   </action>
-  <action name="actionObject_Detection_for_Current_Image">
+  <action name="actionObject_Detection_for_current_Image">
    <property name="text">
-    <string>Object Detection for Current Image</string>
+    <string>Object Detection for current Image</string>
    </property>
   </action>
-  <action name="actionObject_Detection_for_whole_Image_without_remove_label">
+  <action name="actionObject_Detection_for_whole_Image_without_removing">
    <property name="text">
     <string>Object Detection for entire image without removing labels</string>
    </property>
   </action>
-  <action name="actionObject_Detection_for_selected_images">
+  <action name="actionObject_Detection_for_selected_images_without_removing">
    <property name="text">
     <string>Object Detection for Selected Images without removing labels</string>
    </property>
   </action>
-  <action name="actionObject_Detection_for_current_image">
+  <action name="actionObject_Detection_for_current_image_without_removing">
    <property name="text">
-    <string>Object Detection for Current Image without removing labels </string>
+    <string>Object Detection for current image without removing labels </string>
    </property>
   </action>
   <action name="actionClassification_for_entire_Images">
