@@ -315,8 +315,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_tab_name = self.tW_img.tabText(index)
         self.cur_inner_tab = self.tW_img.currentWidget()
 
+        # Reset left list
         self.draw_image_list_widget()
+        # Reset box list and shape, item
+        self.clear_boxes_box_label()
+        # Reset boxes label field and image label field
         self.clean_label_field()
+
         self.draw_label_field()
 
         self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
