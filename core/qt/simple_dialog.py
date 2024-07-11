@@ -173,3 +173,19 @@ class LabelsFieldDeleteDialog(QDialog, Ui_Basic_Dialog):
 
     def cancel(self):
         self.logger.info("라벨 필드 삭제 취소")
+
+
+class DetectionLabelsCreateDialog(QDialog, Ui_Basic_Dialog):
+    def __init__(self, parent=None, weight="", img_num=0):
+        super(DetectionLabelsCreateDialog, self).__init__(parent)
+        self.setupUi(self)
+
+        self.logger = get_logger()
+
+        # init
+        t = (f"디텍션 모델: {weight}\n"
+             f"{img_num} 장의 이미지에 박스 라벨을 생성합니다.")
+        self.label.setText(t)
+
+    def cancel(self):
+        self.logger.info("디텍션 라벨 생성 취소")

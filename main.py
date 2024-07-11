@@ -9,7 +9,7 @@ from datetime import datetime
 
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
-                               QMessageBox, QRadioButton, QCheckBox)
+                               QMessageBox, QRadioButton, QCheckBox, QDialog)
 from PySide6.QtCore import Qt, QPointF
 
 from utils.config import get_config, set_config
@@ -19,7 +19,8 @@ from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate, AddLabelDialog
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
-from core.qt.simple_dialog import DatasetDeleteDialog, ImagesDeleteDialog, LabelsFieldDeleteDialog
+from core.qt.simple_dialog import (DatasetDeleteDialog, ImagesDeleteDialog, LabelsFieldDeleteDialog,
+                                   DetectionLabelsCreateDialog)
 from core.qt.inner_tab import ImageTabInnerWidget
 from core.qt.export_dialog import ExportDialog
 from core.qt.item import BoxQListWidgetItem
@@ -91,6 +92,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSelect_up_image.triggered.connect(self.get_upper_image)
         self.actionSelect_down_image.triggered.connect(self.get_lower_image)
         self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
+
+        self.actionObject_Detection_for_current_Image.triggered.connect(self.create_box_label_by_detection_one_image)
 
         self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_dialog)
 
@@ -835,6 +838,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # for action in self.actions.onShapesPresent:
         #     action.setEnabled(True)
         # self.update_combo_box()
+
+    def create_box_label_by_detection_one_image(self):
+        if len(self.tW_images.selectedItems()) == 0:
+            self.statusbar.showMessage("1장의 이미지를 선택해주세요.")
+            return
+
+        dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=1)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            print("취소")
+        elif ret == QDialog.DialogCode.Accepted:
+            print("성공")
 
     def export_dialog(self):
         dialog = ExportDialog(self)
