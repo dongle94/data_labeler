@@ -7,18 +7,23 @@ import time
 import random
 from datetime import datetime
 
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
-                               QMessageBox, QRadioButton, QCheckBox)
+                               QMessageBox, QRadioButton, QCheckBox, QDialog)
 from PySide6.QtCore import Qt, QPointF
+from PySide6.QtGui import QPixmap
 
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
-from utils.qt import *
+from utils.qt import (create_label, create_button_group, generate_color_by_text, get_xyxy, xyxy_to_rel, rel_to_xyxy,
+                      get_dir_dialog)
+from utils.coord import absxyxy_to_relxyxy
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate, DSDelete, ImageDeleteDialog, AddLabelDialog, DeleteLabelDialog
+from ui.dialog import DSCreate, AddLabelDialog
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
+from core.obj_detector import ObjectDetector
+from core.qt.simple_dialog import (DatasetDeleteDialog, ImagesDeleteDialog, LabelsFieldDeleteDialog,
+                                   DetectionLabelsCreateDialog)
 from core.qt.inner_tab import ImageTabInnerWidget
 from core.qt.export_dialog import ExportDialog
 from core.qt.item import BoxQListWidgetItem
@@ -51,6 +56,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_label_fields_idx_dict = {}
         self.cur_image_idx = -1
         self.is_label_change = False
+        self.detector = None
 
         # label fields
         self.lb_image_caps = []
@@ -91,7 +97,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSelect_down_image.triggered.connect(self.get_lower_image)
         self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
 
-        self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_dialog)
+        # Menubar - infer
+        self.actionObject_Detection_for_entire_images.triggered.connect(self.create_box_label_by_detection_entire_images)
+        self.actionObject_Detection_for_selected_images.triggered.connect(self.create_box_label_by_detection_selected_images)
+        self.actionObject_Detection_for_current_image.triggered.connect(self.create_box_label_by_detection_current_image)
+
+        self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_yolo_detection_dataset)
 
         self.tB_img_up.clicked.connect(self.get_upper_image)
         self.tB_img_down.clicked.connect(self.get_lower_image)
@@ -188,10 +199,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         cur_idx = self.tW_img.currentIndex()
         cur_tab_name = self.tW_img.tabText(cur_idx)
 
-        q_delete = DSDelete(self,
-                            ds_name=cur_tab_name,
-                            weed=self.weed_manager,
-                            db=self.db_manager)
+        q_delete = DatasetDeleteDialog(self,
+                                       ds_name=cur_tab_name,
+                                       weed=self.weed_manager,
+                                       db=self.db_manager)
         q_delete.exec()
 
     def delete_images(self):
@@ -202,10 +213,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for item in self.tW_images.selectedItems():
                 rows.add(item.row())
             self.statusbar.showMessage(f"{len(rows)} 개의 이미지 삭제 요청")
-            q_delete = ImageDeleteDialog(self,
-                                         image_num=len(rows),
-                                         weed=self.weed_manager,
-                                         db=self.db_manager)
+            q_delete = ImagesDeleteDialog(self,
+                                          image_num=len(rows),
+                                          weed=self.weed_manager,
+                                          db=self.db_manager)
             q_delete.exec()
         else:
             self.statusbar.showMessage("이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다.")
@@ -220,7 +231,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def delete_label_field(self):
         self.logger.info("Click 'delete_label_field'")
 
-        delete_label_dialog = DeleteLabelDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
+        delete_label_dialog = LabelsFieldDeleteDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
         delete_label_dialog.show()
 
     def get_upper_image(self):
@@ -275,9 +286,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                              f"{self.cur_tab_idx}-{dataset_id}, {len(images)} images")
 
     def draw_image(self, item: QTableWidgetItem):
-        img_idx = self.tW_images.item(item.row(), 0).text()
+        img_idx = int(self.tW_images.item(item.row(), 0).text())
         img_name = self.tW_images.item(item.row(), 1).text()
-        image_fid = self.tW_images.fid_dict[int(img_idx)]
+        image_fid = self.tW_images.fid_dict[img_idx]
 
         img = self.weed_manager.get_image(fid=image_fid)
 
@@ -291,7 +302,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # clear label field
         self.clear_img_label_captions()
         self.clear_img_label_cls()
-        self.clear_boxes_label_box()
+        self.clear_boxes_box_label()
         # clear boxes-cap label
         # clear boxes-cls label
 
@@ -308,8 +319,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_tab_name = self.tW_img.tabText(index)
         self.cur_inner_tab = self.tW_img.currentWidget()
 
+        # Reset left list
         self.draw_image_list_widget()
+        self.tW_images.clearSelection()
+        # Reset pixmap, box list and shape, item
+        self.cur_inner_tab.pixmap = QPixmap()
+        self.cur_image_idx = -1
+        self.clear_boxes_box_label()
+        # Reset boxes label field and image label field
         self.clean_label_field()
+
         self.draw_label_field()
 
         self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
@@ -545,7 +564,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     else:  # checkbox
                         c.setAutoExclusive(False)
 
-    def clear_boxes_label_box(self):
+    def clear_boxes_box_label(self):
         # List widget clear
         self.lw_labels.clear()
 
@@ -831,15 +850,124 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lb_items_to_shapes[item] = shape
         self.lb_shapes_to_items[shape] = item
         self.lw_labels.addItem(item)
-        # for action in self.actions.onShapesPresent:
-        #     action.setEnabled(True)
-        # self.update_combo_box()
 
-    def export_dialog(self):
+    def create_box_label_by_detection_entire_images(self):
+        item_cnt = self.tW_images.rowCount()
+        dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=item_cnt)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            box_num = 0
+            for row_idx in range(item_cnt):
+                img_idx_item = self.tW_images.item(row_idx, 0)
+                img_idx = int(img_idx_item.text())
+                self.tW_images.selectRow(row_idx)
+                self.draw_image(img_idx_item)
+                n = self.create_box_label_by_detection_one_image(img_idx)
+                box_num += n
+
+            self.statusbar.showMessage(f"Bounding box for {item_cnt} images created successfully: {box_num}")
+            self.logger.info(f"Bounding box for {item_cnt} images created successfully: {box_num}")
+
+    def create_box_label_by_detection_selected_images(self):
+        if len(self.tW_images.selectedItems()) == 0:
+            self.statusbar.showMessage("1장 이상의 이미지를 선택해주세요.")
+            msgBox = QMessageBox(text="이미지를 선택해주세요.")
+            msgBox.setWindowTitle("이미지 미선택 오류")
+            msgBox.exec()
+            return
+
+        imgs_idx = dict()
+        for item in self.tW_images.selectedItems():
+            if int(self.tW_images.item(item.row(), 0).text()) not in imgs_idx:
+                imgs_idx[int(self.tW_images.item(item.row(), 0).text())] = item
+        dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=len(imgs_idx))
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            box_num = 0
+            for img_idx, item in imgs_idx.items():
+                self.tW_images.selectRow(item.row())
+                self.draw_image(item)
+                n = self.create_box_label_by_detection_one_image(img_idx)
+                box_num += n
+
+            self.statusbar.showMessage(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
+            self.logger.info(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
+
+    def create_box_label_by_detection_current_image(self):
+        if len(self.tW_images.selectedItems()) == 0:
+            self.statusbar.showMessage("이미지를 선택해주세요.")
+            msgBox = QMessageBox(text="이미지를 선택해주세요.")
+            msgBox.setWindowTitle("이미지 미선택 오류")
+            msgBox.exec()
+            return
+        elif len(self.tW_images.selectedItems()) > 1:
+            self.statusbar.showMessage("이미지를 1장만 선택해주세요.")
+            msgBox = QMessageBox(text="이미지를 1장만 선택해주세요.")
+            msgBox.setWindowTitle("다중 이미지 선택 오류")
+            msgBox.exec()
+            return
+
+        dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=1)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            box_num = self.create_box_label_by_detection_one_image(self.cur_image_idx)
+
+            self.statusbar.showMessage(f"Bounding box created successfully: {box_num}")
+            self.logger.info(f"Bounding box for current image created successfully: {box_num}")
+
+    def create_box_label_by_detection_one_image(self, image_idx):
+        # Delete Current image box label
+        self.db_manager.delete_boxes_box_label_data_by_image_data_id(image_idx)
+        self.clear_boxes_box_label()
+
+        if self.detector is None:
+            self.detector = ObjectDetector(cfg=_cfg)
+        image_fid = self.tW_images.fid_dict[image_idx]
+        img = self.weed_manager.get_image(fid=image_fid, pil=False)
+        det = self.detector.run_np(img)
+        img_h, img_w = img.shape[:2]
+        cls_idx_to_name = {int(v): k for k, v in self.cur_label_fields_class['boxes-box'].items()}
+        ret_num = 0
+        for d in det:
+            abs_xyxy = d[:4]
+            rel_xyxy = absxyxy_to_relxyxy(abs_xyxy, img_w, img_h)
+            cls = int(d[5])
+            if cls not in cls_idx_to_name.keys():
+                continue
+            ret_num += 1
+            cls_name = cls_idx_to_name[cls]
+
+            x1, y1, x2, y2 = rel_to_xyxy(rel_xyxy, self.cur_inner_tab.pixmap.size())
+            _box = Shape(label=cls_name)
+            _box.add_point(QPointF(x1, y1))
+            _box.add_point(QPointF(x2, y1))
+            _box.add_point(QPointF(x2, y2))
+            _box.add_point(QPointF(x1, y2))
+            self.cur_inner_tab.shapes.append(_box)
+            g_color = generate_color_by_text(cls_name)
+            shape = self.cur_inner_tab.set_last_label(cls_name, line_color=g_color, fill_color=g_color)
+            self.add_box_label(shape)
+
+        # Save label in DB
+        self.save_boxes_box_label()
+
+        return ret_num
+
+    def export_yolo_detection_dataset(self):
         dialog = ExportDialog(self)
-        dialog.exec()
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
 
-    def export_yolo_detection_dataset(self, path, train, val, test, is_shuffle=False):
+        path = dialog.dirname
+        train, val, test = dialog.train_ratio, dialog.val_ratio, dialog.test_ratio
+        is_shuffle = dialog.is_shuffle
         self.logger.info(f"Start Exporting YOLO detection dataset: {self.cur_tab_name}")
         st = time.time()
         imgs_idx = set()
