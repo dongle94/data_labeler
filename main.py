@@ -18,13 +18,14 @@ from utils.qt import (create_label, create_button_group, generate_color_by_text,
                       get_dir_dialog)
 from utils.coord import absxyxy_to_relxyxy
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate, AddLabelDialog
+from ui.dialog import DSCreate
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
 from core.obj_detector import ObjectDetector
 from core.qt.simple_dialog import (DatasetDeleteDialog, ImagesDeleteDialog, LabelsFieldDeleteDialog,
                                    DetectionLabelsCreateDialog)
 from core.qt.inner_tab import ImageTabInnerWidget
+from core.qt.add_label_field_dialog import AddLabelFieldDialog
 from core.qt.export_dialog import ExportDialog
 from core.qt.item import BoxQListWidgetItem
 from core.qt.shape import Shape
@@ -223,10 +224,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_image_idx = -1
 
     def add_label_field(self):
-        self.logger.info("Click 'add_label_field'")
+        self.logger.info("클릭 - 라벨 필드 추가")
 
-        add_label_dialog = AddLabelDialog(self, dataset_id=self.cur_dataset_idx, db=self.db_manager)
-        add_label_dialog.show()
+        dialog = AddLabelFieldDialog(self, dataset_id=self.cur_dataset_idx, db=self.db_manager)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            # label format - 0: boxes, 1: images
+            label_format = 0
+            if dialog.rb_boxes.isChecked():
+                label_format = 0
+            elif dialog.rb_image.isChecked():
+                label_format = 1
+
+            # label tpye - 0: box, 1: caption, 2: classification
+            label_type = 0
+            if dialog.rb_box.isChecked():
+                label_type = 0
+            elif dialog.rb_caption.isChecked():
+                label_type = 1
+            elif dialog.rb_cls.isChecked():
+                label_type = 2
+
+            # field name
+            field_name = None
+            if dialog.rb_caption.isChecked() or dialog.rb_cls.isChecked():
+                field_name = dialog.lE_fieldname.text()
+
+            # is duplicate
+            is_duplicate = False
+            if dialog.rb_cls.isChecked():
+                is_duplicate = dialog.cb_duplicate.isChecked()
+
+            classes = {}
+            if dialog.rb_box.isChecked() or dialog.rb_cls.isChecked():
+                for idx, line_edit in enumerate(dialog.cur_class_edit):
+                    classes[idx] = line_edit.text()
+            classes = json.dumps(classes)
+
+            rowid = self.db_manager.create_label_field(
+                name=field_name,
+                dataset_id=self.cur_dataset_idx,
+                label_format=label_format,
+                label_type=label_type,
+                is_duplicate=is_duplicate,
+                detail=classes
+            )
+
+            self.logger.info(f"라벨 필드 데이터베이스 저장: {label_format}-{label_type} / label_field row: {rowid}")
+            self.draw_one_label_field(rowid, label_format, label_type, field_name, is_duplicate, json.loads(classes))
+            self.statusbar.showMessage(f"라벨 포맷: {label_format} / 라벨 타입: {label_type} - 라벨 필드 추가 완료")
 
     def delete_label_field(self):
         self.logger.info("Click 'delete_label_field'")
@@ -521,7 +569,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.cur_label_fields.append([db_id, field_name])
         self.cur_label_fields_idx_dict[field_name] = db_id
-        self.logger.info(f"Success add label_field - label_field_id: {db_id}")
+        self.logger.info(f"라벨 필드 UI 추가 완료 - label_field_id: {db_id}")
 
     def is_valid_change_img_caption(self):
         if self.cur_image_idx == -1:
