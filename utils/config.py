@@ -25,22 +25,20 @@ def set_config(file):
     config.weed_collection_count = _config['WEED']['COLLECTION_COUNT']
     config.weed_use_public_url = _config['WEED']['USE_PUBLIC_URL']
 
-    # Env
-    # config.device = _config['ENV']['DEVICE']
-    # config.gpu_num = _config['ENV']['GPU_NUM']
-
+    # Inference
+    config.device = _config['ENV']['DEVICE']
+    config.gpu_num = _config['ENV']['GPU_NUM']
     # Det
-    # config.det_model_type = _config['DET']['MODEL_TYPE']
-    # config.det_model_path = _config['DET']['DET_MODEL_PATH']
-    # config.det_half = _config['DET']['HALF']
-    # config.det_conf_thres = _config['DET']['CONF_THRES']
-    # config.det_obj_classes = _config['DET']['OBJ_CLASSES']
-
-    # YOLOV5
-    # config.yolov5_img_size = _config['YOLOV5']['IMG_SIZE']
-    # config.yolov5_nms_iou = _config['YOLOV5']['NMS_IOU']
-    # config.yolov5_agnostic_nms = _config['YOLOV5']['AGNOSTIC_NMS']
-    # config.yolov5_max_det = _config['YOLOV5']['MAX_DET']
+    config.det_model_type = _config['DET']['MODEL_TYPE']
+    config.det_model_path = _config['DET']['DET_MODEL_PATH']
+    config.det_half = _config['DET']['HALF']
+    config.det_conf_thres = _config['DET']['CONF_THRES']
+    config.det_obj_classes = _config['DET']['OBJ_CLASSES']
+    # YOLO
+    config.yolov_img_size = _config['DET']['YOLO']['IMG_SIZE']
+    config.yolov_nms_iou = _config['DET']['YOLO']['NMS_IOU']
+    config.yolov_agnostic_nms = _config['DET']['YOLO']['AGNOSTIC_NMS']
+    config.yolov_max_det = _config['DET']['YOLO']['MAX_DET']
 
     # Logger
     config.log_level = _config['LOG']['LOG_LEVEL']

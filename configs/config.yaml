@@ -15,24 +15,22 @@ WEED:
   USE_PUBLIC_URL: False
 
 
-# Environments
-#ENV:
-#  DEVICE: cuda     # cuda, cpu
-#  GPU_NUM: 0
-
+# Inference
+ENV:
+  DEVICE: cuda     # cuda, cpu
+  GPU_NUM: 0
 # Object Detector
-#DET:
-#  MODEL_TYPE: yolov5
-#  DET_MODEL_PATH: './weights/yolov5x.pt'
-#  HALF: True
-#  CONF_THRES: 0.75
-#  OBJ_CLASSES: [0]
-
-#YOLOV5:
-#  IMG_SIZE: 640
-#  NMS_IOU: 0.45
-#  AGNOSTIC_NMS: True
-#  MAX_DET: 100
+DET:
+  MODEL_TYPE: yolov8
+  DET_MODEL_PATH: './weights/yolov8/yolov8x.pt'
+  HALF: True
+  CONF_THRES: 0.75
+  OBJ_CLASSES: [0]
+  YOLO:
+    IMG_SIZE: 640
+    NMS_IOU: 0.45
+    AGNOSTIC_NMS: True
+    MAX_DET: 100
 
 
 # Logger
