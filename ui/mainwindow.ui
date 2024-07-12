@@ -42,10 +42,7 @@
       <item>
        <widget class="QToolButton" name="tB_header_addDataset">
         <property name="text">
-         <string>AddDataset</string>
-        </property>
-        <property name="icon">
-         <iconset theme="document-new"/>
+         <string>CreateDataset</string>
         </property>
        </widget>
       </item>
@@ -53,9 +50,6 @@
        <widget class="QToolButton" name="tB_header_uploadDir">
         <property name="text">
          <string>UploadDir</string>
-        </property>
-        <property name="icon">
-         <iconset theme="folder-open"/>
         </property>
        </widget>
       </item>
@@ -71,8 +65,12 @@
         <property name="text">
          <string>DeleteDataset</string>
         </property>
-        <property name="icon">
-         <iconset theme="edit-delete"/>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="tB_header_delSelectedImage">
+        <property name="text">
+         <string>DeleteSelectedImage</string>
         </property>
        </widget>
       </item>
@@ -80,13 +78,6 @@
        <widget class="QToolButton" name="tB_header_delLabels">
         <property name="text">
          <string>DeleteLabels</string>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignRight">
-       <widget class="QToolButton" name="tB_header_delSelectedImage">
-        <property name="text">
-         <string>DeleteSelectedImage</string>
         </property>
        </widget>
       </item>
@@ -416,12 +407,12 @@
      <string>File</string>
     </property>
     <addaction name="actionCreate_Dataset"/>
-    <addaction name="actionUpload_Image"/>
     <addaction name="actionUpload_folder"/>
+    <addaction name="actionUpload_Image"/>
     <addaction name="separator"/>
     <addaction name="actionDelete_Dataset"/>
-    <addaction name="actionDelete_Whole_Label"/>
     <addaction name="actionDelete_Selected_Image"/>
+    <addaction name="actionDelete_Whole_Label"/>
     <addaction name="actionDelete_Selected_Label"/>
     <addaction name="actionDeltete_Current_Label"/>
     <addaction name="separator"/>

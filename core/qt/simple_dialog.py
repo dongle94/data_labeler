@@ -15,46 +15,12 @@ class DatasetDeleteDialog(QDialog, Ui_Basic_Dialog):
 
 
 class ImagesDeleteDialog(QDialog, Ui_Basic_Dialog):
-    def __init__(self, parent=None, image_num=0, weed=None, db=None):
+    def __init__(self, parent=None, image_num=0):
         super(ImagesDeleteDialog, self).__init__(parent)
         self.setupUi(self)
 
-        self.weed_manager = weed
-        self.db_manager = db
-        self.logger = get_logger()
-
         self.label.setText(f"{image_num} 개의 이미지를 삭제 하시겠습니까?")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.buttonBox.accepted.connect(self.delete_images)
-        self.buttonBox.rejected.connect(self.cancel)
-
-    def delete_images(self):
-        # Get DB Index
-        db_idx = set()
-        image_list_table_widget = self.parent().tW_images
-        for item in image_list_table_widget.selectedItems():
-            img_db_idx = image_list_table_widget.item(item.row(), 0).text()
-            db_idx.add(img_db_idx)
-
-        # Get Weedfs url
-        for img_db_idx in db_idx:
-            image_fid = image_list_table_widget.fid_dict[int(img_db_idx)]
-
-            # Delete Weedfs image
-            ret = self.weed_manager.delete_file(fid=image_fid)
-
-            # Delete in DB Table
-            if ret is True:
-                self.db_manager.delete_image_data_by_image_id(img_db_idx)
-                self.parent().statusbar.showMessage(f"Success delete image ")
-
-        # Draw again
-        self.parent().draw_image_list_widget()
-
-    def cancel(self):
-        self.close()
-        self.logger.info("이미지 삭제 취소")
 
 
 class LabelsFieldDeleteDialog(QDialog, Ui_Basic_Dialog):

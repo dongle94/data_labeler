@@ -81,31 +81,40 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.draw_label_field()
 
         # Signal and Slot
+        # Header
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
-        self.actionCreate_Dataset.triggered.connect(self.create_dataset)
-        self.tB_header_uploadImage.clicked.connect(self.upload_images)
-        self.actionUpload_Image.triggered.connect(self.upload_images)
         self.tB_header_uploadDir.clicked.connect(self.upload_dir)
-        self.actionUpload_folder.triggered.connect(self.upload_dir)
+        self.tB_header_uploadImage.clicked.connect(self.upload_images)
         self.tB_header_delDataset.clicked.connect(self.delete_dataset)
-        self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
-
         self.tB_header_delSelectedImage.clicked.connect(self.delete_images)
+
+        # Menubar - File
+        self.actionCreate_Dataset.triggered.connect(self.create_dataset)
+        self.actionUpload_folder.triggered.connect(self.upload_dir)
+        self.actionUpload_Image.triggered.connect(self.upload_images)
+        self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
         self.actionDelete_Selected_Image.triggered.connect(self.delete_images)
+
         self.actionSave_label.triggered.connect(self.save_labels)
 
+        # Menubar - Data
         self.actionCreate_Mode.triggered.connect(self.set_create_mode)
         self.actionEdit_Mode.triggered.connect(self.set_edit_mode)
-        self.actionSelect_up_image.triggered.connect(self.get_upper_image)
-        self.actionSelect_down_image.triggered.connect(self.get_lower_image)
-        self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
 
         # Menubar - infer
         self.actionObject_Detection_for_entire_images.triggered.connect(self.create_box_label_by_detection_entire_images)
         self.actionObject_Detection_for_selected_images.triggered.connect(self.create_box_label_by_detection_selected_images)
         self.actionObject_Detection_for_current_image.triggered.connect(self.create_box_label_by_detection_current_image)
 
+        # Menubar - Export
         self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_yolo_detection_dataset)
+
+        # ImageList
+        self.actionSelect_up_image.triggered.connect(self.get_upper_image)
+        self.actionSelect_down_image.triggered.connect(self.get_lower_image)
+        self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
+
+
 
         self.tB_img_up.clicked.connect(self.get_upper_image)
         self.tB_img_down.clicked.connect(self.get_lower_image)
@@ -176,10 +185,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info("데이터 셋 삭제 취소")
             return
 
-        num_img = len(self.tW_images.url_dict)
+        num_img = len(self.tW_images.fid_dict)
         # Delete All images in weedfs
-        for db_idx, img_url in self.tW_images.url_dict.items():
-            self.weed_manager.delete_file(url=img_url)
+        for db_idx, img_fid in self.tW_images.fid_dict.items():
+            self.weed_manager.delete_file(fid=img_fid)
 
         # delete DB with delete cascade
         try:
@@ -264,21 +273,50 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
 
     def delete_images(self):
-        self.logger.info("Click 'Delete Image'")
+        self.logger.info("클릭 - 선택 이미지 삭제")
 
-        if len(self.tW_images.selectedItems()):
+        if len(self.tW_images.selectedItems()) == 0:
+            msg = "이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다."
+            self.statusbar.showMessage(msg)
+            msgBox = QMessageBox(text=msg)
+            msgBox.exec()
+        else:
+            # Get Selected image number and index
             rows = set()
             for item in self.tW_images.selectedItems():
-                rows.add(item.row())
+                img_db_idx = int(self.tW_images.item(item.row(), 0).text())
+                rows.add(img_db_idx)
             self.statusbar.showMessage(f"{len(rows)} 개의 이미지 삭제 요청")
-            q_delete = ImagesDeleteDialog(self,
-                                          image_num=len(rows),
-                                          weed=self.weed_manager,
-                                          db=self.db_manager)
-            q_delete.exec()
-        else:
-            self.statusbar.showMessage("이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다.")
-        self.cur_image_idx = -1
+            dialog = ImagesDeleteDialog(self, image_num=len(rows))
+            ret = dialog.exec()
+            if ret == QDialog.DialogCode.Rejected:
+                self.logger.info("선택 이미지 삭제 취소")
+                return
+            try:
+                for img_db_idx in rows:
+                    img_fid = self.tW_images.fid_dict[img_db_idx]
+
+                    # Delete selected iamges in weedfs
+                    ret = self.weed_manager.delete_file(fid=img_fid)
+
+                    # Delete in DB
+                    if ret is True:
+                        self.db_manager.delete_image_data_by_image_id(img_db_idx)
+                        self.statusbar.showMessage(f"Success delete image {img_db_idx}")
+                msgBox = QMessageBox(text="선택 이미지 삭제를 완료하였습니다.")
+                msgBox.exec()
+            except Exception as e:
+                msgBox = QMessageBox(text=f"선택 이미지 삭제에 실패했습니다: {e}")
+                msgBox.exec()
+                self.logger.error(f"선택 이미지 삭제 에러: {e}")
+                return
+
+            # Update UI
+            self.draw_image_list_widget()
+            self.cur_inner_tab.pixmap = QPixmap()
+            self.cur_image_idx = -1
+
+            self.logger.info(f"선택 이미지 삭제 - 지워진 이미지 수: {len(rows)}")
 
     def add_label_field(self):
         self.logger.info("클릭 - 라벨 필드 추가")

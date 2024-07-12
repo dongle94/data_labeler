@@ -101,15 +101,11 @@ class Ui_MainWindow(object):
 
         self.tB_header_addDataset = QToolButton(self.centralwidget)
         self.tB_header_addDataset.setObjectName(u"tB_header_addDataset")
-        icon = QIcon(QIcon.fromTheme(u"document-new"))
-        self.tB_header_addDataset.setIcon(icon)
 
         self.hlo_header.addWidget(self.tB_header_addDataset)
 
         self.tB_header_uploadDir = QToolButton(self.centralwidget)
         self.tB_header_uploadDir.setObjectName(u"tB_header_uploadDir")
-        icon1 = QIcon(QIcon.fromTheme(u"folder-open"))
-        self.tB_header_uploadDir.setIcon(icon1)
 
         self.hlo_header.addWidget(self.tB_header_uploadDir, 0, Qt.AlignRight)
 
@@ -120,20 +116,18 @@ class Ui_MainWindow(object):
 
         self.tB_header_delDataset = QToolButton(self.centralwidget)
         self.tB_header_delDataset.setObjectName(u"tB_header_delDataset")
-        icon2 = QIcon(QIcon.fromTheme(u"edit-delete"))
-        self.tB_header_delDataset.setIcon(icon2)
 
         self.hlo_header.addWidget(self.tB_header_delDataset)
+
+        self.tB_header_delSelectedImage = QToolButton(self.centralwidget)
+        self.tB_header_delSelectedImage.setObjectName(u"tB_header_delSelectedImage")
+
+        self.hlo_header.addWidget(self.tB_header_delSelectedImage)
 
         self.tB_header_delLabels = QToolButton(self.centralwidget)
         self.tB_header_delLabels.setObjectName(u"tB_header_delLabels")
 
         self.hlo_header.addWidget(self.tB_header_delLabels)
-
-        self.tB_header_delSelectedImage = QToolButton(self.centralwidget)
-        self.tB_header_delSelectedImage.setObjectName(u"tB_header_delSelectedImage")
-
-        self.hlo_header.addWidget(self.tB_header_delSelectedImage, 0, Qt.AlignRight)
 
         self.tB_header_delCurLabel = QToolButton(self.centralwidget)
         self.tB_header_delCurLabel.setObjectName(u"tB_header_delCurLabel")
@@ -175,24 +169,24 @@ class Ui_MainWindow(object):
         self.tB_img_up = QToolButton(self.centralwidget)
         self.tB_img_up.setObjectName(u"tB_img_up")
         self.tB_img_up.setMouseTracking(False)
-        icon3 = QIcon(QIcon.fromTheme(u"go-up"))
-        self.tB_img_up.setIcon(icon3)
+        icon = QIcon(QIcon.fromTheme(u"go-up"))
+        self.tB_img_up.setIcon(icon)
         self.tB_img_up.setArrowType(Qt.UpArrow)
 
         self.hlo_lefttb.addWidget(self.tB_img_up, 0, Qt.AlignHCenter)
 
         self.tB_img_down = QToolButton(self.centralwidget)
         self.tB_img_down.setObjectName(u"tB_img_down")
-        icon4 = QIcon(QIcon.fromTheme(u"go-down"))
-        self.tB_img_down.setIcon(icon4)
+        icon1 = QIcon(QIcon.fromTheme(u"go-down"))
+        self.tB_img_down.setIcon(icon1)
         self.tB_img_down.setArrowType(Qt.DownArrow)
 
         self.hlo_lefttb.addWidget(self.tB_img_down, 0, Qt.AlignHCenter)
 
         self.tB_img_del = QToolButton(self.centralwidget)
         self.tB_img_del.setObjectName(u"tB_img_del")
-        icon5 = QIcon(QIcon.fromTheme(u"user-trash"))
-        self.tB_img_del.setIcon(icon5)
+        icon2 = QIcon(QIcon.fromTheme(u"user-trash"))
+        self.tB_img_del.setIcon(icon2)
 
         self.hlo_lefttb.addWidget(self.tB_img_del)
 
@@ -255,8 +249,8 @@ class Ui_MainWindow(object):
 
         self.tb_box_rm = QToolButton(self.centralwidget)
         self.tb_box_rm.setObjectName(u"tb_box_rm")
-        icon6 = QIcon(QIcon.fromTheme(u"list-remove"))
-        self.tb_box_rm.setIcon(icon6)
+        icon3 = QIcon(QIcon.fromTheme(u"list-remove"))
+        self.tb_box_rm.setIcon(icon3)
 
         self.horizontalLayout.addWidget(self.tb_box_rm, 0, Qt.AlignRight)
 
@@ -365,12 +359,12 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuInfer.menuAction())
         self.menubar.addAction(self.menuExport.menuAction())
         self.menuFile.addAction(self.actionCreate_Dataset)
-        self.menuFile.addAction(self.actionUpload_Image)
         self.menuFile.addAction(self.actionUpload_folder)
+        self.menuFile.addAction(self.actionUpload_Image)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionDelete_Dataset)
-        self.menuFile.addAction(self.actionDelete_Whole_Label)
         self.menuFile.addAction(self.actionDelete_Selected_Image)
+        self.menuFile.addAction(self.actionDelete_Whole_Label)
         self.menuFile.addAction(self.actionDelete_Selected_Label)
         self.menuFile.addAction(self.actionDeltete_Current_Label)
         self.menuFile.addSeparator()
@@ -458,12 +452,12 @@ class Ui_MainWindow(object):
         self.actionDelete_selected_box.setShortcut(QCoreApplication.translate("MainWindow", u"Del", None))
 #endif // QT_CONFIG(shortcut)
         self.actionExport_YOLO_detect_dataset.setText(QCoreApplication.translate("MainWindow", u"Export YOLO detection dataset", None))
-        self.tB_header_addDataset.setText(QCoreApplication.translate("MainWindow", u"AddDataset", None))
+        self.tB_header_addDataset.setText(QCoreApplication.translate("MainWindow", u"CreateDataset", None))
         self.tB_header_uploadDir.setText(QCoreApplication.translate("MainWindow", u"UploadDir", None))
         self.tB_header_uploadImage.setText(QCoreApplication.translate("MainWindow", u"UploadImage", None))
         self.tB_header_delDataset.setText(QCoreApplication.translate("MainWindow", u"DeleteDataset", None))
-        self.tB_header_delLabels.setText(QCoreApplication.translate("MainWindow", u"DeleteLabels", None))
         self.tB_header_delSelectedImage.setText(QCoreApplication.translate("MainWindow", u"DeleteSelectedImage", None))
+        self.tB_header_delLabels.setText(QCoreApplication.translate("MainWindow", u"DeleteLabels", None))
         self.tB_header_delCurLabel.setText(QCoreApplication.translate("MainWindow", u"DeleteCurLabel", None))
 #if QT_CONFIG(tooltip)
         self.tB_img_up.setToolTip("")
