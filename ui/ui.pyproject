@@ -3,7 +3,7 @@
         "mainwindow.ui",
         "basic_dialog.ui",
         "../main.py",
-        "dataset.ui",
+        "create_dataset_dialog.ui",
         "add_label_field.ui",
         "export_dialog.ui"
     ]

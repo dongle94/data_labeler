@@ -1,4 +1,5 @@
 # This Python file uses the following encoding: utf-8
+import logging
 import os
 import sys
 import json
@@ -7,7 +8,7 @@ import time
 import random
 from datetime import datetime
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QPlainTextEdit,
+from PySide6.QtWidgets import (QApplication, QMainWindow, QTableWidgetItem, QPlainTextEdit,
                                QMessageBox, QRadioButton, QCheckBox, QDialog)
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPixmap
@@ -17,14 +18,15 @@ from utils.logger import init_logger, get_logger
 from utils.qt import (create_label, create_button_group, generate_color_by_text, get_xyxy, xyxy_to_rel, rel_to_xyxy,
                       get_dir_dialog, get_file_dialog)
 from utils.coord import absxyxy_to_relxyxy
+from utils.checks import is_empty
 from ui.ui_mainwindow import Ui_MainWindow
-from ui.dialog import DSCreate
 from core.database import DBManager
 from core.weedfs import SeaWeedFS
 from core.obj_detector import ObjectDetector
+from core.qt.inner_tab import ImageTabInnerWidget
 from core.qt.simple_dialog import (DatasetDeleteDialog, ImagesDeleteDialog, LabelsFieldDeleteDialog,
                                    DetectionLabelsCreateDialog)
-from core.qt.inner_tab import ImageTabInnerWidget
+from core.qt.create_dataset_dialog import CreateDatasetDialog
 from core.qt.add_label_field_dialog import AddLabelFieldDialog
 from core.qt.export_dialog import ExportDialog
 from core.qt.item import BoxQListWidgetItem
@@ -122,9 +124,48 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info("Success initializing MainWindow")
 
     def create_dataset(self):
-        self.logger.info("Click 'dataset create'")
-        ds_create = DSCreate(self, self.db_manager)
-        ds_create.show()
+        self.logger.info("클릭 - 데이터 셋 생성")
+        dialog = CreateDatasetDialog(self)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            self.logger.info("데이터 셋 생성 취소")
+            return
+        dataset_name = dialog.le_dataset_name.text()
+        dataset_type = dialog.get_dataset_type()
+        dataset_desc = dialog.te_ds_desc.toPlainText()
+
+        # check dataset name is empty
+        if is_empty(dataset_name) is True:
+            msgBox = QMessageBox(text="데이터 셋 이름은 공백이 될 수 없습니다.")
+            msgBox.exec()
+            self.logger.warn("데이터 셋 이름 공백 문제 발생")
+            return
+        # check dataset name is duplicated
+        res = self.db_manager.read_dataset_detail(dataset_name)
+        if len(res) != 0:
+            msgBox = QMessageBox(text="이미 존재하는 데이터 셋 이름입니다.")
+            msgBox.exec()
+            self.logger.warn("데이터 셋 이름 중복 문제 발생")
+            return
+
+        # insert DB
+        try:
+            self.db_manager.create_dataset(dataset_name, dataset_type, dataset_desc)
+            msgBox = QMessageBox(text="데이터 셋 생성에 성공하였습니다.")
+            msgBox.exec()
+        except Exception as e:
+            msgBox = QMessageBox(text=f"데이터 셋 생성에 실패했습니다: {e}")
+            msgBox.exec()
+            self.logger.error(f"데이터 셋 생성 에러: {e}")
+            return
+
+        # Draw UI
+        widget = ImageTabInnerWidget(self)
+        widget.newShape.connect(self.draw_new_box_label)
+        widget.selectionChanged.connect(self.shape_selection_changed)
+        self.tW_img.addTab(widget, dataset_name)
+
+        self.logger.info(f"데이터 셋 생성: {dataset_name} / 타입-{dataset_type} / 설명-{dataset_desc}")
 
     def delete_dataset(self):
         self.logger.info("Click 'dataset delete'")
