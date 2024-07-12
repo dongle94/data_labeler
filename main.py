@@ -15,7 +15,7 @@ from PySide6.QtGui import QPixmap
 from utils.config import get_config, set_config
 from utils.logger import init_logger, get_logger
 from utils.qt import (create_label, create_button_group, generate_color_by_text, get_xyxy, xyxy_to_rel, rel_to_xyxy,
-                      get_dir_dialog)
+                      get_dir_dialog, get_file_dialog)
 from utils.coord import absxyxy_to_relxyxy
 from ui.ui_mainwindow import Ui_MainWindow
 from ui.dialog import DSCreate
@@ -126,75 +126,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ds_create = DSCreate(self, self.db_manager)
         ds_create.show()
 
-    def upload_dir(self):
-        self.logger.info("Click 'Upload dir'")
-        dirname = get_dir_dialog(self)
-        if not dirname:
-            self.logger.info("이미지 디렉토리 선택 취소")
-            return
-        else:
-            upload_images = []
-            for file in sorted(os.listdir(dirname)):
-                basename, ext = os.path.splitext(file)
-                file_path = os.path.join(dirname, file)
-                if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp']:
-                    upload_images.append(file_path)
-            for f_idx, filename in enumerate(upload_images):
-                self.statusbar.showMessage(f"Upload image ... ({f_idx + 1}/{len(upload_images)})")
-
-                ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
-
-                idx = self.db_manager.create_image_data(
-                    dataset_id=self.cur_dataset_idx,
-                    filename=ret['filename'],
-                    image_fid=ret['fid'],
-                    image_url=ret['url'],
-                    width=ret['width'],
-                    height=ret['height']
-                )
-                self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
-            self.logger.info("이미지 디렉토리 업로드 완료")
-            self.statusbar.showMessage(f"Image Directory upload Success")
-
-    def upload_images(self):
-        self.logger.info("Click 'Upload image'")
-        fileDialog = QFileDialog(self)
-        fileDialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
-        fileDialog.setViewMode(QFileDialog.ViewMode.List)     # Detail, List
-        # By default, all options are disabled.
-        fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
-        fileDialog.setOption(QFileDialog.Option.ReadOnly, True)
-        fileDialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
-        fileDialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
-
-        fileNames = fileDialog.getOpenFileNames(
-            parent=self,
-            caption="Open Image",
-            dir="",
-            filter="Image Files (*.png *.jpg *.jpeg *.bmp)",
-        )
-        filenames, filters = fileNames
-        if not filenames:
-            self.logger.info("이미지 업로드 취소")
-            return
-        else:
-            for f_idx, filename in enumerate(filenames):
-                self.statusbar.showMessage(f"Upload image ... ({f_idx+1}/{len(filenames)})")
-
-                ret = self.weed_manager.put_image_collection(image=filename, filename=filename)
-
-                idx = self.db_manager.create_image_data(
-                    dataset_id=self.cur_dataset_idx,
-                    filename=ret['filename'],
-                    image_fid=ret['fid'],
-                    image_url=ret['url'],
-                    width=ret['width'],
-                    height=ret['height']
-                )
-                self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
-            self.logger.info("이미지 업로드 완료")
-            self.statusbar.showMessage(f"Image upload Success")
-
     def delete_dataset(self):
         self.logger.info("Click 'dataset delete'")
         cur_idx = self.tW_img.currentIndex()
@@ -205,6 +136,72 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                        weed=self.weed_manager,
                                        db=self.db_manager)
         q_delete.exec()
+
+    def upload_dir(self):
+        self.logger.info("클릭 - 업로드 디렉토리")
+        dir_dialog = get_dir_dialog(self)
+
+        dirname = dir_dialog.getExistingDirectory(
+            parent=self,
+            caption='Select Directory',
+            dir=""
+        )
+        if not dirname:
+            self.logger.info("이미지 디렉토리 업로드 취소")
+            return
+        else:
+            file_names = []
+            for file in sorted(os.listdir(dirname)):
+                basename, ext = os.path.splitext(file)
+                file_path = os.path.join(dirname, file)
+                if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp']:
+                    file_names.append(file_path)
+            for f_idx, filename in enumerate(file_names):
+                self.statusbar.showMessage(f"Upload image ... ({f_idx + 1}/{len(file_names)})")
+                self.upload_image(filename)
+            self.logger.info("이미지 디렉토리 업로드 완료")
+            self.statusbar.showMessage("이미지 디렉토리 업로드 완료")
+
+    def upload_images(self):
+        self.logger.info("클릭 - 이미지 업로드")
+        file_dialog = get_file_dialog(self, multiple_files=True)
+
+        fileNames = file_dialog.getOpenFileNames(
+            parent=self,
+            caption="Open Image",
+            dir="",
+            filter="Image Files (*.png *.jpg *.jpeg *.bmp)",
+        )
+        file_names, filters = fileNames
+        if not file_names:
+            self.logger.info("이미지 업로드 취소")
+            return
+        else:
+            for f_idx, filename in enumerate(file_names):
+                self.statusbar.showMessage(f"Upload image ... ({f_idx+1}/{len(file_names)})")
+                self.upload_image(filename)
+            self.logger.info("이미지 업로드 완료")
+            self.statusbar.showMessage(f"이미지 업로드 완료")
+
+    def upload_image(self, filepath, weed=True, db=True, ui=True):
+        # Upload seaweed
+        if weed is True:
+            ret = self.weed_manager.put_image_collection(image=filepath, filename=filepath)
+
+        # Upload DB
+        if db is True:
+            idx = self.db_manager.create_image_data(
+                dataset_id=self.cur_dataset_idx,
+                filename=ret['filename'],
+                image_fid=ret['fid'],
+                image_url=ret['url'],
+                width=ret['width'],
+                height=ret['height']
+            )
+
+        # Update UI: left image table list
+        if weed is True and db is True and ui is True:
+            self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
 
     def delete_images(self):
         self.logger.info("Click 'Delete Image'")
