@@ -67,7 +67,7 @@ class DBManager(object):
 
         return ret
 
-    def delete_dataset(self, name):
+    def delete_dataset_by_name(self, name):
         sql = "DELETE FROM dataset WHERE name = (%s)"
         data = (name, )
 

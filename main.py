@@ -168,15 +168,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info(f"데이터 셋 생성: {dataset_name} / 타입-{dataset_type} / 설명-{dataset_desc}")
 
     def delete_dataset(self):
-        self.logger.info("Click 'dataset delete'")
-        cur_idx = self.tW_img.currentIndex()
-        cur_tab_name = self.tW_img.tabText(cur_idx)
+        self.logger.info("클릭 - 데이터 셋 삭제")
+        dataset_name = self.cur_tab_name
+        dialog = DatasetDeleteDialog(self, dataset_name=dataset_name)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            self.logger.info("데이터 셋 삭제 취소")
+            return
 
-        q_delete = DatasetDeleteDialog(self,
-                                       ds_name=cur_tab_name,
-                                       weed=self.weed_manager,
-                                       db=self.db_manager)
-        q_delete.exec()
+        num_img = len(self.tW_images.url_dict)
+        # Delete All images in weedfs
+        for db_idx, img_url in self.tW_images.url_dict.items():
+            self.weed_manager.delete_file(url=img_url)
+
+        # delete DB with delete cascade
+        try:
+            self.db_manager.delete_dataset_by_name(dataset_name)
+            msgBox = QMessageBox(text="데이터 셋 삭제를 완료하였습니다.")
+            msgBox.exec()
+        except Exception as e:
+            msgBox = QMessageBox(text=f"데이터 셋 삭제에 실패했습니다: {e}")
+            msgBox.exec()
+            self.logger.error(f"데이터 셋 삭제 에러: {e}")
+            return
+
+        # Update UI
+        self.tW_img.removeTab(self.tW_img.currentIndex())
+
+        self.logger.info(f"데이터 셋 삭제: {dataset_name} / 지워진 이미지 수: {num_img}")
 
     def upload_dir(self):
         self.logger.info("클릭 - 업로드 디렉토리")

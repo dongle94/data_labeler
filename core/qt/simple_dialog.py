@@ -6,45 +6,12 @@ from ui.ui_basic_dialog import Ui_Basic_Dialog
 
 
 class DatasetDeleteDialog(QDialog, Ui_Basic_Dialog):
-    def __init__(self, parent=None, ds_name="", weed=None, db=None):
+    def __init__(self, parent=None, dataset_name=""):
         super(DatasetDeleteDialog, self).__init__(parent)
         self.setupUi(self)
 
-        self.ds_name = ds_name
-        self.weed_manager = weed
-        self.db_manager = db
-        self.logger = get_logger()
-
-        self.label.setText(f"{ds_name} 데이터 셋을 삭제하시겠습니까?")
+        self.label.setText(f"{dataset_name} 데이터 셋을 삭제하시겠습니까?")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.buttonBox.accepted.connect(self.delete_ds)
-        self.buttonBox.rejected.connect(self.cancel)
-
-    def delete_ds(self):
-        tab_widget = self.parent().tW_images
-        # Get All image url in that inner tab
-        img_num = len(tab_widget.url_dict)
-
-        # Delete All images in weedfs
-        for db_idx, img_url in tab_widget.url_dict.items():
-            self.weed_manager.delete_file(url=img_url)
-
-        # delete dataset in database
-        try:
-            self.db_manager.delete_dataset(self.ds_name)
-        except Exception as e:
-            msgBox = QMessageBox()
-            msgBox.setText(f"데이터 셋 삭제에 실패했습니다: {e}")
-            msgBox.exec()
-            return
-
-        self.logger.info(f"데이터 셋 삭제: {self.ds_name} / 지워진 이미지 수: {img_num}")
-        self.parent().tW_img.removeTab(self.parent().tW_img.currentIndex())
-
-    def cancel(self):
-        self.close()
-        self.logger.info("데이터 셋 삭제 취소")
 
 
 class ImagesDeleteDialog(QDialog, Ui_Basic_Dialog):
