@@ -220,7 +220,7 @@
          <enum>QLayout::SetDefaultConstraint</enum>
         </property>
         <item>
-         <widget class="QListWidget" name="lw_labels">
+         <widget class="QListWidget" name="bbox_listwidget">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -642,7 +642,7 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>lw_labels</tabstop>
+  <tabstop>bbox_listwidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>

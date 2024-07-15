@@ -222,12 +222,12 @@ class Ui_MainWindow(object):
         self.vlo_right = QVBoxLayout()
         self.vlo_right.setObjectName(u"vlo_right")
         self.vlo_right.setSizeConstraint(QLayout.SetDefaultConstraint)
-        self.lw_labels = QListWidget(self.centralwidget)
-        self.lw_labels.setObjectName(u"lw_labels")
-        self.lw_labels.setEnabled(True)
-        self.lw_labels.setMaximumSize(QSize(16777215, 16777215))
+        self.bbox_listwidget = QListWidget(self.centralwidget)
+        self.bbox_listwidget.setObjectName(u"bbox_listwidget")
+        self.bbox_listwidget.setEnabled(True)
+        self.bbox_listwidget.setMaximumSize(QSize(16777215, 16777215))
 
-        self.vlo_right.addWidget(self.lw_labels)
+        self.vlo_right.addWidget(self.bbox_listwidget)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
