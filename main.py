@@ -62,9 +62,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.detector = None
 
         # label fields
-        self.lb_image_caps = []
-        self.lb_image_cls = []
-        self.lb_boxes_box = []
+        self.label_field_image_caps = []
+        self.label_field_image_cls = []
+        self.label_field_boxes_box = []
         self.lb_items_to_shapes = {}
         self.lb_shapes_to_items = {}
 
@@ -114,7 +114,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSelect_down_image.triggered.connect(self.get_lower_image)
         self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
 
-
+        # BBoxList
+        self.bbox_listwidget.itemActivated.connect(self.label_selection_changed)
+        self.bbox_listwidget.itemSelectionChanged.connect(self.label_selection_changed)
 
         self.tB_img_up.clicked.connect(self.get_upper_image)
         self.tB_img_down.clicked.connect(self.get_lower_image)
@@ -123,9 +125,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tW_img.currentChanged.connect(self.change_tab)
 
         self.tW_images.itemClicked.connect(self.draw_image)
-
-        self.lw_labels.itemActivated.connect(self.label_selection_changed)
-        self.lw_labels.itemSelectionChanged.connect(self.label_selection_changed)
 
         self.pB_label_add.clicked.connect(self.add_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
@@ -313,10 +312,67 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # Update UI
             self.draw_image_list_widget()
-            self.cur_inner_tab.pixmap = QPixmap()
-            self.cur_image_idx = -1
+            self.clear_ui_image()
+            self.clear_ui_label_data()
 
             self.logger.info(f"선택 이미지 삭제 - 지워진 이미지 수: {len(rows)}")
+
+    def clear_ui_image(self):
+        """탭 위젯의 이미지 픽스맵 초기화 및 좌측 이미지 목록의 이미지 선택 초기화
+
+        Returns:
+
+        """
+        self.cur_inner_tab.pixmap = QPixmap()
+        self.tW_images.clearSelection()
+        self.cur_image_idx = -1
+
+    def clear_ui_label_data(self):
+        """우측 박스 목록, 박스 관련 라벨, 이미지 관련 라벨 초기화
+
+        Returns:
+
+        """
+        self.clear_ui_bbox_label_data()
+        self.clear_ui_img_label_data()
+        self.clear_ui_box_label_data()
+
+    def clear_ui_bbox_label_data(self):
+        # List widget clear
+        self.bbox_listwidget.clear()
+
+        # Image tab widget clear
+        self.cur_inner_tab.reset_label()
+
+        # parameter clear
+        self.lb_items_to_shapes = {}
+        self.lb_shapes_to_items = {}
+
+    def clear_ui_box_label_data(self):
+        # self.clear_box_label_captions()
+        # self.clear_box_label_cls()
+        pass
+
+    def clear_ui_img_label_data(self):
+        self.clear_img_label_captions()
+        self.clear_img_label_cls()
+
+    def clear_img_label_captions(self):
+        for cap_data in self.label_field_image_caps:
+            plain_text = cap_data[1]
+            plain_text.clear()
+
+    def clear_img_label_cls(self):
+        for cls_data in self.label_field_image_cls:
+            group_box = cls_data[1]
+            for c in group_box.children():
+                if type(c) in [QRadioButton, QCheckBox]:
+                    c.setAutoExclusive(False)
+                    c.setChecked(False)
+                    if isinstance(c, QRadioButton):
+                        c.setAutoExclusive(True)
+                    else:  # checkbox
+                        c.setAutoExclusive(False)
 
     def add_label_field(self):
         self.logger.info("클릭 - 라벨 필드 추가")
@@ -517,9 +573,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_label_fields_class = {}
         self.cur_label_fields_idx_dict = {}
 
-        self.lb_image_caps = []
-        self.lb_image_cls = []
-        self.lb_boxes_box = []
+        self.label_field_image_caps = []
+        self.label_field_image_cls = []
+        self.label_field_boxes_box = []
 
         rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
         image_cap, image_cls = [], []
@@ -565,7 +621,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
             q_ptext.textChanged.connect(self.is_valid_change_img_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
-            self.lb_image_caps.append([f_name, q_ptext])
+            self.label_field_image_caps.append([f_name, q_ptext])
 
         # image-cls
         for data in image_cls:
@@ -584,7 +640,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
                                             clicked_callback=self.is_valid_change_img_cls)
             self.vlo_img_label_field.addWidget(group_box)
-            self.lb_image_cls.append([f_name, group_box])
+            self.label_field_image_cls.append([f_name, group_box])
 
         # boxes-box
         for classes in boxes_box:
@@ -602,7 +658,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                    alignment=Qt.AlignmentFlag.AlignTop,
                                    stylesheet="color: blue; font-weight: bold;")
             self.vlo_box_label_field.addWidget(q_label)
-            self.lb_boxes_box = [self.cur_label_fields_idx_dict['boxes-box'], self.lw_labels]
+            self.label_field_boxes_box = [self.cur_label_fields_idx_dict['boxes-box'], self.bbox_listwidget]
 
         # boxes-cap
         for f_name in boxes_cap:
@@ -641,7 +697,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             q_ptext.setMaximumHeight(int(self.height() * 0.07))
             q_ptext.textChanged.connect(self.is_valid_change_img_caption)
             self.vlo_img_label_field.addWidget(q_ptext)
-            self.lb_image_caps.append([field_name, q_ptext])
+            self.label_field_image_caps.append([field_name, q_ptext])
 
         # image-cls
         elif data_format == 1 and data_type == 2:
@@ -653,7 +709,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
                                             clicked_callback=self.is_valid_change_img_cls)
             self.vlo_img_label_field.addWidget(group_box)
-            self.lb_image_cls.append([field_name, group_box])
+            self.label_field_image_cls.append([field_name, group_box])
 
         # boxes-box
         elif data_format == 0 and data_type == 0:
@@ -694,7 +750,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def is_valid_change_img_caption(self):
         if self.cur_image_idx == -1:
-            for cap_data in self.lb_image_caps:
+            for cap_data in self.label_field_image_caps:
                 plain_text = cap_data[1]
                 if len(plain_text.toPlainText()):
                     msgBox = QMessageBox(text="이미지 캡션 라벨은 이미지를 선택 후 입력할 수 있습니다.")
@@ -705,7 +761,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def is_valid_change_img_cls(self):
         if self.cur_image_idx == -1:
-            for cls_data in self.lb_image_cls:
+            for cls_data in self.label_field_image_cls:
                 group_box = cls_data[1]
                 for c in group_box.children():
                     if type(c) in [QRadioButton, QCheckBox]:
@@ -716,26 +772,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             return
 
-    def clear_img_label_captions(self):
-        for cap_data in self.lb_image_caps:
-            plain_text = cap_data[1]
-            plain_text.clear()
-
-    def clear_img_label_cls(self):
-        for cls_data in self.lb_image_cls:
-            group_box = cls_data[1]
-            for c in group_box.children():
-                if type(c) in [QRadioButton, QCheckBox]:
-                    c.setAutoExclusive(False)
-                    c.setChecked(False)
-                    if isinstance(c, QRadioButton):
-                        c.setAutoExclusive(True)
-                    else:  # checkbox
-                        c.setAutoExclusive(False)
-
     def clear_boxes_box_label(self):
         # List widget clear
-        self.lw_labels.clear()
+        self.bbox_listwidget.clear()
 
         # Image tab widget clear
         self.cur_inner_tab.reset_label()
@@ -768,7 +807,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 박스 - 클래스
 
     def save_img_caption_label(self):
-        for cap_label in self.lb_image_caps:
+        for cap_label in self.label_field_image_caps:
             field_name, plain_text = cap_label
             caption_text = plain_text.toPlainText()
             label_field_id = self.cur_label_fields_idx_dict[field_name]
@@ -784,7 +823,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_cur_img_caption_label(self):
         fields = []
-        for cap_label in self.lb_image_caps:
+        for cap_label in self.label_field_image_caps:
             field_name, plain_text = cap_label
             label_field_idx = self.cur_label_fields_idx_dict[field_name]
             fields.append(field_name)
@@ -800,7 +839,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def save_img_classification_label(self):
         field_idx_class = []
-        for cls_label in self.lb_image_cls:
+        for cls_label in self.label_field_image_cls:
             field_name, group_box = cls_label
             for c in group_box.children():
                 if type(c) in [QRadioButton, QCheckBox]:
@@ -823,7 +862,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_cur_img_classification_label(self):
         fields = []
-        for cls_label in self.lb_image_cls:
+        for cls_label in self.label_field_image_cls:
             field_name, group_box = cls_label
             fields.append(field_name)
             label_field_idx = self.cur_label_fields_idx_dict[field_name]
@@ -846,7 +885,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def save_boxes_box_label(self):
         boxes = []
-        label_field_idx, list_widget = self.lb_boxes_box
+        label_field_idx, list_widget = self.label_field_boxes_box
 
         for box_shape, list_widget_item in self.lb_shapes_to_items.items():
             points = box_shape.points
@@ -867,7 +906,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info(f"Success save {len(boxes)} boxes-box ids: {boxes}")
 
     def draw_cur_boxes_box_label(self):
-        label_field_idx, list_widget = self.lb_boxes_box
+        label_field_idx, list_widget = self.label_field_boxes_box
         tab_widget = self.cur_inner_tab
 
         rets = self.db_manager.read_label_data(
@@ -930,7 +969,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if shape is None:
             return
         item = self.lb_shapes_to_items[shape]
-        self.lw_labels.takeItem(self.lw_labels.row(item))
+        self.bbox_listwidget.takeItem(self.bbox_listwidget.row(item))
         del self.lb_shapes_to_items[shape]
         del self.lb_items_to_shapes[item]
         self.logger.info(f"Delete box label: {shape.label}")
@@ -974,7 +1013,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.statusbar.showMessage("Finish to change class number")
 
     def current_item(self):
-        items = self.lw_labels.selectedItems()
+        items = self.bbox_listwidget.selectedItems()
         if items:
             return items[0]
         return None
@@ -998,7 +1037,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if shape:
                 self.lb_shapes_to_items[shape].setSelected(True)
             else:
-                self.lw_labels.clearSelection()
+                self.bbox_listwidget.clearSelection()
 
     def label_selection_changed(self):
         item = self.current_item()
@@ -1018,7 +1057,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         item.setBackground(generate_color_by_text(shape.label))
         self.lb_items_to_shapes[item] = shape
         self.lb_shapes_to_items[shape] = item
-        self.lw_labels.addItem(item)
+        self.bbox_listwidget.addItem(item)
 
     def create_box_label_by_detection_entire_images(self):
         item_cnt = self.tW_images.rowCount()
