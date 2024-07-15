@@ -77,7 +77,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # init drawing
         self.draw_dataset()
         self.draw_image_list_widget()
-        self.clean_label_field()
+        self.clear_ui_label_field()
         self.draw_label_field()
 
         # Signal and Slot
@@ -354,15 +354,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pass
 
     def clear_ui_img_label_data(self):
-        self.clear_img_label_captions()
-        self.clear_img_label_cls()
+        self.clear_ui_img_label_captions()
+        self.clear_ui_img_label_cls()
 
-    def clear_img_label_captions(self):
+    def clear_ui_img_label_captions(self):
         for cap_data in self.label_field_image_caps:
             plain_text = cap_data[1]
             plain_text.clear()
 
-    def clear_img_label_cls(self):
+    def clear_ui_img_label_cls(self):
         for cls_data in self.label_field_image_cls:
             group_box = cls_data[1]
             for c in group_box.children():
@@ -373,6 +373,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         c.setAutoExclusive(True)
                     else:  # checkbox
                         c.setAutoExclusive(False)
+
+    def clear_ui_label_field(self):
+        self.clear_ui_img_label_field()
+        self.clear_ui_box_label_field()
+
+    def clear_ui_img_label_field(self):
+        while self.vlo_img_label_field.count() > 0:
+            b = self.vlo_img_label_field.takeAt(0)
+            w = b.widget()
+            w.deleteLater()
+
+    def clear_ui_box_label_field(self):
+        while self.vlo_box_label_field.count() > 0:
+            b = self.vlo_box_label_field.takeAt(0)
+            w = b.widget()
+            w.deleteLater()
 
     def add_label_field(self):
         self.logger.info("클릭 - 라벨 필드 추가")
@@ -456,7 +472,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             msgBox.exec()
 
             # Update UI
-            self.clean_label_field()
+            self.clear_ui_label_field()
             self.draw_label_field()
 
     def get_upper_image(self):
@@ -525,8 +541,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_image_idx = img_idx
 
         # clear label field
-        self.clear_img_label_captions()
-        self.clear_img_label_cls()
+        self.clear_ui_img_label_captions()
+        self.clear_ui_img_label_cls()
         self.clear_boxes_box_label()
         # clear boxes-cap label
         # clear boxes-cls label
@@ -552,21 +568,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_image_idx = -1
         self.clear_boxes_box_label()
         # Reset boxes label field and image label field
-        self.clean_label_field()
+        self.clear_ui_label_field()
 
         self.draw_label_field()
 
         self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
-
-    def clean_label_field(self):
-        while self.vlo_img_label_field.count() > 0:
-            b = self.vlo_img_label_field.takeAt(0)
-            w = b.widget()
-            w.deleteLater()
-        while self.vlo_box_label_field.count() > 0:
-            b = self.vlo_box_label_field.takeAt(0)
-            w = b.widget()
-            w.deleteLater()
 
     def draw_label_field(self):
         self.cur_label_fields = []
@@ -755,7 +761,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if len(plain_text.toPlainText()):
                     msgBox = QMessageBox(text="이미지 캡션 라벨은 이미지를 선택 후 입력할 수 있습니다.")
                     msgBox.exec()
-                    self.clear_img_label_captions()
+                    self.clear_ui_img_label_captions()
         else:
             return
 
@@ -768,7 +774,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         if c.isChecked():
                             msgBox = QMessageBox(text="이미지 클래스 라벨은 이미지 선택 후 입력 가능합니다.")
                             msgBox.exec()
-                            self.clear_img_label_cls()
+                            self.clear_ui_img_label_cls()
         else:
             return
 
