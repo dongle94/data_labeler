@@ -151,15 +151,15 @@ class Ui_MainWindow(object):
         self.vlo_letf = QVBoxLayout()
         self.vlo_letf.setObjectName(u"vlo_letf")
         self.vlo_letf.setSizeConstraint(QLayout.SetDefaultConstraint)
-        self.tW_images = ImagesTableWidget(self.centralwidget)
-        self.tW_images.setObjectName(u"tW_images")
+        self.image_list_widget = ImagesTableWidget(self.centralwidget)
+        self.image_list_widget.setObjectName(u"image_list_widget")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tW_images.sizePolicy().hasHeightForWidth())
-        self.tW_images.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(self.image_list_widget.sizePolicy().hasHeightForWidth())
+        self.image_list_widget.setSizePolicy(sizePolicy)
 
-        self.vlo_letf.addWidget(self.tW_images)
+        self.vlo_letf.addWidget(self.image_list_widget)
 
         self.hlo_lefttb = QHBoxLayout()
         self.hlo_lefttb.setObjectName(u"hlo_lefttb")
@@ -207,15 +207,15 @@ class Ui_MainWindow(object):
 
         self.vlo_center = QVBoxLayout()
         self.vlo_center.setObjectName(u"vlo_center")
-        self.tW_img = ImageTabWidget(self.centralwidget)
-        self.tW_img.setObjectName(u"tW_img")
+        self.tab_widget = ImageTabWidget(self.centralwidget)
+        self.tab_widget.setObjectName(u"tab_widget")
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Expanding)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.tW_img.sizePolicy().hasHeightForWidth())
-        self.tW_img.setSizePolicy(sizePolicy1)
+        sizePolicy1.setHeightForWidth(self.tab_widget.sizePolicy().hasHeightForWidth())
+        self.tab_widget.setSizePolicy(sizePolicy1)
 
-        self.vlo_center.addWidget(self.tW_img)
+        self.vlo_center.addWidget(self.tab_widget)
 
 
         self.hlo_main.addLayout(self.vlo_center)
@@ -397,7 +397,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tW_img.setCurrentIndex(-1)
+        self.tab_widget.setCurrentIndex(-1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
