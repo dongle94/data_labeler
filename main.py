@@ -259,20 +259,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if weed is True:
             ret = self.weed_manager.put_image_collection(image=filepath, filename=filepath)
 
-        # Upload DB
-        if db is True:
-            idx = self.db_manager.create_image_data(
-                dataset_id=self.cur_dataset_idx,
-                filename=ret['filename'],
-                image_fid=ret['fid'],
-                image_url=ret['url'],
-                width=ret['width'],
-                height=ret['height']
-            )
+            # Upload DB
+            if db is True:
+                idx = self.db_manager.create_image_data(
+                    dataset_id=self.cur_dataset_idx,
+                    filename=ret['filename'],
+                    image_fid=ret['fid'],
+                    image_url=ret['url'],
+                    width=ret['width'],
+                    height=ret['height']
+                )
 
-        # Update UI: left image table list
-        if weed is True and db is True and ui is True:
-            self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
+                # Update UI: left image table list
+                if ui is True:
+                    self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
 
     def delete_images(self):
         self.logger.info("클릭 - 선택 이미지 삭제")
