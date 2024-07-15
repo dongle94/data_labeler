@@ -54,14 +54,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_tab_idx = -1
         self.cur_tab_name = None
         self.cur_inner_tab = None
-        self.cur_label_fields = []
-        self.cur_label_fields_class = {}
-        self.cur_label_fields_idx_dict = {}
         self.cur_image_idx = -1
         self.is_label_change = False
+
         self.detector = None
 
         # label fields
+        self.label_fields_list_idx_name = []
+        self.label_fields_dict_name_to_idx = {}
+        self.label_fields_dict_idx_to_name = {}
+        self.label_field_name_dict_classname_to_idx = {}
+
         self.label_field_image_caps = []
         self.label_field_image_cls = []
         self.label_field_boxes_box = []
@@ -77,8 +80,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # init drawing
         self.draw_dataset()
         self.draw_image_list_widget()
-        self.clear_ui_label_field()
-        self.draw_label_field()
+        self.clear_ui_label_fields()
+        self.draw_ui_label_fields()
 
         # Signal and Slot
         # Header
@@ -126,7 +129,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tW_images.itemClicked.connect(self.draw_image)
 
-        self.pB_label_add.clicked.connect(self.add_label_field)
+        self.pB_label_add.clicked.connect(self.create_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
 
         self.logger.info("Success initializing MainWindow")
@@ -383,28 +386,173 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     else:  # checkbox
                         c.setAutoExclusive(False)
 
-    def clear_ui_label_field(self):
-        self.clear_ui_img_label_field()
-        self.clear_ui_box_label_field()
+    def clear_ui_label_fields(self):
+        self.clear_ui_img_label_fields()
+        self.clear_ui_box_label_fields()
 
-    def clear_ui_img_label_field(self):
+        self.label_fields_list_idx_name = []
+        self.label_fields_dict_name_to_idx = {}
+        self.label_fields_dict_idx_to_name = {}
+        self.label_field_name_dict_classname_to_idx = {}
+
+        self.label_field_image_caps = []
+        self.label_field_image_cls = []
+        self.label_field_boxes_box = []
+
+    def clear_ui_img_label_fields(self):
         while self.vlo_img_label_field.count() > 0:
             b = self.vlo_img_label_field.takeAt(0)
             w = b.widget()
             w.deleteLater()
 
-    def clear_ui_box_label_field(self):
+    def clear_ui_box_label_fields(self):
         while self.vlo_box_label_field.count() > 0:
             b = self.vlo_box_label_field.takeAt(0)
             w = b.widget()
             w.deleteLater()
 
-    def add_label_field(self):
+    def draw_ui_label_fields(self):
+        rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
+        image_cap, image_cls = [], []
+        boxes_box, boxes_cap, boxes_cls = [], [], []
+
+        for ret in rets:
+            field_db_idx = ret[0]
+            field_name = ret[1]
+            # dataset_id = ret[2]       # self.cur_dataset_idx
+            data_format = ret[3]
+            data_type = ret[4]
+            is_duplicate = ret[5]
+            classes = json.loads(ret[6])
+
+            if data_format == 0 and data_type == 0:     # boxes-box
+                field_name = 'boxes-box'
+                self.label_fields_list_idx_name.append([ret[0], 'boxes-box'])
+                boxes_box.append(classes)
+                if 'boxes-box' not in self.label_field_name_dict_classname_to_idx:
+                    self.label_field_name_dict_classname_to_idx['boxes-box'] = {}
+            elif data_format == 0 and data_type == 1:   # boxes-cap
+                self.label_fields_list_idx_name.append([ret[0], field_name])
+                boxes_cap.append(field_name)
+            elif data_format == 0 and data_type == 2:   # boxes-cls
+                self.label_fields_list_idx_name.append([ret[0], field_name])
+                if field_name not in self.label_field_name_dict_classname_to_idx:
+                    self.label_field_name_dict_classname_to_idx[field_name] = {}
+                boxes_cls.append([field_name, is_duplicate, classes])
+            elif data_format == 1 and data_type == 1:   # image-cap
+                self.label_fields_list_idx_name.append([ret[0], field_name])
+                image_cap.append(field_name)
+            elif data_format == 1 and data_type == 2:   # image-cls
+                self.label_fields_list_idx_name.append([ret[0], field_name])
+                image_cls.append([field_name, is_duplicate, classes])
+                if field_name not in self.label_field_name_dict_classname_to_idx:
+                    self.label_field_name_dict_classname_to_idx[field_name] = {}
+
+            self.label_fields_dict_name_to_idx[field_name] = field_db_idx
+            self.label_fields_dict_idx_to_name[field_db_idx] = field_name
+
+        # boxes-box
+        for classes in boxes_box:
+            field_name = 'boxes-box'
+            for idx, label_name in classes.items():
+                self.label_field_name_dict_classname_to_idx[field_name][label_name] = idx
+            self.draw_ui_one_label_field(0, 0, field_name, 0, classes)
+        # boxes-cap
+        for field_name in boxes_cap:
+            self.draw_ui_one_label_field(0, 1, field_name, 0, None)
+        # boxes-cls
+        for data in boxes_cls:
+            field_name, is_duplicate, classes = data
+            for idx, label_name in classes.items():
+                self.label_field_name_dict_classname_to_idx[field_name][label_name] = idx
+            self.draw_ui_one_label_field(0, 2, field_name, is_duplicate, classes)
+        # image-cap
+        for field_name in image_cap:
+            self.draw_ui_one_label_field(1, 1, field_name, 0, None)
+        # image-cls
+        for data in image_cls:
+            field_name, is_duplicate, classes = data
+            for idx, label_name in classes.items():
+                self.label_field_name_dict_classname_to_idx[field_name][label_name] = idx
+            self.draw_ui_one_label_field(1, 2, field_name, is_duplicate, classes)
+
+    def draw_ui_one_label_field(self, data_format, data_type, field_name, is_duplicate, classes):
+        # boxes-box
+        if data_format == 0 and data_type == 0:
+            field_name = 'boxes-box'
+            text = ""
+            for idx, cls_name in classes.items():
+                text += f"{idx}: {cls_name} "
+            field_name_label = create_label(
+                self,
+                text=text,
+                alignment=Qt.AlignmentFlag.AlignTop,
+                stylesheet="color: blue; font-weight: bold;"
+            )
+            self.vlo_box_label_field.addWidget(field_name_label)
+            self.label_field_boxes_box = [self.label_fields_dict_name_to_idx[field_name], self.bbox_listwidget]
+        # boxes-cap
+        elif data_format == 0 and data_type == 1:
+            field_name_label = create_label(
+                self,
+                text=field_name,
+                alignment=Qt.AlignmentFlag.AlignTop,
+                stylesheet="font-weight: bold"
+            )
+            self.vlo_box_label_field.addWidget(field_name_label)
+            q_ptext = QPlainTextEdit(self)
+            q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            self.vlo_box_label_field.addWidget(q_ptext)
+            # self.label_field_boxes_cap = [self.label_fields_dict_name_to_idx[field_name], ?]
+        # boxes-cls
+        elif data_format == 0 and data_type == 2:
+            field_name_label = create_label(
+                self,
+                text=field_name,
+                alignment=Qt.AlignmentFlag.AlignTop,
+                stylesheet="font-weight: bold"
+            )
+            self.vlo_box_label_field.addWidget(field_name_label)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
+            self.vlo_box_label_field.addWidget(group_box)
+            # self.label_field_boxes_cls = [self.label_fields_dict_name_to_idx[field_name], ?]
+        # image-cap
+        if data_format == 1 and data_type == 1:
+            field_name_label = create_label(
+                self,
+                text=field_name,
+                alignment=Qt.AlignmentFlag.AlignTop,
+                stylesheet="font-weight: bold"
+            )
+            self.vlo_img_label_field.addWidget(field_name_label)
+            q_ptext = QPlainTextEdit(self)
+            q_ptext.setMaximumHeight(int(self.height() * 0.07))
+            q_ptext.textChanged.connect(self.is_valid_change_img_caption)
+            self.vlo_img_label_field.addWidget(q_ptext)
+            self.label_field_image_caps.append([field_name, q_ptext])
+        # image-cls
+        elif data_format == 1 and data_type == 2:
+            field_name_label = create_label(
+                self,
+                text=field_name,
+                alignment=Qt.AlignmentFlag.AlignTop,
+                stylesheet="font-weight: bold"
+            )
+            self.vlo_img_label_field.addWidget(field_name_label)
+            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
+                                            clicked_callback=self.is_valid_change_img_cls)
+            self.vlo_img_label_field.addWidget(group_box)
+            self.label_field_image_cls.append([field_name, group_box])
+
+        self.logger.info(f"라벨 필드 UI 그리기 - {field_name}")
+
+    def create_label_field(self):
         self.logger.info("클릭 - 라벨 필드 추가")
 
         dialog = AddLabelFieldDialog(self, dataset_id=self.cur_dataset_idx, db=self.db_manager)
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
+            self.logger.info("라벨 필드 추가 취소")
             return
         elif ret == QDialog.DialogCode.Accepted:
             # label format - 0: boxes, 1: images
@@ -447,15 +595,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 is_duplicate=is_duplicate,
                 detail=classes
             )
-
             self.logger.info(f"라벨 필드 데이터베이스 저장: {label_format}-{label_type} / label_field row: {rowid}")
-            self.draw_one_label_field(rowid, label_format, label_type, field_name, is_duplicate, json.loads(classes))
-            self.statusbar.showMessage(f"라벨 포맷: {label_format} / 라벨 타입: {label_type} - 라벨 필드 추가 완료")
+
+            self.clear_ui_label_fields()
+            self.draw_ui_label_fields()
+
+            self.statusbar.showMessage(f"라벨 필드 추가 완료 - 라벨 포맷: {label_format} / 라벨 타입: {label_type}")
+            self.logger.info(f"라벨 필드 추가 완료 - 라벨 포맷: {label_format} / 라벨 타입: {label_type}")
 
     def delete_label_field(self):
         self.logger.info("클릭 - 라벨 필드 삭제")
 
-        dialog = LabelsFieldDeleteDialog(self, label_info=self.cur_label_fields, db=self.db_manager)
+        dialog = LabelsFieldDeleteDialog(self, label_info=self.label_fields_list_idx_name, db=self.db_manager)
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
             return
@@ -475,14 +626,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             text = f"'{delete_field_name.pop(0)}'"
             for label_field in delete_field_name:
                 text += f", '{label_field}'"
-            self.logger.info(f"{len(delete_idx)}개의 라벨 필드 삭제: {delete_idx}")
             msgBox = QMessageBox()
             msgBox.setText(f"{len(delete_idx)}개의 필드 {text}을(를) 삭제하였습니다.")
             msgBox.exec()
 
             # Update UI
-            self.clear_ui_label_field()
-            self.draw_label_field()
+            self.clear_ui_label_fields()
+            self.draw_ui_label_fields()
+
+            self.statusbar.showMessage(f"{len(delete_idx)}개의 라벨 필드 삭제: {text}")
+            self.logger.info(f"{len(delete_idx)}개의 라벨 필드 삭제: {text}")
 
     def get_upper_image(self):
         self.logger.info("Click 'upper image'")
@@ -576,192 +729,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_inner_tab.pixmap = QPixmap()
         self.cur_image_idx = -1
         self.clear_boxes_box_label()
-        # Reset boxes label field and image label field
-        self.clear_ui_label_field()
 
-        self.draw_label_field()
+        # Reset label fields
+        self.clear_ui_label_fields()
+        self.draw_ui_label_fields()
 
-        self.logger.info(f"Success changing tab index, name: {index}-{self.cur_tab_name}")
-
-    def draw_label_field(self):
-        self.cur_label_fields = []
-        self.cur_label_fields_class = {}
-        self.cur_label_fields_idx_dict = {}
-
-        self.label_field_image_caps = []
-        self.label_field_image_cls = []
-        self.label_field_boxes_box = []
-
-        rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
-        image_cap, image_cls = [], []
-        boxes_box, boxes_cap, boxes_cls = [], [], []
-
-        label_field_id = []
-        for ret in rets:
-            label_field_id.append(ret[0])
-            field_name = ret[1]
-            # dataset_id = ret[2]       # self.cur_dataset_idx
-            data_format = ret[3]
-            data_type = ret[4]
-            is_duplicate = ret[5]
-            classes = json.loads(ret[6])
-
-            if data_format == 0 and data_type == 0:     # boxes-box
-                self.cur_label_fields.append([ret[0], 'boxes-box'])
-                boxes_box.append(classes)
-            elif data_format == 0 and data_type == 1:   # boxes-cap
-                self.cur_label_fields.append([ret[0], field_name])
-                boxes_cap.append(field_name)
-            elif data_format == 0 and data_type == 2:   # boxes-cls
-                self.cur_label_fields.append([ret[0], field_name])
-                boxes_cls.append([field_name, is_duplicate, classes])
-            elif data_format == 1 and data_type == 1:   # image-cap
-                self.cur_label_fields.append([ret[0], field_name])
-                image_cap.append(field_name)
-            elif data_format == 1 and data_type == 2:   # image-cls
-                self.cur_label_fields.append([ret[0], field_name])
-                image_cls.append([field_name, is_duplicate, classes])
-
-        for label_field in self.cur_label_fields:
-            self.cur_label_fields_idx_dict[label_field[1]] = label_field[0]
-
-        # image-cap
-        for f_name in image_cap:
-            q_label = create_label(self,
-                                   text=f_name,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="font-weight: bold")
-            self.vlo_img_label_field.addWidget(q_label)
-            q_ptext = QPlainTextEdit(self)
-            q_ptext.setMaximumHeight(int(self.height() * 0.07))
-            q_ptext.textChanged.connect(self.is_valid_change_img_caption)
-            self.vlo_img_label_field.addWidget(q_ptext)
-            self.label_field_image_caps.append([f_name, q_ptext])
-
-        # image-cls
-        for data in image_cls:
-            f_name, is_duplicate, classes = data
-
-            if f_name not in self.cur_label_fields_class:
-                self.cur_label_fields_class[f_name] = {}
-            for idx, label_name in classes.items():
-                self.cur_label_fields_class[f_name][label_name] = idx
-
-            q_label = create_label(self,
-                                   text=f_name,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="font-weight: bold")
-            self.vlo_img_label_field.addWidget(q_label)
-            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
-                                            clicked_callback=self.is_valid_change_img_cls)
-            self.vlo_img_label_field.addWidget(group_box)
-            self.label_field_image_cls.append([f_name, group_box])
-
-        # boxes-box
-        for classes in boxes_box:
-
-            if 'boxes-box' not in self.cur_label_fields_class:
-                self.cur_label_fields_class['boxes-box'] = {}
-            for idx, label_name in classes.items():
-                self.cur_label_fields_class['boxes-box'][label_name] = idx
-
-            text = ""
-            for idx, cls_name in classes.items():
-                text += f"{idx}: {cls_name} / "
-            q_label = create_label(self,
-                                   text=text,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="color: blue; font-weight: bold;")
-            self.vlo_box_label_field.addWidget(q_label)
-            self.label_field_boxes_box = [self.cur_label_fields_idx_dict['boxes-box'], self.bbox_listwidget]
-
-        # boxes-cap
-        for f_name in boxes_cap:
-            q_label = create_label(self,
-                                   text=f_name,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="font-weight: bold")
-            self.vlo_box_label_field.addWidget(q_label)
-            q_ptext = QPlainTextEdit(self)
-            q_ptext.setMaximumHeight(int(self.height() * 0.07))
-            self.vlo_box_label_field.addWidget(q_ptext)
-
-        # boxes-cls
-        for data in boxes_cls:
-            f_name, is_duplicate, classes = data
-
-            q_label = create_label(self,
-                                   text=f_name,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="font-weight: bold")
-            self.vlo_box_label_field.addWidget(q_label)
-            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
-            self.vlo_box_label_field.addWidget(group_box)
-
-        self.logger.info(f"전체 라벨 필드 그리기 완료 - label_field_id: {label_field_id}")
-
-    def draw_one_label_field(self, db_id, data_format, data_type, field_name, is_duplicate, classes):
-        # image-cap
-        if data_format == 1 and data_type == 1:
-            q_label = create_label(self,
-                                   text=field_name,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="font-weight: bold")
-            self.vlo_img_label_field.addWidget(q_label)
-            q_ptext = QPlainTextEdit(self)
-            q_ptext.setMaximumHeight(int(self.height() * 0.07))
-            q_ptext.textChanged.connect(self.is_valid_change_img_caption)
-            self.vlo_img_label_field.addWidget(q_ptext)
-            self.label_field_image_caps.append([field_name, q_ptext])
-
-        # image-cls
-        elif data_format == 1 and data_type == 2:
-            q_label = create_label(self,
-                                   text=field_name,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="font-weight: bold")
-            self.vlo_img_label_field.addWidget(q_label)
-            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate,
-                                            clicked_callback=self.is_valid_change_img_cls)
-            self.vlo_img_label_field.addWidget(group_box)
-            self.label_field_image_cls.append([field_name, group_box])
-
-        # boxes-box
-        elif data_format == 0 and data_type == 0:
-            field_name = 'boxes-box'
-            text = ""
-            for idx, cls_name in classes.items():
-                text += f"{idx}: {cls_name} "
-            q_label = create_label(self,
-                                   text=text,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="color: blue; font-weight: bold;")
-            self.vlo_box_label_field.addWidget(q_label)
-
-        # boxes-cap
-        elif data_format == 0 and data_type == 1:
-            q_label = create_label(self,
-                                   text=field_name,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="font-weight: bold")
-            self.vlo_box_label_field.addWidget(q_label)
-            q_ptext = QPlainTextEdit(self)
-            q_ptext.setMaximumHeight(int(self.height() * 0.07))
-            self.vlo_box_label_field.addWidget(q_ptext)
-
-        # boxes-cls
-        elif data_format == 0 and data_type == 2:
-            q_label = create_label(self,
-                                   text=field_name,
-                                   alignment=Qt.AlignmentFlag.AlignTop,
-                                   stylesheet="font-weight: bold")
-            self.vlo_box_label_field.addWidget(q_label)
-            group_box = create_button_group(self, horizontal=True, names=classes.values(), duplication=is_duplicate)
-            self.vlo_box_label_field.addWidget(group_box)
-
-        self.cur_label_fields.append([db_id, field_name])
-        self.cur_label_fields_idx_dict[field_name] = db_id
-        self.logger.info(f"라벨 필드 UI 추가 완료 - label_field_id: {db_id}")
+        self.logger.info(f"탭 변경 - index / name: {index} / {self.cur_tab_name}")
 
     def is_valid_change_img_caption(self):
         if self.cur_image_idx == -1:
@@ -800,8 +773,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def save_labels(self):
         # 현재 이미지, 라벨 필드 목록
-        # print(self.cur_image_idx, self.cur_label_fields)
-        # print(self.cur_label_fields_idx_dict)
 
         # DB에서 현재 데이터셋 필드 조회
 
@@ -825,7 +796,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for cap_label in self.label_field_image_caps:
             field_name, plain_text = cap_label
             caption_text = plain_text.toPlainText()
-            label_field_id = self.cur_label_fields_idx_dict[field_name]
+            label_field_id = self.label_fields_dict_name_to_idx[field_name]
 
             lastrowid = self.db_manager.create_label_data(
                 image_data_id=self.cur_image_idx,
@@ -840,7 +811,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fields = []
         for cap_label in self.label_field_image_caps:
             field_name, plain_text = cap_label
-            label_field_idx = self.cur_label_fields_idx_dict[field_name]
+            label_field_idx = self.label_fields_dict_name_to_idx[field_name]
             fields.append(field_name)
             ret = self.db_manager.read_label_data(
                 image_data_id=self.cur_image_idx,
@@ -859,8 +830,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for c in group_box.children():
                 if type(c) in [QRadioButton, QCheckBox]:
                     if c.isChecked():
-                        field_idx = self.cur_label_fields_idx_dict[field_name]
-                        label_cls = self.cur_label_fields_class[field_name][c.text()]
+                        field_idx = self.label_fields_dict_name_to_idx[field_name]
+                        label_cls = self.label_field_name_dict_classname_to_idx[field_name][c.text()]
                         field_idx_class.append([field_idx, label_cls])
                 else:   # hlo
                     continue
@@ -880,7 +851,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for cls_label in self.label_field_image_cls:
             field_name, group_box = cls_label
             fields.append(field_name)
-            label_field_idx = self.cur_label_fields_idx_dict[field_name]
+            label_field_idx = self.label_fields_dict_name_to_idx[field_name]
             rets = self.db_manager.read_label_data(
                 image_data_id=self.cur_image_idx,
                 label_field_id=label_field_idx
@@ -888,7 +859,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             check_label = []
             for ret in rets:
                 cls = ret[6]
-                for label_name, label_idx in self.cur_label_fields_class[field_name].items():
+                for label_name, label_idx in self.label_field_name_dict_classname_to_idx[field_name].items():
                     if int(label_idx) == cls:
                         check_label.append(label_name)
             for c in group_box.children():
@@ -907,7 +878,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             xyxy = get_xyxy(points)
             pixmap_size = self.cur_inner_tab.pixmap.size()
             rel_xyxy = xyxy_to_rel(xyxy, pixmap_size)
-            cls = self.cur_label_fields_class['boxes-box'][list_widget_item.text()]
+            cls = self.label_field_name_dict_classname_to_idx['boxes-box'][list_widget_item.text()]
 
             lastrowid = self.db_manager.create_label_data(
                 image_data_id=self.cur_image_idx,
@@ -936,7 +907,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 coord = eval(ret[5])
                 cls = ret[6]
                 cls_name = None
-                for label_name, label_idx in self.cur_label_fields_class['boxes-box'].items():
+                for label_name, label_idx in self.label_field_name_dict_classname_to_idx['boxes-box'].items():
                     if int(label_idx) == cls:
                         cls_name = label_name
                         break
@@ -1005,9 +976,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 press_num = event.text()
                 self._change_box_class.append(press_num)
                 _change_cls = "".join(self._change_box_class)
-                if _change_cls in list(self.cur_label_fields_class['boxes-box'].values()):
+                if _change_cls in list(self.label_field_name_dict_classname_to_idx['boxes-box'].values()):
                     shape.set_class(int(_change_cls))
-                    for cls_name, cls_idx in self.cur_label_fields_class['boxes-box'].items():
+                    for cls_name, cls_idx in self.label_field_name_dict_classname_to_idx['boxes-box'].items():
                         if cls_idx == _change_cls:
                             g_color = generate_color_by_text(cls_name)
                             shape.label = cls_name
@@ -1155,7 +1126,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         img = self.weed_manager.get_image(fid=image_fid, pil=False)
         det = self.detector.run_np(img)
         img_h, img_w = img.shape[:2]
-        cls_idx_to_name = {int(v): k for k, v in self.cur_label_fields_class['boxes-box'].items()}
+        cls_idx_to_name = {int(v): k for k, v in self.label_field_name_dict_classname_to_idx['boxes-box'].items()}
         ret_num = 0
         for d in det:
             abs_xyxy = d[:4]
