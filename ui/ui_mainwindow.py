@@ -124,15 +124,16 @@ class Ui_MainWindow(object):
 
         self.hlo_header.addWidget(self.tB_header_delSelectedImage)
 
-        self.tB_header_delLabels = QToolButton(self.centralwidget)
-        self.tB_header_delLabels.setObjectName(u"tB_header_delLabels")
+        self.tB_header_delSelectedImagesLabels = QToolButton(self.centralwidget)
+        self.tB_header_delSelectedImagesLabels.setObjectName(u"tB_header_delSelectedImagesLabels")
+        self.tB_header_delSelectedImagesLabels.setPopupMode(QToolButton.InstantPopup)
 
-        self.hlo_header.addWidget(self.tB_header_delLabels)
+        self.hlo_header.addWidget(self.tB_header_delSelectedImagesLabels)
 
-        self.tB_header_delCurLabel = QToolButton(self.centralwidget)
-        self.tB_header_delCurLabel.setObjectName(u"tB_header_delCurLabel")
+        self.tB_header_delCurImageLabels = QToolButton(self.centralwidget)
+        self.tB_header_delCurImageLabels.setObjectName(u"tB_header_delCurImageLabels")
 
-        self.hlo_header.addWidget(self.tB_header_delCurLabel, 0, Qt.AlignRight)
+        self.hlo_header.addWidget(self.tB_header_delCurImageLabels, 0, Qt.AlignRight)
 
 
         self.verticalLayout.addLayout(self.hlo_header)
@@ -364,7 +365,6 @@ class Ui_MainWindow(object):
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionDelete_Dataset)
         self.menuFile.addAction(self.actionDelete_Selected_Image)
-        self.menuFile.addAction(self.actionDelete_Whole_Label)
         self.menuFile.addAction(self.actionDelete_Selected_Label)
         self.menuFile.addAction(self.actionDeltete_Current_Label)
         self.menuFile.addSeparator()
@@ -457,8 +457,8 @@ class Ui_MainWindow(object):
         self.tB_header_uploadImage.setText(QCoreApplication.translate("MainWindow", u"UploadImage", None))
         self.tB_header_delDataset.setText(QCoreApplication.translate("MainWindow", u"DeleteDataset", None))
         self.tB_header_delSelectedImage.setText(QCoreApplication.translate("MainWindow", u"DeleteSelectedImage", None))
-        self.tB_header_delLabels.setText(QCoreApplication.translate("MainWindow", u"DeleteLabels", None))
-        self.tB_header_delCurLabel.setText(QCoreApplication.translate("MainWindow", u"DeleteCurLabel", None))
+        self.tB_header_delSelectedImagesLabels.setText(QCoreApplication.translate("MainWindow", u"DeleteSelectedImagesLabels", None))
+        self.tB_header_delCurImageLabels.setText(QCoreApplication.translate("MainWindow", u"DeleteCurImageLabels", None))
 #if QT_CONFIG(tooltip)
         self.tB_img_up.setToolTip("")
 #endif // QT_CONFIG(tooltip)

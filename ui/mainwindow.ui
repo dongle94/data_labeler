@@ -75,16 +75,19 @@
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="tB_header_delLabels">
+       <widget class="QToolButton" name="tB_header_delSelectedImagesLabels">
         <property name="text">
-         <string>DeleteLabels</string>
+         <string>DeleteSelectedImagesLabels</string>
+        </property>
+        <property name="popupMode">
+         <enum>QToolButton::InstantPopup</enum>
         </property>
        </widget>
       </item>
       <item alignment="Qt::AlignRight">
-       <widget class="QToolButton" name="tB_header_delCurLabel">
+       <widget class="QToolButton" name="tB_header_delCurImageLabels">
         <property name="text">
-         <string>DeleteCurLabel</string>
+         <string>DeleteCurImageLabels</string>
         </property>
        </widget>
       </item>
@@ -412,7 +415,6 @@
     <addaction name="separator"/>
     <addaction name="actionDelete_Dataset"/>
     <addaction name="actionDelete_Selected_Image"/>
-    <addaction name="actionDelete_Whole_Label"/>
     <addaction name="actionDelete_Selected_Label"/>
     <addaction name="actionDeltete_Current_Label"/>
     <addaction name="separator"/>
