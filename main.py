@@ -207,6 +207,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Update UI
         self.tab_widget.removeTab(self.tab_widget.currentIndex())
+        del self.dataset_dict_name_to_idx[dataset_name]
 
         self.logger.info(f"데이터 셋 삭제: {dataset_name} / 지워진 이미지 수: {num_img}")
 
