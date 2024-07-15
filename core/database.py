@@ -56,7 +56,7 @@ class DBManager(object):
 
         return ret
 
-    def read_dataset_detail(self, name):
+    def read_dataset_by_name(self, name):
         sql = "SELECT * FROM dataset WHERE name = (%s)"
         data = (name, )
 
@@ -237,5 +237,5 @@ if __name__ == "__main__":
     time.sleep(0.1)
     db.show_tables()
 
-    # ret = db.read_dataset_detail('sample1')
+    # ret = db.read_dataset_by_name('sample1')
     # print(ret)

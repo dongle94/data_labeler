@@ -50,11 +50,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.weed_manager = SeaWeedFS(cfg=cfg, logger=self.logger)
 
         # Set params
-        self.cur_dataset_idx = -1
-        self.cur_tab_idx = -1
-        self.cur_tab_name = None
-        self.cur_inner_tab = None
+        self.dataset_dict_name_to_idx = {}
+        self.cur_dataset_db_idx = -1
+        self.cur_dataset_name = None
         self.cur_image_idx = -1
+        self.cur_inner_tab = None
+        self.cur_inner_tab_name = None
+        self.cur_inner_tab_ui_idx = -1
+
         self.is_label_change = False
 
         self.detector = None
@@ -78,8 +81,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._change_box_class = []
 
         # init drawing
-        self.draw_dataset()
-        self.draw_image_list_widget()
+        self.draw_ui_dataset_inner_tab_widget()
+        self.draw_ui_image_list()
         self.clear_ui_label_fields()
         self.draw_ui_label_fields()
 
@@ -125,9 +128,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tB_img_down.clicked.connect(self.get_lower_image)
         self.tB_img_del.clicked.connect(self.delete_images)
 
-        self.tW_img.currentChanged.connect(self.change_tab)
-
-        self.tW_images.itemClicked.connect(self.draw_image)
+        self.tab_widget.currentChanged.connect(self.change_tab)
+        self.image_list_widget.itemClicked.connect(self.draw_image)
 
         self.pB_label_add.clicked.connect(self.create_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
@@ -152,7 +154,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.warn("데이터 셋 이름 공백 문제 발생")
             return
         # check dataset name is duplicated
-        res = self.db_manager.read_dataset_detail(dataset_name)
+        res = self.db_manager.read_dataset_by_name(dataset_name)
         if len(res) != 0:
             msgBox = QMessageBox(text="이미 존재하는 데이터 셋 이름입니다.")
             msgBox.exec()
@@ -174,22 +176,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         widget = ImageTabInnerWidget(self)
         widget.newShape.connect(self.draw_new_box_label)
         widget.selectionChanged.connect(self.shape_selection_changed)
-        self.tW_img.addTab(widget, dataset_name)
+        self.tab_widget.addTab(widget, dataset_name)
 
         self.logger.info(f"데이터 셋 생성: {dataset_name} / 타입-{dataset_type} / 설명-{dataset_desc}")
 
     def delete_dataset(self):
         self.logger.info("클릭 - 데이터 셋 삭제")
-        dataset_name = self.cur_tab_name
+        dataset_name = self.cur_inner_tab_name
         dialog = DatasetDeleteDialog(self, dataset_name=dataset_name)
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
             self.logger.info("데이터 셋 삭제 취소")
             return
 
-        num_img = len(self.tW_images.fid_dict)
+        num_img = len(self.image_list_widget.fid_dict)
         # Delete All images in weedfs
-        for db_idx, img_fid in self.tW_images.fid_dict.items():
+        for db_idx, img_fid in self.image_list_widget.fid_dict.items():
             self.weed_manager.delete_file(fid=img_fid)
 
         # delete DB with delete cascade
@@ -204,7 +206,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         # Update UI
-        self.tW_img.removeTab(self.tW_img.currentIndex())
+        self.tab_widget.removeTab(self.tab_widget.currentIndex())
 
         self.logger.info(f"데이터 셋 삭제: {dataset_name} / 지워진 이미지 수: {num_img}")
 
@@ -262,7 +264,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Upload DB
             if db is True:
                 idx = self.db_manager.create_image_data(
-                    dataset_id=self.cur_dataset_idx,
+                    dataset_id=self.cur_dataset_db_idx,
                     filename=ret['filename'],
                     image_fid=ret['fid'],
                     image_url=ret['url'],
@@ -272,12 +274,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 # Update UI: left image table list
                 if ui is True:
-                    self.tW_images.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
+                    self.image_list_widget.add_image_list(idx, ret['filename'], ret['fid'], ret['url'])
 
     def delete_images(self):
         self.logger.info("클릭 - 선택 이미지 삭제")
 
-        if len(self.tW_images.selectedItems()) == 0:
+        if len(self.image_list_widget.selectedItems()) == 0:
             msg = "이미지를 삭제하려면 1개 이상의 이미지를 선택해야합니다."
             self.statusbar.showMessage(msg)
             msgBox = QMessageBox(text=msg)
@@ -285,8 +287,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             # Get Selected image number and index
             rows = set()
-            for item in self.tW_images.selectedItems():
-                img_db_idx = int(self.tW_images.item(item.row(), 0).text())
+            for item in self.image_list_widget.selectedItems():
+                img_db_idx = int(self.image_list_widget.item(item.row(), 0).text())
                 rows.add(img_db_idx)
             self.statusbar.showMessage(f"{len(rows)} 개의 이미지 삭제 요청")
             dialog = ImagesDeleteDialog(self, image_num=len(rows))
@@ -296,7 +298,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
             try:
                 for img_db_idx in rows:
-                    img_fid = self.tW_images.fid_dict[img_db_idx]
+                    img_fid = self.image_list_widget.fid_dict[img_db_idx]
 
                     # Delete selected iamges in weedfs
                     ret = self.weed_manager.delete_file(fid=img_fid)
@@ -314,7 +316,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
 
             # Update UI
-            self.draw_image_list_widget()
+            self.draw_ui_image_list()
             self.clear_ui_image()
             self.clear_ui_label_data()
 
@@ -336,7 +338,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         """
         self.cur_inner_tab.pixmap = QPixmap()
-        self.tW_images.clearSelection()
+        self.image_list_widget.clearSelection()
         self.cur_image_idx = -1
 
     def clear_ui_label_data(self):
@@ -412,14 +414,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             w.deleteLater()
 
     def draw_ui_label_fields(self):
-        rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
+        rets = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_db_idx)
         image_cap, image_cls = [], []
         boxes_box, boxes_cap, boxes_cls = [], [], []
 
         for ret in rets:
             field_db_idx = ret[0]
             field_name = ret[1]
-            # dataset_id = ret[2]       # self.cur_dataset_idx
+            # dataset_id = ret[2]       # self.cur_dataset_db_idx
             data_format = ret[3]
             data_type = ret[4]
             is_duplicate = ret[5]
@@ -546,10 +548,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info(f"라벨 필드 UI 그리기 - {field_name}")
 
+    def draw_ui_dataset_inner_tab_widget(self):
+        rets = self.db_manager.read_dataset()
+
+        for ret in rets:
+            dataset_id = ret[0]
+            dataset_name = ret[1]
+            self.dataset_dict_name_to_idx[dataset_name] = dataset_id
+            widget = ImageTabInnerWidget(self)
+            widget.newShape.connect(self.draw_new_box_label)
+            widget.selectionChanged.connect(self.shape_selection_changed)
+            self.tab_widget.addTab(widget, dataset_name)
+
+        self.cur_inner_tab_ui_idx = self.tab_widget.currentIndex()
+        self.cur_inner_tab_name = self.tab_widget.tabText(self.cur_inner_tab_ui_idx)
+        self.cur_dataset_name = self.cur_inner_tab_name
+        self.cur_dataset_db_idx = self.dataset_dict_name_to_idx[self.cur_dataset_name]
+        self.cur_inner_tab = self.tab_widget.currentWidget()
+        self.logger.info(f"데이터 셋 탭 위젯 그리기 - index / name: {self.cur_inner_tab_ui_idx} / {self.cur_inner_tab_name}")
+
+    def draw_ui_image_list(self):
+        # get current tab iamges
+        images = self.db_manager.read_image_data_by_dataset_id(self.cur_dataset_db_idx)
+        self.image_list_widget.draw_image_list(images)
+
+        self.logger.info(f"이미지 리스트 위젯 그리기 - {self.cur_inner_tab_ui_idx}번 탭 / {self.cur_dataset_name} / "
+                         f"이미지 {len(images)}장")
+
     def create_label_field(self):
         self.logger.info("클릭 - 라벨 필드 추가")
 
-        dialog = AddLabelFieldDialog(self, dataset_id=self.cur_dataset_idx, db=self.db_manager)
+        dialog = AddLabelFieldDialog(self, dataset_id=self.cur_dataset_db_idx, db=self.db_manager)
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
             self.logger.info("라벨 필드 추가 취소")
@@ -589,7 +618,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             rowid = self.db_manager.create_label_field(
                 name=field_name,
-                dataset_id=self.cur_dataset_idx,
+                dataset_id=self.cur_dataset_db_idx,
                 label_format=label_format,
                 label_type=label_type,
                 is_duplicate=is_duplicate,
@@ -639,59 +668,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def get_upper_image(self):
         self.logger.info("Click 'upper image'")
-        if not self.tW_images.selectedItems():
-            self.tW_images.selectRow(0)
-            self.draw_image(self.tW_images.item(0, 0))
+        if not self.image_list_widget.selectedItems():
+            self.image_list_widget.selectRow(0)
+            self.draw_image(self.image_list_widget.item(0, 0))
         else:
-            idx = self.tW_images.selectedIndexes()[0].row()
+            idx = self.image_list_widget.selectedIndexes()[0].row()
             idx = max(idx-1, 0)
-            self.tW_images.selectRow(idx)
-            self.draw_image(self.tW_images.item(idx, 0))
+            self.image_list_widget.selectRow(idx)
+            self.draw_image(self.image_list_widget.item(idx, 0))
 
     def get_lower_image(self):
         self.logger.info("Click 'lower image'")
-        if not self.tW_images.selectedItems():
-            self.tW_images.selectRow(0)
-            self.draw_image(self.tW_images.item(0, 0))
+        if not self.image_list_widget.selectedItems():
+            self.image_list_widget.selectRow(0)
+            self.draw_image(self.image_list_widget.item(0, 0))
         else:
-            num_row = self.tW_images.rowCount()
-            idx = self.tW_images.selectedIndexes()[0].row()
+            num_row = self.image_list_widget.rowCount()
+            idx = self.image_list_widget.selectedIndexes()[0].row()
             idx = min(idx + 1, num_row - 1)
-            self.tW_images.selectRow(idx)
-            self.draw_image(self.tW_images.item(idx, 0))
-
-    def draw_dataset(self):
-        ds = self.db_manager.read_dataset()
-
-        for d in ds:
-            ds_name = d[1]
-            wg = ImageTabInnerWidget(self)
-            wg.newShape.connect(self.draw_new_box_label)
-            wg.selectionChanged.connect(self.shape_selection_changed)
-            self.tW_img.addTab(wg, ds_name)
-
-        self.cur_tab_idx = self.tW_img.currentIndex()
-        self.cur_tab_name = self.tW_img.tabText(self.cur_tab_idx)
-        self.cur_inner_tab = self.tW_img.currentWidget()
-        self.logger.info(f"Success drawing datasets - Current tab index, name: {self.cur_tab_idx}-{self.cur_tab_name}")
-
-    def draw_image_list_widget(self):
-        # get current tab dataset_id
-        ret = self.db_manager.read_dataset_detail(self.cur_tab_name)
-        if ret:
-            dataset_id = ret[0][0]
-            self.cur_dataset_idx = dataset_id
-
-            images = self.db_manager.read_image_data_by_dataset_id(dataset_id)
-            self.tW_images.draw_image_list(images)
-
-            self.logger.info(f"Success drawing image_list - Current tab index, dataset_id, image_len: "
-                             f"{self.cur_tab_idx}-{dataset_id}, {len(images)} images")
+            self.image_list_widget.selectRow(idx)
+            self.draw_image(self.image_list_widget.item(idx, 0))
 
     def draw_image(self, item: QTableWidgetItem):
-        img_idx = int(self.tW_images.item(item.row(), 0).text())
-        img_name = self.tW_images.item(item.row(), 1).text()
-        image_fid = self.tW_images.fid_dict[img_idx]
+        img_idx = int(self.image_list_widget.item(item.row(), 0).text())
+        img_name = self.image_list_widget.item(item.row(), 1).text()
+        image_fid = self.image_list_widget.fid_dict[img_idx]
 
         img = self.weed_manager.get_image(fid=image_fid)
 
@@ -718,13 +719,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
 
     def change_tab(self, index):
-        self.cur_tab_idx = index
-        self.cur_tab_name = self.tW_img.tabText(index)
-        self.cur_inner_tab = self.tW_img.currentWidget()
+        self.cur_inner_tab = self.tab_widget.currentWidget()
+        self.cur_inner_tab_ui_idx = index
+        self.cur_inner_tab_name = self.tab_widget.tabText(index)
+        self.cur_dataset_name = self.cur_inner_tab_name
+        self.cur_dataset_db_idx = self.dataset_dict_name_to_idx[self.cur_dataset_name]
 
         # Reset left list
-        self.draw_image_list_widget()
-        self.tW_images.clearSelection()
+        self.draw_ui_image_list()
+        self.image_list_widget.clearSelection()
         # Reset pixmap, box list and shape, item
         self.cur_inner_tab.pixmap = QPixmap()
         self.cur_image_idx = -1
@@ -734,7 +737,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.clear_ui_label_fields()
         self.draw_ui_label_fields()
 
-        self.logger.info(f"탭 변경 - index / name: {index} / {self.cur_tab_name}")
+        self.logger.info(f"탭 변경 - index / name: {index} / {self.cur_inner_tab_name}")
 
     def is_valid_change_img_caption(self):
         if self.cur_image_idx == -1:
@@ -925,7 +928,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def draw_new_box_label(self):
         # box 클래스 라벨이 없을 때 예외 다이어로그 처리
-        ret = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
+        ret = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_db_idx)
         is_exist_box_label = False
         classes = None
         for r in ret:
@@ -1065,7 +1068,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Bounding box for {item_cnt} images created successfully: {box_num}")
 
     def create_box_label_by_detection_selected_images(self):
-        if len(self.tW_images.selectedItems()) == 0:
+        if len(self.image_list_widget.selectedItems()) == 0:
             self.statusbar.showMessage("1장 이상의 이미지를 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 선택해주세요.")
             msgBox.setWindowTitle("이미지 미선택 오류")
@@ -1073,9 +1076,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         imgs_idx = dict()
-        for item in self.tW_images.selectedItems():
-            if int(self.tW_images.item(item.row(), 0).text()) not in imgs_idx:
-                imgs_idx[int(self.tW_images.item(item.row(), 0).text())] = item
+        for item in self.image_list_widget.selectedItems():
+            if int(self.image_list_widget.item(item.row(), 0).text()) not in imgs_idx:
+                imgs_idx[int(self.image_list_widget.item(item.row(), 0).text())] = item
         dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=len(imgs_idx))
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
@@ -1083,7 +1086,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif ret == QDialog.DialogCode.Accepted:
             box_num = 0
             for img_idx, item in imgs_idx.items():
-                self.tW_images.selectRow(item.row())
+                self.image_list_widget.selectRow(item.row())
                 self.draw_image(item)
                 n = self.create_box_label_by_detection_one_image(img_idx)
                 box_num += n
@@ -1092,13 +1095,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
 
     def create_box_label_by_detection_current_image(self):
-        if len(self.tW_images.selectedItems()) == 0:
+        if len(self.image_list_widget.selectedItems()) == 0:
             self.statusbar.showMessage("이미지를 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 선택해주세요.")
             msgBox.setWindowTitle("이미지 미선택 오류")
             msgBox.exec()
             return
-        elif len(self.tW_images.selectedItems()) > 1:
+        elif len(self.image_list_widget.selectedItems()) > 1:
             self.statusbar.showMessage("이미지를 1장만 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 1장만 선택해주세요.")
             msgBox.setWindowTitle("다중 이미지 선택 오류")
@@ -1122,7 +1125,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.detector is None:
             self.detector = ObjectDetector(cfg=_cfg)
-        image_fid = self.tW_images.fid_dict[image_idx]
+        image_fid = self.image_list_widget.fid_dict[image_idx]
         img = self.weed_manager.get_image(fid=image_fid, pil=False)
         det = self.detector.run_np(img)
         img_h, img_w = img.shape[:2]
@@ -1162,17 +1165,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         path = dialog.dirname
         train, val, test = dialog.train_ratio, dialog.val_ratio, dialog.test_ratio
         is_shuffle = dialog.is_shuffle
-        self.logger.info(f"Start Exporting YOLO detection dataset: {self.cur_tab_name}")
+        self.logger.info(f"Start Exporting YOLO detection dataset: {self.cur_inner_tab_name}")
         st = time.time()
         imgs_idx = set()
         # All images
-        if len(self.tW_images.selectedItems()) == 0:
-            for idx in range(self.tW_images.rowCount()):
-                imgs_idx.add(int(self.tW_images.item(idx, 0).text()))
+        if len(self.image_list_widget.selectedItems()) == 0:
+            for idx in range(self.image_list_widget.rowCount()):
+                imgs_idx.add(int(self.image_list_widget.item(idx, 0).text()))
         # Selected images
         else:
-            for item in self.tW_images.selectedItems():
-                imgs_idx.add(int(self.tW_images.item(item.row(), 0).text()))
+            for item in self.image_list_widget.selectedItems():
+                imgs_idx.add(int(self.image_list_widget.item(item.row(), 0).text()))
 
         # check shuffle is needed
         imgs_idx = list(imgs_idx)
@@ -1186,12 +1189,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Set save path
         dirname = path
-        dataset_name = self.cur_tab_name + f"_{datetime.now().strftime('%y%m%d_%H%M%S')}"
+        dataset_name = self.cur_inner_tab_name + f"_{datetime.now().strftime('%y%m%d_%H%M%S')}"
         dataset_path = os.path.join(dirname, dataset_name)
         os.makedirs(dataset_path, exist_ok=True)
 
         # save meta yaml
-        label_field_info = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_idx)
+        label_field_info = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_db_idx)
         boxes_box_field = None
         for label_field in label_field_info:
             if label_field[3] == 0 and label_field[4] == 0:
@@ -1225,7 +1228,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 img_path = os.path.join(t_img_dir, img_file)
 
                 # save img
-                image_fid = self.tW_images.fid_dict[i]
+                image_fid = self.image_list_widget.fid_dict[i]
                 img = self.weed_manager.get_image(fid=image_fid)
                 img.save(img_path)
 
@@ -1254,7 +1257,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 img_path = os.path.join(v_img_dir, img_file)
 
                 # save img
-                image_fid = self.tW_images.fid_dict[i]
+                image_fid = self.image_list_widget.fid_dict[i]
                 img = self.weed_manager.get_image(fid=image_fid)
                 img.save(img_path)
 
@@ -1283,7 +1286,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 img_path = os.path.join(te_img_dir, img_file)
 
                 # save img
-                image_fid = self.tW_images.fid_dict[i]
+                image_fid = self.image_list_widget.fid_dict[i]
                 img = self.weed_manager.get_image(fid=image_fid)
                 img.save(img_path)
 
@@ -1299,7 +1302,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                         f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
                             label_str = f"{box_class} {box_xywh}\n"
                             f.write(label_str)
-        self.logger.info(f"End Exporting YOLO detection dataset: {self.cur_tab_name} / {time.time()-st:.3f} sec")
+        self.logger.info(f"End Exporting YOLO detection dataset: {self.cur_inner_tab_name} / {time.time()-st:.3f} sec")
 
 
 if __name__ == "__main__":
