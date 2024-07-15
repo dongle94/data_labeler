@@ -317,6 +317,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.logger.info(f"선택 이미지 삭제 - 지워진 이미지 수: {len(rows)}")
 
+    def delete_selected_images_labels(self):
+        pass
+
+    def delete_current_image_labels(self):
+        pass
+
+    def delete_labels(self):
+        pass
+
     def clear_ui_image(self):
         """탭 위젯의 이미지 픽스맵 초기화 및 좌측 이미지 목록의 이미지 선택 초기화
 
