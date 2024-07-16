@@ -53,7 +53,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dataset_dict_name_to_idx = {}
         self.cur_dataset_db_idx = -1
         self.cur_dataset_name = None
-        self.cur_image_idx = -1
+        self.cur_image_db_idx = -1
         self.cur_inner_tab = None
         self.cur_inner_tab_name = None
         self.cur_inner_tab_ui_idx = -1
@@ -119,6 +119,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSelect_up_image.triggered.connect(self.get_upper_image)
         self.actionSelect_down_image.triggered.connect(self.get_lower_image)
         self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
+        self.image_list_widget.itemClicked.connect(self.draw_image_item)
 
         # BBoxList
         self.bbox_listwidget.itemActivated.connect(self.label_selection_changed)
@@ -129,7 +130,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tB_img_del.clicked.connect(self.delete_images)
 
         self.tab_widget.currentChanged.connect(self.change_tab)
-        self.image_list_widget.itemClicked.connect(self.draw_image)
 
         self.pB_label_add.clicked.connect(self.create_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
@@ -340,7 +340,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         self.cur_inner_tab.pixmap = QPixmap()
         self.image_list_widget.clearSelection()
-        self.cur_image_idx = -1
+        self.cur_image_db_idx = -1
 
     def clear_ui_label_data(self):
         """우측 박스 목록, 박스 관련 라벨, 이미지 관련 라벨 초기화
@@ -576,6 +576,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info(f"이미지 리스트 위젯 그리기 - {self.cur_inner_tab_ui_idx}번 탭 / {self.cur_dataset_name} / "
                          f"이미지 {len(images)}장")
 
+    def draw_image_item(self, item: QTableWidgetItem):
+        img_db_idx = int(self.image_list_widget.item(item.row(), 0).text())
+        img_filename = self.image_list_widget.item(item.row(), 1).text()
+        img_fid = self.image_list_widget.fid_dict[img_db_idx]
+
+        img_pil = self.weed_manager.get_image(fid=img_fid)
+
+        # draw
+        self.cur_inner_tab.set_pixmap(img_pil.toqpixmap(), scale=True)
+        self.cur_image_db_idx = img_db_idx
+
+        # clear label field
+        self.clear_ui_label_data()
+
+        # Draw label field
+        self.draw_cur_img_caption_label()
+        self.draw_cur_img_classification_label()
+        self.draw_cur_boxes_box_label()
+        self.cur_inner_tab.repaint()
+
+        self.statusbar.showMessage(f"이미지 그리기 - {img_db_idx}({img_filename})")
+        self.logger.info(f"이미지 그리기 - {img_db_idx}({img_filename})")
+
     def create_label_field(self):
         self.logger.info("클릭 - 라벨 필드 추가")
 
@@ -671,53 +694,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info("Click 'upper image'")
         if not self.image_list_widget.selectedItems():
             self.image_list_widget.selectRow(0)
-            self.draw_image(self.image_list_widget.item(0, 0))
+            self.draw_image_item(self.image_list_widget.item(0, 0))
         else:
             idx = self.image_list_widget.selectedIndexes()[0].row()
             idx = max(idx-1, 0)
             self.image_list_widget.selectRow(idx)
-            self.draw_image(self.image_list_widget.item(idx, 0))
+            self.draw_image_item(self.image_list_widget.item(idx, 0))
 
     def get_lower_image(self):
         self.logger.info("Click 'lower image'")
         if not self.image_list_widget.selectedItems():
             self.image_list_widget.selectRow(0)
-            self.draw_image(self.image_list_widget.item(0, 0))
+            self.draw_image_item(self.image_list_widget.item(0, 0))
         else:
             num_row = self.image_list_widget.rowCount()
             idx = self.image_list_widget.selectedIndexes()[0].row()
             idx = min(idx + 1, num_row - 1)
             self.image_list_widget.selectRow(idx)
-            self.draw_image(self.image_list_widget.item(idx, 0))
-
-    def draw_image(self, item: QTableWidgetItem):
-        img_idx = int(self.image_list_widget.item(item.row(), 0).text())
-        img_name = self.image_list_widget.item(item.row(), 1).text()
-        image_fid = self.image_list_widget.fid_dict[img_idx]
-
-        img = self.weed_manager.get_image(fid=image_fid)
-
-        self.cur_inner_tab.pos_click = []
-
-        # self.cur_inner_tab.bg_label.bg_img = img
-        self.cur_inner_tab.set_pixmap(img.toqpixmap(), scale=True)
-        # self.cur_inner_tab.bg_label.boxes_rect = []
-        self.cur_image_idx = img_idx
-
-        # clear label field
-        self.clear_ui_img_label_captions()
-        self.clear_ui_img_label_cls()
-        self.clear_boxes_box_label()
-        # clear boxes-cap label
-        # clear boxes-cls label
-
-        # Draw label field
-        self.draw_cur_img_caption_label()
-        self.draw_cur_img_classification_label()
-        self.draw_cur_boxes_box_label()
-        self.cur_inner_tab.repaint()
-
-        self.statusbar.showMessage(f"Draw Image - Current tab index: {img_idx}({img_name})")
+            self.draw_image_item(self.image_list_widget.item(idx, 0))
 
     def change_tab(self, index):
         self.cur_inner_tab = self.tab_widget.currentWidget()
@@ -731,7 +725,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.image_list_widget.clearSelection()
         # Reset pixmap, box list and shape, item
         self.cur_inner_tab.pixmap = QPixmap()
-        self.cur_image_idx = -1
+        self.cur_image_db_idx = -1
         self.clear_boxes_box_label()
 
         # Reset label fields
@@ -741,7 +735,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger.info(f"탭 변경 - index / name: {index} / {self.cur_inner_tab_name}")
 
     def is_valid_change_img_caption(self):
-        if self.cur_image_idx == -1:
+        if self.cur_image_db_idx == -1:
             for cap_data in self.label_field_image_caps:
                 plain_text = cap_data[1]
                 if len(plain_text.toPlainText()):
@@ -752,7 +746,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
     def is_valid_change_img_cls(self):
-        if self.cur_image_idx == -1:
+        if self.cur_image_db_idx == -1:
             for cls_data in self.label_field_image_cls:
                 group_box = cls_data[1]
                 for c in group_box.children():
@@ -781,7 +775,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # DB에서 현재 데이터셋 필드 조회
 
         # Delete entire label in current image
-        self.db_manager.delete_label_data_by_image_data_id(self.cur_image_idx)
+        self.db_manager.delete_label_data_by_image_data_id(self.cur_image_db_idx)
 
         # Save image-cap label
         self.save_img_caption_label()
@@ -803,7 +797,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             label_field_id = self.label_fields_dict_name_to_idx[field_name]
 
             lastrowid = self.db_manager.create_label_data(
-                image_data_id=self.cur_image_idx,
+                image_data_id=self.cur_image_db_idx,
                 label_field_id=label_field_id,
                 is_box=0,
                 caption=caption_text
@@ -818,14 +812,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             label_field_idx = self.label_fields_dict_name_to_idx[field_name]
             fields.append(field_name)
             ret = self.db_manager.read_label_data(
-                image_data_id=self.cur_image_idx,
+                image_data_id=self.cur_image_db_idx,
                 label_field_id=label_field_idx
             )
             if ret:
                 caption_text = ret[0][7]
                 plain_text.setPlainText(caption_text)
 
-        self.logger.info(f"load {self.cur_image_idx} idx image caption fields: {fields}")
+        self.logger.info(f"load {self.cur_image_db_idx} idx image caption fields: {fields}")
 
     def save_img_classification_label(self):
         field_idx_class = []
@@ -842,7 +836,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for cls_data in field_idx_class:
             label_field_id, cls = cls_data
             lastrowid = self.db_manager.create_label_data(
-                image_data_id=self.cur_image_idx,
+                image_data_id=self.cur_image_db_idx,
                 label_field_id=label_field_id,
                 is_box=0,
                 cls=cls
@@ -857,7 +851,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             fields.append(field_name)
             label_field_idx = self.label_fields_dict_name_to_idx[field_name]
             rets = self.db_manager.read_label_data(
-                image_data_id=self.cur_image_idx,
+                image_data_id=self.cur_image_db_idx,
                 label_field_id=label_field_idx
             )
             check_label = []
@@ -871,7 +865,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     if c.text() in check_label:
                         c.setChecked(True)
 
-        self.logger.info(f"load {self.cur_image_idx} idx image-class fields: {fields}")
+        self.logger.info(f"load {self.cur_image_db_idx} idx image-class fields: {fields}")
 
     def save_boxes_box_label(self):
         boxes = []
@@ -885,7 +879,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             cls = self.label_field_name_dict_classname_to_idx['boxes-box'][list_widget_item.text()]
 
             lastrowid = self.db_manager.create_label_data(
-                image_data_id=self.cur_image_idx,
+                image_data_id=self.cur_image_db_idx,
                 label_field_id=label_field_idx,
                 is_box=1,
                 coord=str(list(rel_xyxy)),
@@ -900,7 +894,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         tab_widget = self.cur_inner_tab
 
         rets = self.db_manager.read_label_data(
-            image_data_id=self.cur_image_idx,
+            image_data_id=self.cur_image_db_idx,
             label_field_id=label_field_idx
         )
         for ret in rets:
@@ -1061,7 +1055,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 img_idx_item = self.tW_images.item(row_idx, 0)
                 img_idx = int(img_idx_item.text())
                 self.tW_images.selectRow(row_idx)
-                self.draw_image(img_idx_item)
+                self.draw_image_item(img_idx_item)
                 n = self.create_box_label_by_detection_one_image(img_idx)
                 box_num += n
 
@@ -1088,7 +1082,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             box_num = 0
             for img_idx, item in imgs_idx.items():
                 self.image_list_widget.selectRow(item.row())
-                self.draw_image(item)
+                self.draw_image_item(item)
                 n = self.create_box_label_by_detection_one_image(img_idx)
                 box_num += n
 
@@ -1114,7 +1108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ret == QDialog.DialogCode.Rejected:
             return
         elif ret == QDialog.DialogCode.Accepted:
-            box_num = self.create_box_label_by_detection_one_image(self.cur_image_idx)
+            box_num = self.create_box_label_by_detection_one_image(self.cur_image_db_idx)
 
             self.statusbar.showMessage(f"Bounding box created successfully: {box_num}")
             self.logger.info(f"Bounding box for current image created successfully: {box_num}")

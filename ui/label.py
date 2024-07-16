@@ -31,7 +31,7 @@ class ImgLabel(QLabel):
         self.boxes_rect.append(rect)
 
     def mouseMoveEvent(self, event):
-        if self.window().cur_image_idx == -1:
+        if self.window().cur_image_db_idx == -1:
             return
 
         if self.bg_img is not None:
@@ -39,7 +39,7 @@ class ImgLabel(QLabel):
             self.repaint()
 
     def paintEvent(self, event: QPaintEvent) -> None:
-        if self.window().cur_image_idx == -1:
+        if self.window().cur_image_db_idx == -1:
             return
 
         super().paintEvent(event)
