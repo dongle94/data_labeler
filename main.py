@@ -129,7 +129,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bbox_listwidget.itemActivated.connect(self.label_selection_changed)
         self.bbox_listwidget.itemSelectionChanged.connect(self.label_selection_changed)
 
-        self.tab_widget.currentChanged.connect(self.change_tab)
+        # Tab Widget
+        self.tab_widget.currentChanged.connect(self.select_inner_tab_widget)
 
         self.pB_label_add.clicked.connect(self.create_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
@@ -397,6 +398,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         c.setAutoExclusive(True)
                     else:  # checkbox
                         c.setAutoExclusive(False)
+
+    def clear_ui_image_list(self):
+        self.image_list_widget.clear_image_list()
+        self.image_list_widget.clearSelection()
 
     def clear_ui_label_fields(self):
         self.clear_ui_img_label_fields()
@@ -814,20 +819,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.image_list_widget.selectRow(current_img_item_row_idx)
             self.draw_image_item(self.image_list_widget.item(current_img_item_row_idx, 0))
 
-    def change_tab(self, index):
+    def select_inner_tab_widget(self, index):
+        # change variable
         self.cur_inner_tab = self.tab_widget.currentWidget()
         self.cur_inner_tab_ui_idx = index
         self.cur_inner_tab_name = self.tab_widget.tabText(index)
         self.cur_dataset_name = self.cur_inner_tab_name
         self.cur_dataset_db_idx = self.dataset_dict_name_to_idx[self.cur_dataset_name]
 
-        # Reset left list
+        # reset left image list
+        self.clear_ui_image_list()
         self.draw_ui_image_list()
-        self.image_list_widget.clearSelection()
-        # Reset pixmap, box list and shape, item
-        self.cur_inner_tab.pixmap = QPixmap()
-        self.cur_image_db_idx = -1
-        self.clear_boxes_box_label()
+
+        # Reset pixmap, right labels(box list and shape, item)
+        self.clear_ui_image()
+        self.clear_ui_label_data()
 
         # Reset label fields
         self.clear_ui_label_fields()
@@ -858,17 +864,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             self.clear_ui_img_label_cls()
         else:
             return
-
-    def clear_boxes_box_label(self):
-        # List widget clear
-        self.bbox_listwidget.clear()
-
-        # Image tab widget clear
-        self.cur_inner_tab.reset_label()
-
-        # parameter clear
-        self.bbox_items_to_shapes = {}
-        self.bbox_shapes_to_items = {}
 
     def save_labels(self):
         # 현재 이미지, 라벨 필드 목록
@@ -1136,7 +1131,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def create_box_label_by_detection_one_image(self, image_idx):
         # Delete Current image box label
         self.db_manager.delete_boxes_box_label_data_by_image_data_id(image_idx)
-        self.clear_boxes_box_label()
+        self.clear_ui_bbox_label_data()
 
         if self.detector is None:
             self.detector = ObjectDetector(cfg=_cfg)

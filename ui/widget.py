@@ -21,11 +21,16 @@ class ImagesTableWidget(QTableWidget):
         self.setColumnWidth(0, int(tW_width * 0.195))
         self.setColumnWidth(1, int(tW_width * 0.795))
 
-    def draw_image_list(self, images):
-        self.setRowCount(len(images))
+    def clear_image_list(self):
+        self.clear()
+        self.setRowCount(0)
 
         self.fid_dict = {}
         self.url_dict = {}
+
+    def draw_image_list(self, images):
+        self.setRowCount(len(images))
+
         for i, image in enumerate(images):
             img_idx = image[0]
             img_name = image[2]
