@@ -71,8 +71,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_field_image_caps = []
         self.label_field_image_cls = []
         self.label_field_boxes_box = []
-        self.lb_items_to_shapes = {}
-        self.lb_shapes_to_items = {}
+        self.bbox_items_to_shapes = {}
+        self.bbox_shapes_to_items = {}
 
         # Inner param
         self._beginner = True
@@ -360,8 +360,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_inner_tab.reset_label()
 
         # parameter clear
-        self.lb_items_to_shapes = {}
-        self.lb_shapes_to_items = {}
+        self.bbox_items_to_shapes = {}
+        self.bbox_shapes_to_items = {}
 
     def clear_ui_box_label_data(self):
         # self.clear_box_label_captions()
@@ -570,17 +570,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         cls_name = class_name
                         break
 
-                x1, y1, x2, y2 = rel_to_xyxy(coord, self.cur_inner_tab.pixmap.size())
-                box = Shape(label=cls_name)
-                box.add_point(QPointF(x1, y1))
-                box.add_point(QPointF(x2, y1))
-                box.add_point(QPointF(x2, y2))
-                box.add_point(QPointF(x1, y2))
-                self.cur_inner_tab.shapes.append(box)
-                g_color = generate_color_by_text(cls_name)
-                shape = self.cur_inner_tab.set_last_label(cls_name)
-                shape.set_color(line_color=g_color, fill_color=g_color)
-                self.add_box_label(shape)
+                # Shape and Item
+                shape = self.create_bbox_shape(coord, cls_name, self.cur_inner_tab.pixmap.size())
+                self.create_bbox_item(shape)
 
     def draw_ui_img_label_data(self):
         self.draw_ui_img_label_captions()
@@ -764,6 +756,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(f"{len(delete_idx)}개의 라벨 필드 삭제: {text}")
             self.logger.info(f"{len(delete_idx)}개의 라벨 필드 삭제: {text}")
 
+    def create_bbox_shape(self, xyxy, class_name, pixmap_size):
+        x1, y1, x2, y2 = rel_to_xyxy(xyxy, pixmap_size)
+        box = Shape(label=class_name)
+        box.add_point(QPointF(x1, y1))
+        box.add_point(QPointF(x2, y1))
+        box.add_point(QPointF(x2, y2))
+        box.add_point(QPointF(x1, y2))
+        g_color = generate_color_by_text(class_name)
+        box.set_color(line_color=g_color, fill_color=g_color)
+        self.cur_inner_tab.shapes.append(box)
+
+        return self.cur_inner_tab.get_last_shape()
+
+    def create_bbox_item(self, shape: Shape):
+        item = BoxQListWidgetItem(shape.label)
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+        item.setCheckState(Qt.CheckState.Checked)
+        item.setBackground(generate_color_by_text(shape.label))
+        self.bbox_items_to_shapes[item] = shape
+        self.bbox_shapes_to_items[shape] = item
+        self.bbox_listwidget.addItem(item)
+
     def get_upper_image(self):
         self.logger.info("Click 'upper image'")
         if not self.image_list_widget.selectedItems():
@@ -840,8 +854,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_inner_tab.reset_label()
 
         # parameter clear
-        self.lb_items_to_shapes = {}
-        self.lb_shapes_to_items = {}
+        self.bbox_items_to_shapes = {}
+        self.bbox_shapes_to_items = {}
 
     def save_labels(self):
         # 현재 이미지, 라벨 필드 목록
@@ -906,7 +920,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         boxes = []
         label_field_idx, list_widget = self.label_field_boxes_box
 
-        for box_shape, list_widget_item in self.lb_shapes_to_items.items():
+        for box_shape, list_widget_item in self.bbox_shapes_to_items.items():
             points = box_shape.points
             xyxy = get_xyxy(points)
             pixmap_size = self.cur_inner_tab.pixmap.size()
@@ -945,7 +959,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         g_color = generate_color_by_text(text)
         shape = self.cur_inner_tab.set_last_label(text, line_color=g_color, fill_color=g_color)
         shape.set_class(0)
-        self.add_box_label(shape)
+        self.create_bbox_item(shape)
         if self.beginner():
             self.cur_inner_tab.set_editing(True)
         # else:
@@ -955,10 +969,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         shape = self.cur_inner_tab.delete_selected_shape()
         if shape is None:
             return
-        item = self.lb_shapes_to_items[shape]
+        item = self.bbox_shapes_to_items[shape]
         self.bbox_listwidget.takeItem(self.bbox_listwidget.row(item))
-        del self.lb_shapes_to_items[shape]
-        del self.lb_items_to_shapes[item]
+        del self.bbox_shapes_to_items[shape]
+        del self.bbox_items_to_shapes[item]
         self.logger.info(f"Delete box label: {shape.label}")
 
     def keyPressEvent(self, event):
@@ -986,7 +1000,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             shape.line_color = g_color
                             shape.fill_color = g_color
                             break
-                    item = self.lb_shapes_to_items[shape]
+                    item = self.bbox_shapes_to_items[shape]
                     item.setText(shape.label)
                     item.setBackground(generate_color_by_text(shape.label))
                     self.cur_inner_tab.repaint()
@@ -1022,7 +1036,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             shape = self.cur_inner_tab.selected_shape
             if shape:
-                self.lb_shapes_to_items[shape].setSelected(True)
+                self.bbox_shapes_to_items[shape].setSelected(True)
             else:
                 self.bbox_listwidget.clearSelection()
 
@@ -1030,24 +1044,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         item = self.current_item()
         if item and self.cur_inner_tab.is_editing():
             self._no_selection_slot = True
-            shape = self.lb_items_to_shapes[item]
+            shape = self.bbox_items_to_shapes[item]
             self.cur_inner_tab.select_shape(shape)
 
     def beginner(self):
         return self._beginner
 
-    def add_box_label(self, shape):
-        shape.paint_label = True
-        item = BoxQListWidgetItem(shape.label)
-        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-        item.setCheckState(Qt.CheckState.Checked)
-        item.setBackground(generate_color_by_text(shape.label))
-        self.lb_items_to_shapes[item] = shape
-        self.lb_shapes_to_items[shape] = item
-        self.bbox_listwidget.addItem(item)
-
     def create_box_label_by_detection_entire_images(self):
-        item_cnt = self.tW_images.rowCount()
+        item_cnt = self.image_list_widget.rowCount()
         dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=item_cnt)
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
@@ -1055,9 +1059,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif ret == QDialog.DialogCode.Accepted:
             box_num = 0
             for row_idx in range(item_cnt):
-                img_idx_item = self.tW_images.item(row_idx, 0)
+                img_idx_item = self.image_list_widget.item(row_idx, 0)
                 img_idx = int(img_idx_item.text())
-                self.tW_images.selectRow(row_idx)
+                self.image_list_widget.selectRow(row_idx)
                 self.draw_image_item(img_idx_item)
                 n = self.create_box_label_by_detection_one_image(img_idx)
                 box_num += n
@@ -1138,16 +1142,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ret_num += 1
             cls_name = cls_idx_to_name[cls]
 
-            x1, y1, x2, y2 = rel_to_xyxy(rel_xyxy, self.cur_inner_tab.pixmap.size())
-            _box = Shape(label=cls_name)
-            _box.add_point(QPointF(x1, y1))
-            _box.add_point(QPointF(x2, y1))
-            _box.add_point(QPointF(x2, y2))
-            _box.add_point(QPointF(x1, y2))
-            self.cur_inner_tab.shapes.append(_box)
-            g_color = generate_color_by_text(cls_name)
-            shape = self.cur_inner_tab.set_last_label(cls_name, line_color=g_color, fill_color=g_color)
-            self.add_box_label(shape)
+            # Shape and Item
+            shape = self.create_bbox_shape(rel_xyxy, cls_name, self.cur_inner_tab.pixmap.size())
+            self.create_bbox_item(shape)
 
         # Save label in DB
         self.save_boxes_box_label()

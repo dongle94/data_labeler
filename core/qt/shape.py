@@ -25,8 +25,8 @@ class Shape(object):
         self.points = []
         self.fill = False
         self.selected = False
-        self.paint_label = paint_label
         self.class_idx = -1
+        self.paint_label = paint_label
 
         # Inner param
         self._closed = False
@@ -165,6 +165,14 @@ class Shape(object):
 
         if fill_color:
             self.fill_color = fill_color
+
+    @property
+    def paint_label(self):
+        return self.__paint_label
+
+    @paint_label.setter
+    def paint_label(self, value: bool):
+        self.__paint_label = value
 
     def __len__(self):
         return len(self.points)

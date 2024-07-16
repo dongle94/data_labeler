@@ -415,6 +415,9 @@ class ImageTabInnerWidget(QWidget):
 
         return self.shapes[-1]
 
+    def get_last_shape(self):
+        return self.shapes[-1]
+
     def reset_all_lines(self):
         assert self.shapes
         self.current = self.shapes.pop()
