@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QHeaderView,
     QSpacerItem, QStatusBar, QTableWidgetItem, QToolButton,
     QVBoxLayout, QWidget)
 
-from ui.widget import (ImageTabWidget, ImagesTableWidget)
+from core.qt.widget import (ImageTabWidget, ImagesTableWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):

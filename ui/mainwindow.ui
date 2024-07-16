@@ -634,12 +634,12 @@
   <customwidget>
    <class>ImagesTableWidget</class>
    <extends>QTableWidget</extends>
-   <header>ui.widget</header>
+   <header>core.qt.widget</header>
   </customwidget>
   <customwidget>
    <class>ImageTabWidget</class>
    <extends>QTabWidget</extends>
-   <header>ui.widget</header>
+   <header>core.qt.widget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
