@@ -549,6 +549,82 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info(f"라벨 필드 UI 그리기 - {field_name}")
 
+    def draw_ui_label_data(self):
+        self.draw_ui_bbox_label_data()
+        self.draw_ui_img_label_data()
+        self.draw_ui_box_label_data()
+
+    def draw_ui_bbox_label_data(self):
+        label_field_db_idx, image_list_widget = self.label_field_boxes_box
+
+        rets = self.db_manager.read_label_data(image_data_id=self.cur_image_db_idx, label_field_id=label_field_db_idx)
+
+        for ret in rets:
+            is_box, coord, cls = ret[4], eval(ret[5]), ret[6]
+            if is_box != 1:
+                continue
+            else:
+                cls_name = None
+                for class_name, class_idx in self.label_field_name_dict_classname_to_idx['boxes-box'].items():
+                    if int(class_idx) == cls:
+                        cls_name = class_name
+                        break
+
+                x1, y1, x2, y2 = rel_to_xyxy(coord, self.cur_inner_tab.pixmap.size())
+                box = Shape(label=cls_name)
+                box.add_point(QPointF(x1, y1))
+                box.add_point(QPointF(x2, y1))
+                box.add_point(QPointF(x2, y2))
+                box.add_point(QPointF(x1, y2))
+                self.cur_inner_tab.shapes.append(box)
+                g_color = generate_color_by_text(cls_name)
+                shape = self.cur_inner_tab.set_last_label(cls_name)
+                shape.set_color(line_color=g_color, fill_color=g_color)
+                self.add_box_label(shape)
+
+    def draw_ui_img_label_data(self):
+        self.draw_ui_img_label_captions()
+        self.draw_ui_img_label_cls()
+
+    def draw_ui_box_label_data(self):
+        self.draw_ui_box_label_captions()
+        self.draw_ui_box_label_cls()
+
+    def draw_ui_img_label_captions(self):
+        field_names = []
+        for image_caps in self.label_field_image_caps:
+            field_name, plain_text = image_caps
+            label_field_idx = self.label_fields_dict_name_to_idx[field_name]
+            field_names.append(field_name)
+            ret = self.db_manager.read_label_data(image_data_id=self.cur_image_db_idx, label_field_id=label_field_idx)
+            if ret:
+                caption_text = ret[0][7]
+                plain_text.setPlainText(caption_text)
+
+    def draw_ui_img_label_cls(self):
+        field_names = []
+        for image_cls in self.label_field_image_cls:
+            field_name, group_box = image_cls
+            field_names.append(field_name)
+            label_field_idx = self.label_fields_dict_name_to_idx[field_name]
+            rets = self.db_manager.read_label_data(image_data_id=self.cur_image_db_idx, label_field_id=label_field_idx)
+            checked_label = []
+            for ret in rets:
+                cls = ret[6]
+                for class_name, class_idx in self.label_field_name_dict_classname_to_idx[field_name].items():
+                    if int(class_idx) == cls:
+                        checked_label.append(class_name)
+            for c in group_box.children():
+                if type(c) in [QRadioButton, QCheckBox]:
+                    if c.text() in checked_label:
+                        c.setChecked(True)
+
+    def draw_ui_box_label_captions(self):
+        pass
+
+    def draw_ui_box_label_cls(self):
+        pass
+
     def draw_ui_dataset_inner_tab_widget(self):
         rets = self.db_manager.read_dataset()
 
@@ -591,9 +667,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.clear_ui_label_data()
 
         # Draw label field
-        self.draw_cur_img_caption_label()
-        self.draw_cur_img_classification_label()
-        self.draw_cur_boxes_box_label()
+        self.draw_ui_label_data()
         self.cur_inner_tab.repaint()
 
         self.statusbar.showMessage(f"이미지 그리기 - {img_db_idx}({img_filename})")
@@ -805,22 +879,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.logger.info(f"Success save image-caption label_data_id: {lastrowid}")
 
-    def draw_cur_img_caption_label(self):
-        fields = []
-        for cap_label in self.label_field_image_caps:
-            field_name, plain_text = cap_label
-            label_field_idx = self.label_fields_dict_name_to_idx[field_name]
-            fields.append(field_name)
-            ret = self.db_manager.read_label_data(
-                image_data_id=self.cur_image_db_idx,
-                label_field_id=label_field_idx
-            )
-            if ret:
-                caption_text = ret[0][7]
-                plain_text.setPlainText(caption_text)
-
-        self.logger.info(f"load {self.cur_image_db_idx} idx image caption fields: {fields}")
-
     def save_img_classification_label(self):
         field_idx_class = []
         for cls_label in self.label_field_image_cls:
@@ -844,29 +902,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.logger.info(f"Success save image-classes label_data_id: {lastrowid}")
 
-    def draw_cur_img_classification_label(self):
-        fields = []
-        for cls_label in self.label_field_image_cls:
-            field_name, group_box = cls_label
-            fields.append(field_name)
-            label_field_idx = self.label_fields_dict_name_to_idx[field_name]
-            rets = self.db_manager.read_label_data(
-                image_data_id=self.cur_image_db_idx,
-                label_field_id=label_field_idx
-            )
-            check_label = []
-            for ret in rets:
-                cls = ret[6]
-                for label_name, label_idx in self.label_field_name_dict_classname_to_idx[field_name].items():
-                    if int(label_idx) == cls:
-                        check_label.append(label_name)
-            for c in group_box.children():
-                if type(c) in [QRadioButton, QCheckBox]:
-                    if c.text() in check_label:
-                        c.setChecked(True)
-
-        self.logger.info(f"load {self.cur_image_db_idx} idx image-class fields: {fields}")
-
     def save_boxes_box_label(self):
         boxes = []
         label_field_idx, list_widget = self.label_field_boxes_box
@@ -888,38 +923,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             boxes.append(lastrowid)
 
         self.logger.info(f"Success save {len(boxes)} boxes-box ids: {boxes}")
-
-    def draw_cur_boxes_box_label(self):
-        label_field_idx, list_widget = self.label_field_boxes_box
-        tab_widget = self.cur_inner_tab
-
-        rets = self.db_manager.read_label_data(
-            image_data_id=self.cur_image_db_idx,
-            label_field_id=label_field_idx
-        )
-        for ret in rets:
-            is_box = ret[4]
-            if is_box != 1:
-                continue
-            elif is_box == 1:
-                coord = eval(ret[5])
-                cls = ret[6]
-                cls_name = None
-                for label_name, label_idx in self.label_field_name_dict_classname_to_idx['boxes-box'].items():
-                    if int(label_idx) == cls:
-                        cls_name = label_name
-                        break
-
-                x1, y1, x2, y2 = rel_to_xyxy(coord, tab_widget.pixmap.size())
-                _box = Shape(label=cls_name)
-                _box.add_point(QPointF(x1, y1))
-                _box.add_point(QPointF(x2, y1))
-                _box.add_point(QPointF(x2, y2))
-                _box.add_point(QPointF(x1, y2))
-                tab_widget.shapes.append(_box)
-                g_color = generate_color_by_text(cls_name)
-                shape = self.cur_inner_tab.set_last_label(cls_name, line_color=g_color, fill_color=g_color)
-                self.add_box_label(shape)
 
     def draw_new_box_label(self):
         # box 클래스 라벨이 없을 때 예외 다이어로그 처리

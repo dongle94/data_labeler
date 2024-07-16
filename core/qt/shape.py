@@ -159,6 +159,13 @@ class Shape(object):
     def set_class(self, class_idx):
         self.class_idx = class_idx
 
+    def set_color(self, line_color=None, fill_color=None):
+        if line_color:
+            self.line_color = line_color
+
+        if fill_color:
+            self.fill_color = fill_color
+
     def __len__(self):
         return len(self.points)
 
