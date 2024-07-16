@@ -40,6 +40,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QCheckBox" name="checkbox_autosave">
+        <property name="text">
+         <string>autosave</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QToolButton" name="tB_header_addDataset">
         <property name="text">
          <string>CreateDataset</string>

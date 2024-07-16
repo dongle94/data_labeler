@@ -16,11 +16,11 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QHeaderView,
-    QLayout, QListWidget, QListWidgetItem, QMainWindow,
-    QMenu, QMenuBar, QPushButton, QSizePolicy,
-    QSpacerItem, QStatusBar, QTableWidgetItem, QToolButton,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QFrame, QHBoxLayout,
+    QHeaderView, QLayout, QListWidget, QListWidgetItem,
+    QMainWindow, QMenu, QMenuBar, QPushButton,
+    QSizePolicy, QSpacerItem, QStatusBar, QTableWidgetItem,
+    QToolButton, QVBoxLayout, QWidget)
 
 from core.qt.widget import (ImageTabWidget, ImagesTableWidget)
 
@@ -98,6 +98,11 @@ class Ui_MainWindow(object):
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.hlo_header.addItem(self.horizontalSpacer)
+
+        self.checkbox_autosave = QCheckBox(self.centralwidget)
+        self.checkbox_autosave.setObjectName(u"checkbox_autosave")
+
+        self.hlo_header.addWidget(self.checkbox_autosave)
 
         self.tB_header_addDataset = QToolButton(self.centralwidget)
         self.tB_header_addDataset.setObjectName(u"tB_header_addDataset")
@@ -452,6 +457,7 @@ class Ui_MainWindow(object):
         self.actionDelete_selected_box.setShortcut(QCoreApplication.translate("MainWindow", u"Del", None))
 #endif // QT_CONFIG(shortcut)
         self.actionExport_YOLO_detect_dataset.setText(QCoreApplication.translate("MainWindow", u"Export YOLO detection dataset", None))
+        self.checkbox_autosave.setText(QCoreApplication.translate("MainWindow", u"autosave", None))
         self.tB_header_addDataset.setText(QCoreApplication.translate("MainWindow", u"CreateDataset", None))
         self.tB_header_uploadDir.setText(QCoreApplication.translate("MainWindow", u"UploadDir", None))
         self.tB_header_uploadImage.setText(QCoreApplication.translate("MainWindow", u"UploadImage", None))
