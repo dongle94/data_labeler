@@ -679,8 +679,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.draw_ui_label_data()
         self.cur_inner_tab.repaint()
 
-        self.statusbar.showMessage(f"이미지 그리기 - {img_db_idx}({img_filename})")
-        self.logger.info(f"이미지 그리기 - {img_db_idx}({img_filename})")
+        # Check selected row num
+        num = self.image_list_widget.check_selected_row_num()
+
+        self.statusbar.showMessage(f"이미지 그리기 - {img_db_idx}({img_filename}) / 선택된 이미지 수: {num}")
+        self.logger.info(f"이미지 그리기 - {img_db_idx}({img_filename}) / 선택된 이미지 수: {num}")
 
     def create_label_field(self):
         self.logger.info("클릭 - 라벨 필드 추가")

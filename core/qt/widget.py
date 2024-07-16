@@ -48,6 +48,13 @@ class ImagesTableWidget(QTableWidget):
         self.fid_dict[idx] = fid
         self.url_dict[idx] = url
 
+    def check_selected_row_num(self):
+        rows = set()
+        for item in self.selectedItems():
+            img_db_idx = int(self.item(item.row(), 0).text())
+            rows.add(img_db_idx)
+        return len(rows)
+
     def keyPressEvent(self, event):
         if Qt.Key.Key_Up == event.key():
             self.window().select_upper_image()
