@@ -100,7 +100,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDelete_Dataset.triggered.connect(self.delete_dataset)
         self.actionDelete_Selected_Image.triggered.connect(self.delete_images)
 
-        self.actionSave_label.triggered.connect(self.save_labels)
+        self.actionSave_label.triggered.connect(self.save_db_labels)
 
         # Menubar - Data
         self.actionCreate_Mode.triggered.connect(self.set_create_mode)
@@ -896,28 +896,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         del self.bbox_items_to_shapes[item]
         self.statusbar.showMessage(f"바운딩 박스 라벨 제거: {shape.label}")
 
-    def save_labels(self):
-        # 현재 이미지, 라벨 필드 목록
-
-        # DB에서 현재 데이터셋 필드 조회
-
+    def save_db_labels(self):
         # Delete entire label in current image
         self.db_manager.delete_label_data_by_image_data_id(self.cur_image_db_idx)
 
         # Save image-cap label
-        self.save_img_caption_label()
+        self.save_db_img_label_captions()
 
         # Save image-cls label
-        self.save_img_classification_label()
+        self.save_img_label_cls()
 
         # Save boxes-box label
-        self.save_boxes_box_label()
+        self.save_bbox_labels()
 
         # 박스 - 캡션
 
         # 박스 - 클래스
 
-    def save_img_caption_label(self):
+    def save_db_img_label_captions(self):
         for cap_label in self.label_field_image_caps:
             field_name, plain_text = cap_label
             caption_text = plain_text.toPlainText()
@@ -930,9 +926,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 caption=caption_text
             )
 
-            self.logger.info(f"Success save image-caption label_data_id: {lastrowid}")
+            self.logger.info(f"이미지 캡션 라벨 저장 완료 - label_data_id: {lastrowid}")
 
-    def save_img_classification_label(self):
+    def save_img_label_cls(self):
         field_idx_class = []
         for cls_label in self.label_field_image_cls:
             field_name, group_box = cls_label
@@ -953,9 +949,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 cls=cls
             )
 
-            self.logger.info(f"Success save image-classes label_data_id: {lastrowid}")
+            self.logger.info(f"이미지 클래스 라벨 저장 완료 - label_data_id: {lastrowid}")
 
-    def save_boxes_box_label(self):
+    def save_bbox_labels(self):
         if not self.label_field_boxes_box:
             return
 
@@ -978,7 +974,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             boxes.append(lastrowid)
 
-        self.logger.info(f"Success save {len(boxes)} boxes-box ids: {boxes}")
+        self.logger.info(f"바운딩 박스 라벨 저장 완료 - {len(boxes)}개 : {boxes}")
 
     def keyPressEvent(self, event):
         if Qt.Key.Key_Comma == event.key():
@@ -1018,12 +1014,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self._change_box_class = []
                 self.statusbar.showMessage("Finish to change class number")
 
-    def current_item(self):
-        items = self.bbox_listwidget.selectedItems()
-        if items:
-            return items[0]
-        return None
-
     def shape_selection_changed(self):
         if self._no_selection_slot:
             self._no_selection_slot = False
@@ -1035,7 +1025,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.bbox_listwidget.clearSelection()
 
     def label_selection_changed(self):
-        item = self.current_item()
+        # get current item
+        items = self.bbox_listwidget.selectedItems()
+        item = items[0] if items else None
         if item and self.cur_inner_tab.is_editing():
             self._no_selection_slot = True
             shape = self.bbox_items_to_shapes[item]
@@ -1138,7 +1130,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.create_bbox_item(shape)
 
         # Save label in DB
-        self.save_boxes_box_label()
+        self.save_bbox_labels()
 
         return ret_num
 
