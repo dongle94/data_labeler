@@ -58,6 +58,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_inner_tab_name = None
         self.cur_inner_tab_ui_idx = -1
 
+        self.is_autosave = False
         self.is_label_change = False
 
         self.detector = None
@@ -87,6 +88,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Signal and Slot
         # Header
+        self.checkbox_autosave.stateChanged.connect(self.change_autosave_checkbox)
         self.tB_header_addDataset.clicked.connect(self.create_dataset)
         self.tB_header_uploadDir.clicked.connect(self.upload_dir)
         self.tB_header_uploadImage.clicked.connect(self.upload_images)
@@ -662,6 +664,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                          f"이미지 {len(images)}장")
 
     def draw_image_item(self, item: QTableWidgetItem):
+        # Check prev image autosave
+        self.check_autosave()
+
         img_db_idx = int(self.image_list_widget.item(item.row(), 0).text())
         img_filename = self.image_list_widget.item(item.row(), 1).text()
         img_fid = self.image_list_widget.fid_dict[img_db_idx]
@@ -673,6 +678,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_image_db_idx = img_db_idx
 
         # clear label field
+        self.is_label_change = False
         self.clear_ui_label_data()
 
         # Draw label field
@@ -807,6 +813,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             current_img_item_row_idx = self.image_list_widget.selectedIndexes()[0].row()
             if current_img_item_row_idx == 0:
                 return
+            self.check_autosave()
+
             current_img_item_row_idx = max(current_img_item_row_idx-1, 0)
             self.image_list_widget.selectRow(current_img_item_row_idx)
             self.draw_image_item(self.image_list_widget.item(current_img_item_row_idx, 0))
@@ -821,6 +829,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             current_img_item_row_idx = self.image_list_widget.selectedIndexes()[0].row()
             if current_img_item_row_idx == num_row - 1:
                 return
+            self.check_autosave()
+
             current_img_item_row_idx = min(current_img_item_row_idx + 1, num_row - 1)
             self.image_list_widget.selectRow(current_img_item_row_idx)
             self.draw_image_item(self.image_list_widget.item(current_img_item_row_idx, 0))
@@ -889,6 +899,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         shape.class_idx = 0
         self.create_bbox_item(shape)
         self.cur_inner_tab.set_editing(True)
+        self.is_label_change = True
 
     def clear_selected_bbox_label(self):
         shape = self.cur_inner_tab.delete_selected_shape()
@@ -1017,6 +1028,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self._is_change_box_class = False
                 self._change_box_class = []
                 self.statusbar.showMessage("Finish to change class number")
+
+    def change_autosave_checkbox(self, arg):
+        if arg == Qt.CheckState.Checked.value:
+            self.is_autosave = True
+        else:
+            self.is_autosave = False
+
+    def check_autosave(self):
+        if self.is_autosave is True and self.is_label_change is True:
+            self.save_db_labels()
 
     def shape_selection_changed(self):
         if self._no_selection_slot:
