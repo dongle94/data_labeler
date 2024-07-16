@@ -45,6 +45,7 @@ class DBManager(object):
         cursor.close()
 
         self.logger.info("Dataset '%s' created", name)
+        return cursor.lastrowid
 
     def read_dataset(self):
         sql = "SELECT * FROM dataset"

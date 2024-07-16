@@ -163,7 +163,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # insert DB
         try:
-            self.db_manager.create_dataset(dataset_name, dataset_type, dataset_desc)
+            lastrowid = self.db_manager.create_dataset(dataset_name, dataset_type, dataset_desc)
             msgBox = QMessageBox(text="데이터 셋 생성에 성공하였습니다.")
             msgBox.exec()
         except Exception as e:
@@ -171,6 +171,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             msgBox.exec()
             self.logger.error(f"데이터 셋 생성 에러: {e}")
             return
+        self.dataset_dict_name_to_idx[dataset_name] = lastrowid
 
         # Draw UI
         widget = ImageTabInnerWidget(self)
