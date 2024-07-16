@@ -45,6 +45,7 @@ class DBManager(object):
         cursor.close()
 
         self.logger.info("Dataset '%s' created", name)
+        return cursor.lastrowid
 
     def read_dataset(self):
         sql = "SELECT * FROM dataset"
@@ -56,7 +57,7 @@ class DBManager(object):
 
         return ret
 
-    def read_dataset_detail(self, name):
+    def read_dataset_by_name(self, name):
         sql = "SELECT * FROM dataset WHERE name = (%s)"
         data = (name, )
 
@@ -67,7 +68,7 @@ class DBManager(object):
 
         return ret
 
-    def delete_dataset(self, name):
+    def delete_dataset_by_name(self, name):
         sql = "DELETE FROM dataset WHERE name = (%s)"
         data = (name, )
 
@@ -237,5 +238,5 @@ if __name__ == "__main__":
     time.sleep(0.1)
     db.show_tables()
 
-    # ret = db.read_dataset_detail('sample1')
+    # ret = db.read_dataset_by_name('sample1')
     # print(ret)

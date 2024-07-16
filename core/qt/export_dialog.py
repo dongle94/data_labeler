@@ -30,7 +30,16 @@ class ExportDialog(QDialog, Ui_Dialog):
         self.buttonBox.accepted.connect(self.export)
 
     def get_path(self):
-        dirname = get_dir_dialog(self)
+        dir_dialog = get_dir_dialog(self)
+
+        dirname = dir_dialog.getExistingDirectory(
+            parent=self,
+            caption='Select Directory',
+            dir=""
+        )
+        if not dirname:
+            self.logger.info("내보내기 경로 선택 취소")
+            return
         self.dirname = dirname
         self.lineEdit.setText(dirname)
         self.is_valid()

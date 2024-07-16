@@ -94,7 +94,7 @@ class ImageTabInnerWidget(QWidget):
         self.pixmap = pixmap
 
     def mousePressEvent(self, event):
-        if self.window().cur_image_idx == -1:
+        if self.window().cur_image_db_idx == -1:
             return
 
         pos = self.transform_pos(event.position())
@@ -113,7 +113,7 @@ class ImageTabInnerWidget(QWidget):
         self.update()
 
     def mouseMoveEvent(self, event):
-        if self.window().cur_image_idx == -1:
+        if self.window().cur_image_db_idx == -1:
             return
 
         pos = self.transform_pos(event.position())
@@ -413,6 +413,9 @@ class ImageTabInnerWidget(QWidget):
         if fill_color:
             self.shapes[-1].fill_color = fill_color
 
+        return self.shapes[-1]
+
+    def get_last_shape(self):
         return self.shapes[-1]
 
     def reset_all_lines(self):

@@ -21,11 +21,16 @@ class ImagesTableWidget(QTableWidget):
         self.setColumnWidth(0, int(tW_width * 0.195))
         self.setColumnWidth(1, int(tW_width * 0.795))
 
-    def draw_image_list(self, images):
-        self.setRowCount(len(images))
+    def clear_image_list(self):
+        self.clear()
+        self.setRowCount(0)
 
         self.fid_dict = {}
         self.url_dict = {}
+
+    def draw_image_list(self, images):
+        self.setRowCount(len(images))
+
         for i, image in enumerate(images):
             img_idx = image[0]
             img_name = image[2]
@@ -45,9 +50,9 @@ class ImagesTableWidget(QTableWidget):
 
     def keyPressEvent(self, event):
         if Qt.Key.Key_Up == event.key():
-            self.window().get_upper_image()
+            self.window().select_upper_image()
         elif Qt.Key.Key_Down == event.key():
-            self.window().get_lower_image()
+            self.window().select_lower_image()
 
 
 class ImageTabWidget(QTabWidget):

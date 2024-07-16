@@ -72,22 +72,32 @@ def rel_to_xyxy(points, size):
 
 
 def get_dir_dialog(parent=None):
-    fileDialog = QFileDialog(parent)
-    fileDialog.setFileMode(QFileDialog.FileMode.Directory)
-    fileDialog.setViewMode(QFileDialog.ViewMode.List)
+    dir_dialog = QFileDialog(parent)
+    dir_dialog.setFileMode(QFileDialog.FileMode.Directory)
+    dir_dialog.setViewMode(QFileDialog.ViewMode.List)
 
-    fileDialog.setOption(QFileDialog.Option.ShowDirsOnly, True)
-    fileDialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
-    fileDialog.setOption(QFileDialog.Option.ReadOnly, True)
-    fileDialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
-    fileDialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+    dir_dialog.setOption(QFileDialog.Option.ShowDirsOnly, True)
+    dir_dialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+    dir_dialog.setOption(QFileDialog.Option.ReadOnly, True)
+    dir_dialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
+    dir_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
 
-    dirname = fileDialog.getExistingDirectory(
-        parent=parent,
-        caption='Select Directory',
-        dir=""
-    )
-    if not dirname:
-        dirname = None
+    return dir_dialog
 
-    return dirname
+
+def get_file_dialog(parent=None, multiple_files=False):
+    filedialog = QFileDialog(parent)
+    if multiple_files is True:
+        filedialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
+    else:
+        filedialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+    filedialog.setViewMode(QFileDialog.ViewMode.List)
+
+    # By default, all options are disabled.
+    filedialog.setOption(QFileDialog.Option.ShowDirsOnly, False)
+    filedialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+    filedialog.setOption(QFileDialog.Option.ReadOnly, True)
+    filedialog.setOption(QFileDialog.Option.DontUseCustomDirectoryIcons, True)
+    filedialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+
+    return filedialog

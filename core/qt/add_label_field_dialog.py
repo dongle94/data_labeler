@@ -1,7 +1,5 @@
-import json
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLineEdit, QMessageBox
 
-from utils.logger import get_logger
 from ui.ui_add_label_field import Ui_add_field
 
 
@@ -12,7 +10,6 @@ class AddLabelFieldDialog(QDialog, Ui_add_field):
 
         self.dataset_id = dataset_id
         self.db_manager = db
-        self.logger = get_logger()
 
         # init
         self.cur_class_num = 0
@@ -34,8 +31,6 @@ class AddLabelFieldDialog(QDialog, Ui_add_field):
         self.lE_fieldname.textEdited.connect(self.check_fieldname)
         self.bt_add_cls.clicked.connect(self.add_class)
         self.bt_del_cls.clicked.connect(self.sub_class)
-
-        self.buttonBox.rejected.connect(self.cancel)
 
     def set_visible_type(self, visible: bool):
         """click boxes format, clean element below.
@@ -196,6 +191,3 @@ class AddLabelFieldDialog(QDialog, Ui_add_field):
                 self.rb_box.setAutoExclusive(True)
                 self.set_visible_class(False)
                 return
-
-    def cancel(self):
-        self.logger.info("라벨 필드 추가 취소")
