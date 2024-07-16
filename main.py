@@ -75,7 +75,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bbox_shapes_to_items = {}
 
         # Inner param
-        self._beginner = True
         self._no_selection_slot = False
         self._is_change_box_class = False
         self._change_box_class = []
@@ -108,6 +107,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionEdit_Mode.triggered.connect(self.set_edit_mode)
         self.actionSelect_up_image.triggered.connect(self.select_upper_image)
         self.actionSelect_down_image.triggered.connect(self.select_lower_image)
+        self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
 
         # Menubar - infer
         self.actionObject_Detection_for_entire_images.triggered.connect(self.create_box_label_by_detection_entire_images)
@@ -118,12 +118,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_yolo_detection_dataset)
 
         # ImageList
+        self.image_list_widget.itemClicked.connect(self.draw_image_item)
         self.tB_img_up.clicked.connect(self.select_upper_image)
         self.tB_img_down.clicked.connect(self.select_lower_image)
         self.tB_img_del.clicked.connect(self.delete_images)
-
-        self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
-        self.image_list_widget.itemClicked.connect(self.draw_image_item)
 
         # BBoxList
         self.bbox_listwidget.itemActivated.connect(self.label_selection_changed)
@@ -132,6 +130,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Tab Widget
         self.tab_widget.currentChanged.connect(self.select_inner_tab_widget)
 
+        # Label Field
         self.pB_label_add.clicked.connect(self.create_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
 
@@ -175,7 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Draw UI
         widget = ImageTabInnerWidget(self)
-        widget.newShape.connect(self.draw_new_box_label)
+        widget.newShape.connect(self.draw_new_bbox_label)
         widget.selectionChanged.connect(self.shape_selection_changed)
         self.tab_widget.addTab(widget, dataset_name)
 
@@ -569,6 +568,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.draw_ui_box_label_data()
 
     def draw_ui_bbox_label_data(self):
+        if not self.label_field_boxes_box:
+            return
+
         label_field_db_idx, image_list_widget = self.label_field_boxes_box
 
         rets = self.db_manager.read_label_data(image_data_id=self.cur_image_db_idx, label_field_id=label_field_db_idx)
@@ -639,7 +641,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dataset_name = ret[1]
             self.dataset_dict_name_to_idx[dataset_name] = dataset_id
             widget = ImageTabInnerWidget(self)
-            widget.newShape.connect(self.draw_new_box_label)
+            widget.newShape.connect(self.draw_new_bbox_label)
             widget.selectionChanged.connect(self.shape_selection_changed)
             self.tab_widget.addTab(widget, dataset_name)
 
@@ -865,6 +867,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             return
 
+    def draw_new_bbox_label(self):
+        classes = self.label_field_name_dict_classname_to_idx['boxes-box']
+        basic_class_name = list(classes.keys())[0]
+        g_color = generate_color_by_text(basic_class_name)
+        shape = self.cur_inner_tab.set_last_label(basic_class_name, line_color=g_color, fill_color=g_color)
+        shape.class_idx = 0
+        self.create_bbox_item(shape)
+        self.cur_inner_tab.set_editing(True)
+
     def save_labels(self):
         # 현재 이미지, 라벨 필드 목록
 
@@ -925,6 +936,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Success save image-classes label_data_id: {lastrowid}")
 
     def save_boxes_box_label(self):
+        if not self.label_field_boxes_box:
+            return
+
         boxes = []
         label_field_idx, list_widget = self.label_field_boxes_box
 
@@ -945,33 +959,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             boxes.append(lastrowid)
 
         self.logger.info(f"Success save {len(boxes)} boxes-box ids: {boxes}")
-
-    def draw_new_box_label(self):
-        # box 클래스 라벨이 없을 때 예외 다이어로그 처리
-        ret = self.db_manager.read_label_field_by_dataset_id(self.cur_dataset_db_idx)
-        is_exist_box_label = False
-        classes = None
-        for r in ret:
-            data_subject, data_type = r[3], r[4]
-            if data_subject == 0 and data_type == 0:
-                is_exist_box_label = True
-                classes = json.loads(r[6])
-
-        if is_exist_box_label is False:
-            msgBox = QMessageBox(text="박스형 라벨 필드가 존재하지 않습니다.")
-            msgBox.exec()
-            self.cur_inner_tab.reset_all_lines()
-
-        # 있다면
-        text = classes[list(classes.keys())[0]]     # default_class_name: 0번 클래스 이름
-        g_color = generate_color_by_text(text)
-        shape = self.cur_inner_tab.set_last_label(text, line_color=g_color, fill_color=g_color)
-        shape.set_class(0)
-        self.create_bbox_item(shape)
-        if self.beginner():
-            self.cur_inner_tab.set_editing(True)
-        # else:
-        #     pass
 
     def delete_selected_boxes_box_label(self):
         shape = self.cur_inner_tab.delete_selected_shape()
@@ -1000,7 +987,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self._change_box_class.append(press_num)
                 _change_cls = "".join(self._change_box_class)
                 if _change_cls in list(self.label_field_name_dict_classname_to_idx['boxes-box'].values()):
-                    shape.set_class(int(_change_cls))
+                    shape.class_idx = (int(_change_cls))
                     for cls_name, cls_idx in self.label_field_name_dict_classname_to_idx['boxes-box'].items():
                         if cls_idx == _change_cls:
                             g_color = generate_color_by_text(cls_name)
@@ -1028,7 +1015,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return None
 
     def set_create_mode(self):
-        self.cur_inner_tab.set_editing(False)
+        if self.label_field_boxes_box:
+            self.cur_inner_tab.set_editing(False)
+            return
+        else:
+            msgBox = QMessageBox(text="박스형 라벨 필드가 존재하지 않습니다.")
+            msgBox.exec()
         # self.actionCreate_Mode.setEnabled(False)
         # self.actionEdit_Mode.setEnabled(True)
 
@@ -1054,9 +1046,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._no_selection_slot = True
             shape = self.bbox_items_to_shapes[item]
             self.cur_inner_tab.select_shape(shape)
-
-    def beginner(self):
-        return self._beginner
 
     def create_box_label_by_detection_entire_images(self):
         item_cnt = self.image_list_widget.rowCount()

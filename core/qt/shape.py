@@ -25,8 +25,10 @@ class Shape(object):
         self.points = []
         self.fill = False
         self.selected = False
-        self.class_idx = -1
-        self.paint_label = paint_label
+
+        # Private data
+        self.__class_idx = -1
+        self.__paint_label = paint_label
 
         # Inner param
         self._closed = False
@@ -156,8 +158,13 @@ class Shape(object):
     def highlight_clear(self):
         self._highlight_index = None
 
-    def set_class(self, class_idx):
-        self.class_idx = class_idx
+    @property
+    def class_idx(self):
+        return self.__class_idx
+
+    @class_idx.setter
+    def class_idx(self, value: int):
+        self.__class_idx = value
 
     def set_color(self, line_color=None, fill_color=None):
         if line_color:
