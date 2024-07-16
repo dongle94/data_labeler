@@ -106,6 +106,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Menubar - Data
         self.actionCreate_Mode.triggered.connect(self.set_create_mode)
         self.actionEdit_Mode.triggered.connect(self.set_edit_mode)
+        self.actionSelect_up_image.triggered.connect(self.select_upper_image)
+        self.actionSelect_down_image.triggered.connect(self.select_lower_image)
 
         # Menubar - infer
         self.actionObject_Detection_for_entire_images.triggered.connect(self.create_box_label_by_detection_entire_images)
@@ -116,18 +118,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_yolo_detection_dataset)
 
         # ImageList
-        self.actionSelect_up_image.triggered.connect(self.get_upper_image)
-        self.actionSelect_down_image.triggered.connect(self.get_lower_image)
+        self.tB_img_up.clicked.connect(self.select_upper_image)
+        self.tB_img_down.clicked.connect(self.select_lower_image)
+        self.tB_img_del.clicked.connect(self.delete_images)
+
         self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
         self.image_list_widget.itemClicked.connect(self.draw_image_item)
 
         # BBoxList
         self.bbox_listwidget.itemActivated.connect(self.label_selection_changed)
         self.bbox_listwidget.itemSelectionChanged.connect(self.label_selection_changed)
-
-        self.tB_img_up.clicked.connect(self.get_upper_image)
-        self.tB_img_down.clicked.connect(self.get_lower_image)
-        self.tB_img_del.clicked.connect(self.delete_images)
 
         self.tab_widget.currentChanged.connect(self.change_tab)
 
@@ -324,12 +324,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"선택 이미지 삭제 - 지워진 이미지 수: {len(rows)}")
 
     def delete_selected_images_labels(self):
+        # 현 화면 라벨 UI 정리
+        self.clear_ui_label_data()
         pass
 
     def delete_current_image_labels(self):
+        # 현 화면 라벨 UI 정리
+        self.clear_ui_label_data()
         pass
 
     def delete_labels(self):
+        # 바운딩 박스 DB 삭제
+
+        # 이미지 라벨 DB 삭제
+
+        # 박스 라벨 DB 삭제
         pass
 
     def clear_ui_image(self):
@@ -778,28 +787,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bbox_shapes_to_items[shape] = item
         self.bbox_listwidget.addItem(item)
 
-    def get_upper_image(self):
-        self.logger.info("Click 'upper image'")
+    def select_upper_image(self):
+        self.logger.info("클릭 - 상단 이미지")
         if not self.image_list_widget.selectedItems():
             self.image_list_widget.selectRow(0)
             self.draw_image_item(self.image_list_widget.item(0, 0))
         else:
-            idx = self.image_list_widget.selectedIndexes()[0].row()
-            idx = max(idx-1, 0)
-            self.image_list_widget.selectRow(idx)
-            self.draw_image_item(self.image_list_widget.item(idx, 0))
+            current_img_item_row_idx = self.image_list_widget.selectedIndexes()[0].row()
+            if current_img_item_row_idx == 0:
+                return
+            current_img_item_row_idx = max(current_img_item_row_idx-1, 0)
+            self.image_list_widget.selectRow(current_img_item_row_idx)
+            self.draw_image_item(self.image_list_widget.item(current_img_item_row_idx, 0))
 
-    def get_lower_image(self):
-        self.logger.info("Click 'lower image'")
+    def select_lower_image(self):
+        self.logger.info("클릭 - 하단 이미지")
         if not self.image_list_widget.selectedItems():
             self.image_list_widget.selectRow(0)
             self.draw_image_item(self.image_list_widget.item(0, 0))
         else:
             num_row = self.image_list_widget.rowCount()
-            idx = self.image_list_widget.selectedIndexes()[0].row()
-            idx = min(idx + 1, num_row - 1)
-            self.image_list_widget.selectRow(idx)
-            self.draw_image_item(self.image_list_widget.item(idx, 0))
+            current_img_item_row_idx = self.image_list_widget.selectedIndexes()[0].row()
+            if current_img_item_row_idx == num_row - 1:
+                return
+            current_img_item_row_idx = min(current_img_item_row_idx + 1, num_row - 1)
+            self.image_list_widget.selectRow(current_img_item_row_idx)
+            self.draw_image_item(self.image_list_widget.item(current_img_item_row_idx, 0))
 
     def change_tab(self, index):
         self.cur_inner_tab = self.tab_widget.currentWidget()
@@ -977,9 +990,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def keyPressEvent(self, event):
         if Qt.Key.Key_Comma == event.key():
-            self.get_upper_image()
+            self.select_upper_image()
         elif Qt.Key.Key_Period == event.key():
-            self.get_lower_image()
+            self.select_lower_image()
 
         if self.cur_inner_tab.selected_shape is not None:
             shape = self.cur_inner_tab.selected_shape

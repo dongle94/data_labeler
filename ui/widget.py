@@ -45,9 +45,9 @@ class ImagesTableWidget(QTableWidget):
 
     def keyPressEvent(self, event):
         if Qt.Key.Key_Up == event.key():
-            self.window().get_upper_image()
+            self.window().select_upper_image()
         elif Qt.Key.Key_Down == event.key():
-            self.window().get_lower_image()
+            self.window().select_lower_image()
 
 
 class ImageTabWidget(QTabWidget):
