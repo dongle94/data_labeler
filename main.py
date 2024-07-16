@@ -107,7 +107,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionEdit_Mode.triggered.connect(self.set_edit_mode)
         self.actionSelect_up_image.triggered.connect(self.select_upper_image)
         self.actionSelect_down_image.triggered.connect(self.select_lower_image)
-        self.actionDelete_selected_box.triggered.connect(self.delete_selected_boxes_box_label)
+        self.actionDelete_selected_box.triggered.connect(self.clear_selected_bbox_label)
 
         # Menubar - infer
         self.actionObject_Detection_for_entire_images.triggered.connect(self.create_box_label_by_detection_entire_images)
@@ -867,6 +867,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             return
 
+    def set_create_mode(self):
+        if self.label_field_boxes_box:
+            self.cur_inner_tab.set_editing(False)
+        else:
+            msgBox = QMessageBox(text="박스형 라벨 필드가 존재하지 않습니다.")
+            msgBox.exec()
+
+    def set_edit_mode(self):
+        self.cur_inner_tab.set_editing(True)
+
     def draw_new_bbox_label(self):
         classes = self.label_field_name_dict_classname_to_idx['boxes-box']
         basic_class_name = list(classes.keys())[0]
@@ -875,6 +885,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         shape.class_idx = 0
         self.create_bbox_item(shape)
         self.cur_inner_tab.set_editing(True)
+
+    def clear_selected_bbox_label(self):
+        shape = self.cur_inner_tab.delete_selected_shape()
+        if shape is None:
+            return
+        item = self.bbox_shapes_to_items[shape]
+        self.bbox_listwidget.takeItem(self.bbox_listwidget.row(item))
+        del self.bbox_shapes_to_items[shape]
+        del self.bbox_items_to_shapes[item]
+        self.statusbar.showMessage(f"바운딩 박스 라벨 제거: {shape.label}")
 
     def save_labels(self):
         # 현재 이미지, 라벨 필드 목록
@@ -960,16 +980,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.logger.info(f"Success save {len(boxes)} boxes-box ids: {boxes}")
 
-    def delete_selected_boxes_box_label(self):
-        shape = self.cur_inner_tab.delete_selected_shape()
-        if shape is None:
-            return
-        item = self.bbox_shapes_to_items[shape]
-        self.bbox_listwidget.takeItem(self.bbox_listwidget.row(item))
-        del self.bbox_shapes_to_items[shape]
-        del self.bbox_items_to_shapes[item]
-        self.logger.info(f"Delete box label: {shape.label}")
-
     def keyPressEvent(self, event):
         if Qt.Key.Key_Comma == event.key():
             self.select_upper_image()
@@ -1013,22 +1023,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if items:
             return items[0]
         return None
-
-    def set_create_mode(self):
-        if self.label_field_boxes_box:
-            self.cur_inner_tab.set_editing(False)
-            return
-        else:
-            msgBox = QMessageBox(text="박스형 라벨 필드가 존재하지 않습니다.")
-            msgBox.exec()
-        # self.actionCreate_Mode.setEnabled(False)
-        # self.actionEdit_Mode.setEnabled(True)
-
-    def set_edit_mode(self):
-        self.cur_inner_tab.set_editing(True)
-        # self.actionCreate_Mode.setEnabled(True)
-        # self.actionEdit_Mode.setEnabled(False)
-        self.label_selection_changed()
 
     def shape_selection_changed(self):
         if self._no_selection_slot:
