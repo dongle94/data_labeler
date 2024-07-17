@@ -1168,9 +1168,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         path = dialog.dirname
         train, val, test = dialog.train_ratio, dialog.val_ratio, dialog.test_ratio
         is_shuffle = dialog.is_shuffle
-        self.logger.info(f"Start Exporting YOLO detection dataset: {self.cur_inner_tab_name}")
+        self.logger.info(f"YOLO 감지 데이터 셋 내보내기 시작 : {self.cur_inner_tab_name}")
         st = time.time()
         imgs_idx = set()
+        label_field_id = self.label_fields_dict_name_to_idx['boxes-box']
         # All images
         if len(self.image_list_widget.selectedItems()) == 0:
             for idx in range(self.image_list_widget.rowCount()):
@@ -1216,6 +1217,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             meta_data['test'] = './test/images'
         with open(os.path.join(str(dataset_path), 'data.yaml'), 'w', encoding='utf8') as f:
             yaml.dump(meta_data, f, allow_unicode=True, sort_keys=False)
+        # result txt
+        result_file = open(os.path.join(str(dataset_path), 'result.txt'), 'w', encoding='utf8')
+        result_file.write(f"Dataset: {self.cur_dataset_name}\n")
+        t = str([f"{int(v)}: {k}" for k, v in self.label_field_name_dict_classname_to_idx['boxes-box'].items()])
+        class_num = len(self.label_field_name_dict_classname_to_idx['boxes-box'])
+        result_file.write(f"Total image num: {len(imgs_idx)}\n")
+        result_file.write(f"Classes: {t}\n")
+        result_file.write("-"*20+'\n')
 
         # Save Train set
         if train != 0.:
@@ -1225,6 +1234,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(train_dir, exist_ok=True)
             os.makedirs(t_img_dir, exist_ok=True)
             os.makedirs(t_lb_dir, exist_ok=True)
+            result_file.write(f"Train image num: {len(imgs_idx[:train_num])}\n")
+            class_data = {i: 0 for i in range(class_num)}
             for i in imgs_idx[:train_num]:
                 img_info = self.db_manager.read_image_data_by_image_data_id(i)[0]
                 img_file = f"{i:06d}_{img_info[2]}"
@@ -1236,7 +1247,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 img.save(img_path)
 
                 # save label
-                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=2)
+                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=label_field_id)
                 if label_info:
                     label_path = os.path.join(t_lb_dir, os.path.splitext(img_file)[0] + '.txt')
                     with open(label_path, 'w', encoding='utf8') as f:
@@ -1247,6 +1258,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                         f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
                             label_str = f"{box_class} {box_xywh}\n"
                             f.write(label_str)
+                            class_data[int(box_class)] += 1
+            t = str([f"{int(k)}: {v}" for k, v in class_data.items()])
+            result_file.write(f"labels: {t}\n")
+            result_file.write("-" * 20 + '\n')
+
         # Save Val set
         if val != 0.:
             val_dir = os.path.join(str(dataset_path), "val")
@@ -1254,6 +1270,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(val_dir, exist_ok=True)
             os.makedirs(v_img_dir, exist_ok=True)
             os.makedirs(v_lb_dir, exist_ok=True)
+            result_file.write(f"Val image num: {len(imgs_idx[train_num:val_num])}\n")
+            class_data = {i: 0 for i in range(class_num)}
             for i in imgs_idx[train_num:val_num]:
                 img_info = self.db_manager.read_image_data_by_image_data_id(i)[0]
                 img_file = f"{i:06d}_{img_info[2]}"
@@ -1265,7 +1283,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 img.save(img_path)
 
                 # save label
-                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=2)
+                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=label_field_id)
                 if label_info:
                     label_path = os.path.join(v_lb_dir, os.path.splitext(img_file)[0] + '.txt')
                     with open(label_path, 'w', encoding='utf8') as f:
@@ -1276,6 +1294,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                         f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
                             label_str = f"{box_class} {box_xywh}\n"
                             f.write(label_str)
+                            class_data[int(box_class)] += 1
+            t = str([f"{int(k)}: {v}" for k, v in class_data.items()])
+            result_file.write(f"labels: {t}\n")
+            result_file.write("-" * 20 + '\n')
+
         # Save Test set
         if test != 0.:
             test_dir = os.path.join(str(dataset_path), "test")
@@ -1283,6 +1306,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs(test_dir, exist_ok=True)
             os.makedirs(te_img_dir, exist_ok=True)
             os.makedirs(te_lb_dir, exist_ok=True)
+            result_file.write(f"Test image num: {len(imgs_idx[:train_num])}\n")
+            class_data = {i: 0 for i in range(class_num)}
             for i in imgs_idx[val_num:]:
                 img_info = self.db_manager.read_image_data_by_image_data_id(i)[0]
                 img_file = f"{i:06d}_{img_info[2]}"
@@ -1294,7 +1319,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 img.save(img_path)
 
                 # save label
-                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=2)
+                label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=label_field_id)
                 if label_info:
                     label_path = os.path.join(te_lb_dir, os.path.splitext(img_file)[0] + '.txt')
                     with open(label_path, 'w', encoding='utf8') as f:
@@ -1305,7 +1330,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                         f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
                             label_str = f"{box_class} {box_xywh}\n"
                             f.write(label_str)
-        self.logger.info(f"End Exporting YOLO detection dataset: {self.cur_inner_tab_name} / {time.time()-st:.3f} sec")
+                            class_data[int(box_class)] += 1
+            t = str([f"{int(k)}: {v}" for k, v in class_data.items()])
+            result_file.write(f"labels: {t}\n")
+            result_file.write("-" * 20 + '\n')
+
+        result_file.close()
+        self.logger.info(f"YOLO 감지 데이터 셋 내보내기 완료: {self.cur_inner_tab_name} / 소요: {time.time()-st:.3f} sec")
 
 
 if __name__ == "__main__":
