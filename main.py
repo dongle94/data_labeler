@@ -901,6 +901,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_inner_tab.set_editing(True)
         self.is_label_change = True
 
+        item = self.bbox_shapes_to_items[shape]
+        item.setSelected(True)
+
     def clear_selected_bbox_label(self):
         shape = self.cur_inner_tab.delete_selected_shape()
         if shape is None:
