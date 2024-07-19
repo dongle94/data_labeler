@@ -1281,7 +1281,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # save img
                 image_fid = self.image_list_widget.fid_dict[i]
                 img = self.weed_manager.get_image(fid=image_fid)
-                img.save(img_path)
+                img.save(img_path, compress_level=0)
 
                 # save label
                 label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=label_field_id)
@@ -1317,7 +1317,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # save img
                 image_fid = self.image_list_widget.fid_dict[i]
                 img = self.weed_manager.get_image(fid=image_fid)
-                img.save(img_path)
+                img.save(img_path, compress_level=0)
 
                 # save label
                 label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=label_field_id)
