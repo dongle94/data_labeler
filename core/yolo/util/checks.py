@@ -8,7 +8,13 @@ from pathlib import Path
 
 import torch
 
-from core.yolov8.yolov8_utils import ROOT, clean_url, downloads, emojis, url2file
+from core.yolo.util import (
+    ROOT,
+    clean_url,
+    downloads,
+    emojis,
+    url2file
+)
 
 
 def parse_version(version="0.0.0") -> tuple:
@@ -52,6 +58,8 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         imgsz = [imgsz]
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
+    elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
+        imgsz = [int(imgsz)] if imgsz.isnumeric() else eval(imgsz)
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -145,7 +153,7 @@ def check_version(
             result = False
         elif op == "!=" and c == v:
             result = False
-        elif op in (">=", "") and not (c >= v):  # if no constraint passed assume '>=required'
+        elif op in {">=", ""} and not (c >= v):  # if no constraint passed assume '>=required'
             result = False
         elif op == "<=" and not (c <= v):
             result = False

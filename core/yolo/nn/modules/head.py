@@ -8,12 +8,13 @@ import torch
 import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
-from core.yolov8.yolov8_utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
+from core.yolo.util.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 
 from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
 from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
+
 
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect"
 
@@ -424,7 +425,7 @@ class RTDETRDecoder(nn.Module):
 
     def forward(self, x, batch=None):
         """Runs the forward pass of the module, returning bounding box and classification scores for the input."""
-        from core.yolov8.models.utils.ops import get_cdn_group
+        from core.yolo.models.utils.ops import get_cdn_group
 
         # Input projection and embedding
         feats, shapes = self._get_encoder_input(x)
@@ -537,7 +538,6 @@ class RTDETRDecoder(nn.Module):
 
         return embeddings, refer_bbox, enc_bboxes, enc_scores
 
-    # TODO
     def _reset_parameters(self):
         """Initializes or resets the parameters of the model's various components with predefined weights and biases."""
         # Class and bbox head init

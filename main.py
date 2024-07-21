@@ -6,6 +6,7 @@ import json
 import yaml
 import time
 import random
+import cv2
 from datetime import datetime
 
 from PySide6.QtWidgets import (QApplication, QMainWindow, QTableWidgetItem, QPlainTextEdit,
@@ -1247,7 +1248,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # save img
                 image_fid = self.image_list_widget.fid_dict[i]
                 img = self.weed_manager.get_image(fid=image_fid)
-                img.save(img_path)
+                img.save(img_path, compress_level=0)
 
                 # save label
                 label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=label_field_id)
@@ -1283,7 +1284,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # save img
                 image_fid = self.image_list_widget.fid_dict[i]
                 img = self.weed_manager.get_image(fid=image_fid)
-                img.save(img_path)
+                img.save(img_path, compress_level=0)
 
                 # save label
                 label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=label_field_id)
@@ -1319,7 +1320,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # save img
                 image_fid = self.image_list_widget.fid_dict[i]
                 img = self.weed_manager.get_image(fid=image_fid)
-                img.save(img_path)
+                img.save(img_path, compress_level=0)
 
                 # save label
                 label_info = self.db_manager.read_label_data(image_data_id=i, label_field_id=label_field_id)

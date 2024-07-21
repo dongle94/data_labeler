@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import contextlib
 from copy import deepcopy
 from pathlib import Path
@@ -5,16 +7,16 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
+from core.yolo.nn.modules import *
+from core.yolo.util import DEFAULT_CFG_DICT, emojis, yaml_load
+from core.yolo.util.checks import check_suffix, check_yaml
+from core.yolo.util.loss import E2EDetectLoss, v8DetectionLoss
+from core.yolo.util.torch_utils import initialize_weights, make_divisible, scale_img
+
 try:
     import thop
 except ImportError:
     thop = None
-
-from core.yolov8.nn.modules import *
-from core.yolov8.yolov8_utils import DEFAULT_CFG_DICT, yaml_load
-from core.yolov8.yolov8_utils.checks import check_suffix, check_yaml
-from core.yolov8.yolov8_utils.loss import E2EDetectLoss, v8DetectionLoss
-from core.yolov8.yolov8_utils.torch_utils import initialize_weights, make_divisible, scale_img
 
 
 class BaseModel(nn.Module):
@@ -113,7 +115,7 @@ class BaseModel(nn.Module):
     #     print(f"{dt[-1]:10.2f} {flops:10.2f} {m.np:10.0f}  {m.type}")
     #     if c:
     #         print(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
-    #
+
     # def fuse(self, verbose=True):
     #     """
     #     Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer, in order to improve the
@@ -143,7 +145,7 @@ class BaseModel(nn.Module):
     #         self.info(verbose=verbose)
     #
     #     return self
-    #
+
     # def is_fused(self, thresh=10):
     #     """
     #     Check if the model has less than a certain threshold of BatchNorm layers.
@@ -156,7 +158,7 @@ class BaseModel(nn.Module):
     #     """
     #     bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
     #     return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
-    #
+
     # def info(self, detailed=False, verbose=True, imgsz=640):
     #     """
     #     Prints model information.
@@ -302,9 +304,9 @@ class DetectionModel(BaseModel):
     def _clip_augmented(self, y):
         """Clip YOLO augmented inference tails."""
         nl = self.model[-1].nl  # number of detection layers (P3-P5)
-        g = sum(4**x for x in range(nl))  # grid points
+        g = sum(4 ** x for x in range(nl))  # grid points
         e = 1  # exclude layer count
-        i = (y[0].shape[-1] // g) * sum(4**x for x in range(e))  # indices
+        i = (y[0].shape[-1] // g) * sum(4 ** x for x in range(e))  # indices
         y[0] = y[0][..., :-i]  # large
         i = (y[-1].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices
         y[-1] = y[-1][..., i:]  # small
@@ -332,7 +334,7 @@ class Ensemble(nn.ModuleList):
 
 
 @contextlib.contextmanager
-def temporary_modules(modules=None):
+def temporary_modules(modules=None, attributes=None):
     """
     Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
 
@@ -342,11 +344,13 @@ def temporary_modules(modules=None):
 
     Args:
         modules (dict, optional): A dictionary mapping old module paths to new module paths.
+        attributes (dict, optional): A dictionary mapping old module attributes to new module attributes.
 
     Example:
         ```python
-        with temporary_modules({'old.module.path': 'new.module.path'}):
-            import old.module.path  # this will now import new.module.path
+        with temporary_modules({'old.module': 'new.module'}, {'old.module.attribute': 'new.module.attribute'}):
+            import old.module  # this will now import new.module
+            from old.module import attribute  # this will now import new.module.attribute
         ```
 
     Note:
@@ -354,16 +358,24 @@ def temporary_modules(modules=None):
         Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
         applications or libraries. Use this function with caution.
     """
-    if not modules:
-        modules = {}
 
-    import importlib
+    if modules is None:
+        modules = {}
+    if attributes is None:
+        attributes = {}
     import sys
+    from importlib import import_module
 
     try:
+        # Set attributes in sys.modules under their old name
+        for old, new in attributes.items():
+            old_module, old_attr = old.rsplit(".", 1)
+            new_module, new_attr = new.rsplit(".", 1)
+            setattr(import_module(old_module), old_attr, getattr(import_module(new_module), new_attr))
+
         # Set modules in sys.modules under their old name
         for old, new in modules.items():
-            sys.modules[old] = importlib.import_module(new)
+            sys.modules[old] = import_module(new)
 
         yield
     finally:
@@ -374,18 +386,73 @@ def temporary_modules(modules=None):
 
 
 def torch_safe_load(weight):
-    from core.yolov8.yolov8_utils.downloads import attempt_download_asset
+    """
+        This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised,
+        it catches the error, logs a warning message, and attempts to install the missing module via the
+        check_requirements() function. After installation, the function again attempts to load the model using torch.load().
+
+        Args:
+            weight (str): The file path of the PyTorch model.
+
+        Returns:
+            (dict): The loaded PyTorch model.
+        """
+    from core.yolo.util.downloads import attempt_download_asset
+
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
         with temporary_modules(
-            {
-                "ultralytics": "core.yolov8"
-            }
-        ):
+            modules={
+                "ultralytics": "core.yolo"
+                # "ultralytics.yolo.utils": "ultralytics.utils",
+                # "ultralytics.yolo.v8": "ultralytics.models.yolo",
+                # "ultralytics.yolo.data": "ultralytics.data",
+            },
+            # {
+            #     "ultralytics": "core.yolo",
+            #     # "ultralytics.utils": "core.yolo.util",
+            #     # "ultralytics.yolo.v8": "core.yolo.models.yolo",
+            #     # "ultralytics.yolo.util": "core.yolo.util",
+            #     # "ultralytics.yolo.data": "core.yolo.data",
+            #     # 'ultralytics.nn.tasks': 'core.yolo.nn.tasks',
+            #     # 'ultralytics.nn.modules.block': 'core.yolo.nn.modules.block',
+            #     # 'ultralytics.nn.modules.head': 'core.yolo.nn.modules.head',
+            # },
+            # attributes={
+            #     "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
+            #     "ultralytics.nn.tasks.YOLOv10DetectionModel": "core.yolo.nn.tasks.DetectionModel",  # YOLOv10
+            # },
+        ):  # for legacy 8.0 Classify and Pose models
             ckpt = torch.load(file, map_location="cpu")
-    except ModuleNotFoundError as e:
-        print(e)
+    except ModuleNotFoundError as e:  # e.name is missing module name
+        if e.name == "models":
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "
+                    f"with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with "
+                    f"YOLOv8 at https://github.com/ultralytics/ultralytics."
+                    f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+                    f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'"
+                )
+            ) from e
+        print(
+            f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in ultralytics requirements."
+            f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
+            f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+            f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'"
+        )
+        # check_requirements(e.name)  # install missing module
+        ckpt = torch.load(file, map_location="cpu")
+
+    if not isinstance(ckpt, dict):
+        # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
+        print(
+            f"WARNING ⚠️ The file '{weight}' appears to be improperly saved or formatted. "
+            f"For optimal results, use model.save('filename.pt') to correctly save YOLO models."
+        )
+        ckpt = {"model": ckpt.model}
+
     return ckpt, file  # load
 
 
@@ -410,10 +477,9 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
 
     # Module updates
     for m in ensemble.modules():
-        t = type(m)
-        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect):  #, OBB):
+        if hasattr(m, "inplace"):
             m.inplace = inplace
-        elif t is nn.Upsample and not hasattr(m, "recompute_scale_factor"):
+        elif isinstance(m, nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
     # Return model
@@ -424,7 +490,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     print(f"Ensemble created with {weights}\n")
     for k in "names", "nc", "yaml":
         setattr(ensemble, k, getattr(ensemble[0], k))
-    ensemble.stride = ensemble[torch.argmax(torch.tensor([m.stride.max() for m in ensemble])).int()].stride
+    ensemble.stride = ensemble[int(torch.argmax(torch.tensor([m.stride.max() for m in ensemble])))].stride
     assert all(ensemble[0].nc == m.nc for m in ensemble), f"Models differ in class counts {[m.nc for m in ensemble]}"
     return ensemble
 
@@ -599,12 +665,13 @@ def guess_model_task(model):
     Raises:
         SyntaxError: If the task of the model could not be determined.
     """
+
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
         m = cfg["head"][-1][-2].lower()  # output module name
-        if m in ("classify", "classifier", "cls", "fc"):
+        if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
-        if m == "detect":
+        if "detect" in m:
             return "detect"
         if m == "segment":
             return "segment"
@@ -628,16 +695,12 @@ def guess_model_task(model):
                 return cfg2task(eval(x))
 
         for m in model.modules():
-            if isinstance(m, Detect):
+            if isinstance(m, (Detect, v10Detect)):
                 return "detect"
-            # elif isinstance(m, OBB):
-            #     return "obb"
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        # if "-obb" in model.stem or "obb" in model.parts:
-        #     return "obb"
         if "detect" in model.parts:
             return "detect"
 
