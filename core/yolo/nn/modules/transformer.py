@@ -31,7 +31,7 @@ class TransformerEncoderLayer(nn.Module):
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0.0, act=nn.GELU(), normalize_before=False):
         """Initialize the TransformerEncoderLayer with specified parameters."""
         super().__init__()
-        from ...yolov8_utils.torch_utils import TORCH_1_9
+        from ...util.torch_utils import TORCH_1_9
 
         if not TORCH_1_9:
             raise ModuleNotFoundError(
@@ -101,10 +101,10 @@ class AIFI(TransformerEncoderLayer):
     @staticmethod
     def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000.0):
         """Builds 2D sine-cosine position embedding."""
-        grid_w = torch.arange(int(w), dtype=torch.float32)
-        grid_h = torch.arange(int(h), dtype=torch.float32)
-        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
         assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
+        grid_w = torch.arange(w, dtype=torch.float32)
+        grid_h = torch.arange(h, dtype=torch.float32)
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
         pos_dim = embed_dim // 4
         omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
         omega = 1.0 / (temperature**omega)
@@ -215,7 +215,7 @@ class LayerNorm2d(nn.Module):
 
 class MSDeformAttn(nn.Module):
     """
-    Multi-Scale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
+    Multiscale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
 
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
