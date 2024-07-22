@@ -33,7 +33,7 @@ def set_config(file):
     config.det_model_path = _config['DET']['DET_MODEL_PATH']
     config.det_half = _config['DET']['HALF']
     config.det_conf_thres = _config['DET']['CONF_THRES']
-    config.det_obj_classes = _config['DET']['OBJ_CLASSES']
+    config.det_obj_classes = eval(str(_config['DET']['OBJ_CLASSES']))
     # YOLO
     config.yolo_img_size = _config['DET']['YOLO']['IMG_SIZE']
     config.yolo_nms_iou = _config['DET']['YOLO']['NMS_IOU']
