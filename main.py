@@ -1258,7 +1258,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         for l_info in label_info:
                             box_coord = eval(l_info[5])
                             box_class = l_info[6]
-                            box_xywh = (f"{box_coord[0]} {box_coord[1]} "
+                            box_xywh = (f"{(box_coord[2] + box_coord[0])/2:.6f} "
+                                        f"{(box_coord[3] + box_coord[1])/2:.6f} "
                                         f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
                             label_str = f"{box_class} {box_xywh}\n"
                             f.write(label_str)
@@ -1294,7 +1295,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         for l_info in label_info:
                             box_coord = eval(l_info[5])
                             box_class = l_info[6]
-                            box_xywh = (f"{box_coord[0]} {box_coord[1]} "
+                            box_xywh = (f"{(box_coord[2] + box_coord[0])/2:.6f} "
+                                        f"{(box_coord[3] + box_coord[1])/2:.6f} "
                                         f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
                             label_str = f"{box_class} {box_xywh}\n"
                             f.write(label_str)
@@ -1330,7 +1332,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         for l_info in label_info:
                             box_coord = eval(l_info[5])
                             box_class = l_info[6]
-                            box_xywh = (f"{box_coord[0]} {box_coord[1]} "
+                            box_xywh = (f"{(box_coord[2] + box_coord[0])/2:.6f} "
+                                        f"{(box_coord[3] + box_coord[1])/2:.6f} "
                                         f"{box_coord[2] - box_coord[0]:.6f} {box_coord[3] - box_coord[1]:.6f}")
                             label_str = f"{box_class} {box_xywh}\n"
                             f.write(label_str)
