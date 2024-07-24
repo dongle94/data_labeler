@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget
+from PySide6 import QtWidgets
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QTabWidget, QAbstractItemView
 from PySide6.QtGui import Qt
 
 
@@ -38,6 +39,7 @@ class ImagesTableWidget(QTableWidget):
             self.setItem(i, 1, QTableWidgetItem(img_name))
             self.fid_dict[img_idx] = image[3]
             self.url_dict[img_idx] = image[4]
+        self.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
 
     def add_image_list(self, idx, name, fid, url):
         len_item = len(self.url_dict)
