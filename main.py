@@ -1133,6 +1133,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Bounding box for current image created successfully: {box_num}")
 
     def create_box_label_by_detection_one_image(self, image_idx):
+        # Check boxes-box label is exist.
+        if 'boxes-box' not in self.label_field_name_dict_classname_to_idx:
+            msgBox = QMessageBox(text="박스형-박스 라벨 필드가 존재하지 않습니다.")
+            msgBox.exec()
+            self.logger.warning("박스 형 - 박스 라벨 필드 없이 추론 시도")
+            return
+
         # Delete Current image box label
         self.db_manager.delete_boxes_box_label_data_by_image_data_id(image_idx)
         self.clear_ui_bbox_label_data()
