@@ -1141,6 +1141,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.detector = ObjectDetector(cfg=_cfg)
         image_fid = self.image_list_widget.fid_dict[image_idx]
         img = self.weed_manager.get_image(fid=image_fid, pil=False)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         det = self.detector.run_np(img)
         img_h, img_w = img.shape[:2]
         cls_idx_to_name = {int(v): k for k, v in self.label_field_name_dict_classname_to_idx['boxes-box'].items()}
