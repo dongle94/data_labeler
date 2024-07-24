@@ -347,7 +347,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 박스 라벨 DB 삭제
         pass
 
-    def clear_ui_image(self):
+    def clear_ui_image(self, include_row=True):
         """탭 위젯의 이미지 픽스맵 초기화 및 좌측 이미지 목록의 이미지 선택 초기화
 
         Returns:
@@ -356,6 +356,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cur_inner_tab.pixmap = QPixmap()
         self.image_list_widget.clearSelection()
         self.cur_image_db_idx = -1
+        if include_row:
+            self.prev_image_row_idx = None
+            self.cur_image_row_idx = None
 
     def clear_ui_label_data(self):
         """우측 박스 목록, 박스 관련 라벨, 이미지 관련 라벨 초기화
