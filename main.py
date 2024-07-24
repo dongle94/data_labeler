@@ -913,6 +913,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bbox_listwidget.takeItem(self.bbox_listwidget.row(item))
         del self.bbox_shapes_to_items[shape]
         del self.bbox_items_to_shapes[item]
+
+        self.is_label_change = True
         self.statusbar.showMessage(f"바운딩 박스 라벨 제거: {shape.label}")
 
     def save_db_labels(self):
@@ -1005,6 +1007,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             shape = self.cur_inner_tab.selected_shape
             if self._is_change_box_class is False and event.key() == Qt.Key.Key_Alt:
                 self._is_change_box_class = True
+                self.is_label_change = True
                 self.statusbar.showMessage("Enable to change class number")
                 return
             if self._is_change_box_class is True and event.text().isdigit():
