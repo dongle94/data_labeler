@@ -324,8 +324,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # Update UI
             self.draw_ui_image_list()
-            self.clear_ui_image()
+            include = False if len(rows) == 1 else True
+            self.clear_ui_image(include_row=include)
             self.clear_ui_label_data()
+
+            # Process special case
+            if len(rows) == 1:
+                self.image_list_widget.selectRow(self.prev_image_row_idx)
 
             self.logger.info(f"선택 이미지 삭제 - 지워진 이미지 수: {len(rows)}")
 
