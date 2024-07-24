@@ -54,6 +54,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dataset_dict_name_to_idx = {}
         self.cur_dataset_db_idx = -1
         self.cur_dataset_name = None
+        self.prev_image_row_idx = None
+        self.cur_image_row_idx = None
         self.cur_image_db_idx = -1
         self.cur_inner_tab = None
         self.cur_inner_tab_name = None
@@ -321,9 +323,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
 
             # Update UI
+            include = False if len(rows) == 1 else True
+            self.clear_ui_image_list(include_row=include)
             self.draw_ui_image_list()
             self.clear_ui_image()
             self.clear_ui_label_data()
+
+            # Process special case
+            if len(rows) == 1:
+                self.image_list_widget.selectRow(self.prev_image_row_idx)
 
             self.logger.info(f"선택 이미지 삭제 - 지워진 이미지 수: {len(rows)}")
 
@@ -402,9 +410,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     else:  # checkbox
                         c.setAutoExclusive(False)
 
-    def clear_ui_image_list(self):
+    def clear_ui_image_list(self, include_row=True):
         self.image_list_widget.clear_image_list()
         self.image_list_widget.clearSelection()
+        if include_row:
+            self.prev_image_row_idx = None
+            self.cur_image_row_idx = None
 
     def clear_ui_label_fields(self):
         self.clear_ui_img_label_fields()
@@ -671,12 +682,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         img_db_idx = int(self.image_list_widget.item(item.row(), 0).text())
         img_filename = self.image_list_widget.item(item.row(), 1).text()
         img_fid = self.image_list_widget.fid_dict[img_db_idx]
+        img_row_idx = item.row()
 
         img_pil = self.weed_manager.get_image(fid=img_fid)
 
         # draw
         self.cur_inner_tab.set_pixmap(img_pil.toqpixmap(), scale=True)
         self.cur_image_db_idx = img_db_idx
+        if self.prev_image_row_idx is None:
+            self.prev_image_row_idx = img_row_idx
+        else:
+            self.prev_image_row_idx = self.cur_image_row_idx
+        self.cur_image_row_idx = img_row_idx
 
         # clear label field
         self.is_label_change = False
