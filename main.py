@@ -154,14 +154,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if is_empty(dataset_name) is True:
             msgBox = QMessageBox(text="데이터 셋 이름은 공백이 될 수 없습니다.")
             msgBox.exec()
-            self.logger.warn("데이터 셋 이름 공백 문제 발생")
+            self.logger.warning("데이터 셋 이름 공백 문제 발생")
             return
         # check dataset name is duplicated
         res = self.db_manager.read_dataset_by_name(dataset_name)
         if len(res) != 0:
             msgBox = QMessageBox(text="이미 존재하는 데이터 셋 이름입니다.")
             msgBox.exec()
-            self.logger.warn("데이터 셋 이름 중복 문제 발생")
+            self.logger.warning("데이터 셋 이름 중복 문제 발생")
             return
 
         # insert DB
@@ -1082,7 +1082,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Bounding box for {item_cnt} images created successfully: {box_num}")
 
     def create_box_label_by_detection_selected_images(self):
-        if len(self.image_list_widget.selectedItems()) == 0:
+        if self.image_list_widget.check_selected_row_num() == 0:
             self.statusbar.showMessage("1장 이상의 이미지를 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 선택해주세요.")
             msgBox.setWindowTitle("이미지 미선택 오류")
@@ -1109,13 +1109,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
 
     def create_box_label_by_detection_current_image(self):
-        if len(self.image_list_widget.selectedItems()) == 0:
+        if self.image_list_widget.check_selected_row_num() == 0:
             self.statusbar.showMessage("이미지를 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 선택해주세요.")
             msgBox.setWindowTitle("이미지 미선택 오류")
             msgBox.exec()
             return
-        elif len(self.image_list_widget.selectedItems()) > 1:
+        elif self.image_list_widget.check_selected_row_num() > 1:
             self.statusbar.showMessage("이미지를 1장만 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 1장만 선택해주세요.")
             msgBox.setWindowTitle("다중 이미지 선택 오류")
@@ -1133,6 +1133,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Bounding box for current image created successfully: {box_num}")
 
     def create_box_label_by_detection_one_image(self, image_idx):
+        # Check boxes-box label is exist.
+        if 'boxes-box' not in self.label_field_name_dict_classname_to_idx:
+            msgBox = QMessageBox(text="박스형-박스 라벨 필드가 존재하지 않습니다.")
+            msgBox.exec()
+            self.logger.warning("박스 형 - 박스 라벨 필드 없이 추론 시도")
+            return
+
         # Delete Current image box label
         self.db_manager.delete_boxes_box_label_data_by_image_data_id(image_idx)
         self.clear_ui_bbox_label_data()
