@@ -131,6 +131,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # BBoxList
         self.bbox_listwidget.itemActivated.connect(self.label_selection_changed)
         self.bbox_listwidget.itemSelectionChanged.connect(self.label_selection_changed)
+        self.bbox_listwidget.itemChanged.connect(self.label_item_changed)
 
         # Tab Widget
         self.tab_widget.currentChanged.connect(self.select_inner_tab_widget)
@@ -1081,6 +1082,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._no_selection_slot = True
             shape = self.bbox_items_to_shapes[item]
             self.cur_inner_tab.select_shape(shape)
+
+    def label_item_changed(self, item):
+        shape = self.bbox_items_to_shapes[item]
+        label = item.text()
+        if label != shape.label:
+            shape.label = item.text()
+            shape.line_color = generate_color_by_text(shape.label)
+            # self.set_dirty()
+        else:  # User probably changed item visibility
+            self.cur_inner_tab.set_shape_visible(shape, item.checkState() == Qt.CheckState.Checked)
 
     def create_box_label_by_detection_entire_images(self):
         item_cnt = self.image_list_widget.rowCount()

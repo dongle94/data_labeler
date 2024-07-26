@@ -428,6 +428,10 @@ class ImageTabInnerWidget(QWidget):
         # self.drawingPolygon.emit(False)
         self.update()
 
+    def set_shape_visible(self, shape, value):
+        self.visible[shape] = value
+        self.repaint()
+
     def current_cursor(self):
         cursor = QApplication.overrideCursor()
         if cursor is not None:
