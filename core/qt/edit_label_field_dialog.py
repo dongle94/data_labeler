@@ -18,6 +18,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.is_changed = False
 
         # init
+        self.line_edits = []
         self.draw_init_ui()
 
     def draw_init_ui(self):
@@ -28,9 +29,12 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
             for cls_name, cls_idx in bboxes.items():
                 cls_idx = int(cls_idx)
                 t = f"{cls_idx}: "
-                qlo = QHBoxLayout(self.parent())
+                qlo = QHBoxLayout()
                 qle = QLineEdit(self.parent())
+                qle.original_text = cls_name
                 qle.setText(cls_name)
+                self.line_edits.append(qle)
+                qle.textChanged.connect(self.check_cls_change)
                 qlabel = create_label(self.parent(), t, stylesheet="color: gray")
                 qlo.addWidget(qlabel)
                 qlo.addWidget(qle)
@@ -53,3 +57,10 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
 
     def del_img_cls(self):
         pass
+
+    def check_cls_change(self, _):
+        for le in self.line_edits:
+            if le.original_text != le.text():
+                self.is_changed = True
+                return
+        self.is_changed = False
