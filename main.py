@@ -29,6 +29,7 @@ from core.qt.simple_dialog import (DatasetDeleteDialog, ImagesDeleteDialog, Labe
                                    DetectionLabelsCreateDialog)
 from core.qt.create_dataset_dialog import CreateDatasetDialog
 from core.qt.add_label_field_dialog import AddLabelFieldDialog
+from core.qt.edit_label_field_dialog import EditLabelFieldDialog
 from core.qt.export_dialog import ExportDialog
 from core.qt.item import BoxQListWidgetItem
 from core.qt.shape import Shape
@@ -138,6 +139,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Label Field
         self.pB_label_add.clicked.connect(self.create_label_field)
+        self.pB_label_edit.clicked.connect(self.edit_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
 
         self.logger.info("Success initializing MainWindow")
@@ -766,6 +768,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.statusbar.showMessage(f"라벨 필드 추가 완료 - 라벨 포맷: {label_format} / 라벨 타입: {label_type}")
             self.logger.info(f"라벨 필드 추가 완료 - 라벨 포맷: {label_format} / 라벨 타입: {label_type}")
+
+    def edit_label_field(self):
+        self.logger.info("클릭 - 라벨 필드 수정")
+
+        label_field = {
+            'boxes-box': self.label_field_name_dict_classname_to_idx.get('boxes-box')
+        }
+        dialog = EditLabelFieldDialog(self, dataset_id=self.cur_dataset_db_idx, db=self.db_manager,
+                                      label_info=label_field)
+        ret = dialog.exec()
 
     def delete_label_field(self):
         self.logger.info("클릭 - 라벨 필드 삭제")
