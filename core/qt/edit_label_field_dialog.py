@@ -18,11 +18,21 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.is_changed = False
 
         # init
+        self.orig_label_field = {}
+        self.cur_label_field = {}
         self.line_edits = []
         self.draw_init_ui()
 
+        # Signal & slots
+        self.toolButton.clicked.connect(self.add_boxes_box)
+        self.toolButton_2.clicked.connect(self.del_boxes_box)
+
+        print(label_info)
+
     def draw_init_ui(self):
         bboxes = self.label_info.get('boxes-box')
+        self.orig_label_field['boxes-box'] = {}
+        self.cur_label_field['boxes-box'] = {}
         if bboxes:
             self.toolButton.setEnabled(True)
             self.toolButton_2.setEnabled(True)
@@ -39,6 +49,46 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 qlo.addWidget(qlabel)
                 qlo.addWidget(qle)
                 self.verticalLayout_2.addLayout(qlo)
+                self.orig_label_field['boxes-box'][qle] = cls_name
+                self.cur_label_field['boxes-box'][qle] = cls_name
+
+        img_caps = self.label_info.get('image-caption')
+        self.orig_label_field['image-caption'] = {}
+        self.cur_label_field['image-caption'] = {}
+        for cap_field_name in img_caps:
+            qle = QLineEdit(self.parent())
+            qle.original_text = cap_field_name
+            qle.setText(cap_field_name)
+            qle.textChanged.connect(self.check_cls_change)
+            self.line_edits.append(qle)
+            self.verticalLayout_5.addWidget(qle)
+            self.orig_label_field['image-caption'][qle] = cap_field_name
+            self.cur_label_field['image-caption'][qle] = cap_field_name
+
+        img_cls = self.label_info.get('image-cls')
+        self.orig_label_field['image-cls'] = {}
+        self.cur_label_field['image-cls'] = {}
+        for cls_field_name, cls_info in img_cls.items():
+            t = f"Image-classification: {cls_field_name}"
+            qlabel = create_label(self.parent(), t, stylesheet="color: navy")
+            self.verticalLayout_6.addWidget(qlabel)
+            self.orig_label_field['image-cls'][cls_field_name] = {}
+            self.cur_label_field['image-cls'][cls_field_name] = {}
+            for cls_name, cls_idx in cls_info.items():
+                cls_idx = int(cls_idx)
+                t = f"{cls_idx}: "
+                qlo = QHBoxLayout()
+                qle = QLineEdit(self.parent())
+                qle.original_text = cls_name
+                qle.setText(cls_name)
+                self.line_edits.append(qle)
+                qle.textChanged.connect(self.check_cls_change)
+                qlabel = create_label(self.parent(), t, stylesheet="color: gray")
+                qlo.addWidget(qlabel)
+                qlo.addWidget(qle)
+                self.verticalLayout_6.addLayout(qlo)
+                self.orig_label_field['image-cls'][cls_field_name][qle] = cls_name
+                self.cur_label_field['image-cls'][cls_field_name][qle] = cls_name
 
     def add_boxes_box(self):
         pass
