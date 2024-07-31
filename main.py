@@ -808,7 +808,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 cls_idx = self.label_field_name_dict_classname_to_idx['boxes-box'][del_name]
                 label_field_idx = self.label_fields_dict_name_to_idx['boxes-box']
 
-                # self.db_manager.read_label_data_detail(cls=cls_idx, label_field_id=label_field_idx)
+                # self.db_manager.read_label_data(cls=cls_idx, label_field_id=label_field_idx)
 
             # Update: label_field table in DB
 

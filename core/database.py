@@ -184,13 +184,16 @@ class DBManager(object):
         self.logger.info(log_text)
         return cursor.lastrowid
 
-    def read_label_data(self, image_data_id, label_field_id=None):
-        sql = "SELECT * FROM label_data WHERE image_data_id = (%s)"
-        data = [image_data_id,]
-        if label_field_id is not None:
-            sql += " AND label_field_id = (%s)"
-            data.append(label_field_id)
+    def read_label_data(self, **kwargs):
+        sql = "SELECT * FROM label_data"
+        data = []
+        if kwargs:
+            sql += " WHERE"
+            for key, value in kwargs.items():
+                sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
+                data.append(value)
 
+        self.logger.debug(f"Read label_data: {sql}, {data}")
         cursor = self.con.cursor()
         cursor.execute(sql, data)
         ret = cursor.fetchall()
