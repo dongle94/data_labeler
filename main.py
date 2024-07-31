@@ -786,9 +786,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             'image-cls': cls_field
         }
 
-        dialog = EditLabelFieldDialog(self, dataset_id=self.cur_dataset_db_idx, db=self.db_manager,
-                                      label_info=label_field)
+        dialog = EditLabelFieldDialog(self, label_info=label_field)
         ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            self.logger.info("라벨 필드 수정 취소")
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            orig_label = dialog.orig_label_field
+            cur_label = dialog.cur_label_field
+            # boxes-box
+            orig_bbox = orig_label['boxes-box']
+            cur_bbox = cur_label['boxes-box']
+            bbox_detail = {}
+            for idx, (le, cls_name) in enumerate(cur_bbox.items()):
+                # all: change detail
+                bbox_detail[idx] = cls_name
+                if le in orig_bbox.keys():
+                    del orig_bbox[le]
+            # Delete: label_data in DB
+            for del_name in orig_bbox.values():
+                cls_idx = self.label_field_name_dict_classname_to_idx['boxes-box'][del_name]
+                label_field_idx = self.label_fields_dict_name_to_idx['boxes-box']
+
+                # self.db_manager.read_label_data_detail(cls=cls_idx, label_field_id=label_field_idx)
+
+            # Update: label_field table in DB
+
+            # image-cap
+
+            # image-cls
+
+            self.clear_ui_label_data()
+            self.clear_ui_label_fields()
+            self.draw_ui_label_fields()
+            self.draw_ui_label_data()
+
+            self.logger.info(f"라벨 필드 수정 완료")
 
     def delete_label_field(self):
         self.logger.info("클릭 - 라벨 필드 삭제")
