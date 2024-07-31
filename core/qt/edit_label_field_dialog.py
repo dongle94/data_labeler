@@ -120,6 +120,8 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.verticalLayout_2.addLayout(qlo)
         self.cur_label_field['boxes-box'][qle] = ""
         self.boxes_box_cls_num += 1
+        if self.boxes_box_cls_num != 0:
+            self.toolButton_2.setEnabled(True)
 
     def del_boxes_box(self):
         layout = self.verticalLayout_2.children()[self.boxes_box_cls_num]
@@ -132,6 +134,8 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         layout.deleteLater()
         layout.setParent(None)
         self.boxes_box_cls_num -= 1
+        if self.boxes_box_cls_num == 0:
+            self.toolButton_2.setEnabled(False)
 
     def add_boxes_cls(self):
         print("클릭 boxes-cls 클래스 추가")
