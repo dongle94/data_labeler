@@ -772,9 +772,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def edit_label_field(self):
         self.logger.info("클릭 - 라벨 필드 수정")
 
+        # label info process
+        cap_field = [img_cap_field_name[0] for img_cap_field_name in self.label_field_image_caps]
+        cls_field = {}
+        for image_cls in self.label_field_image_cls:
+            field_name = image_cls[0]
+            field_cls_data = self.label_field_name_dict_classname_to_idx[field_name]
+            cls_field[field_name] = field_cls_data
+
         label_field = {
-            'boxes-box': self.label_field_name_dict_classname_to_idx.get('boxes-box')
+            'boxes-box': self.label_field_name_dict_classname_to_idx.get('boxes-box'),
+            'image-caption': cap_field,
+            'image-cls': cls_field
         }
+
         dialog = EditLabelFieldDialog(self, dataset_id=self.cur_dataset_db_idx, db=self.db_manager,
                                       label_info=label_field)
         ret = dialog.exec()
