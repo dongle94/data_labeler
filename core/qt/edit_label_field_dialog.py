@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QHBoxLayout, QLineEdit
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QToolButton
 
 from utils.logger import get_logger
 from utils.qt import create_label
@@ -19,6 +19,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.orig_label_field = {}
         self.cur_label_field = {}
         self.boxes_box_cls_num = 0
+        self.img_classes_cls_num = {}
         self.line_edits = []
         self.draw_init_ui()
 
@@ -27,8 +28,6 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.toolButton_2.clicked.connect(self.del_boxes_box)
         self.toolButton_3.clicked.connect(self.add_boxes_cls)
         self.toolButton_4.clicked.connect(self.del_boxes_cls)
-        self.toolButton_5.clicked.connect(self.add_img_cls)
-        self.toolButton_6.clicked.connect(self.del_img_cls)
 
     def draw_init_ui(self):
         bboxes = self.label_info.get('boxes-box')
@@ -73,9 +72,22 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.orig_label_field['image-cls'] = {}
         self.cur_label_field['image-cls'] = {}
         for cls_field_name, cls_info in img_cls.items():
+            vlo = QVBoxLayout()
+            vlo.field_name = cls_field_name
             t = f"Image-classification: {cls_field_name}"
+            self.img_classes_cls_num[cls_field_name] = 0
+            qlo = QHBoxLayout()
             qlabel = create_label(self.parent(), t, stylesheet="color: navy")
-            self.verticalLayout_6.addWidget(qlabel)
+            qlo.addWidget(qlabel)
+            bt1 = QToolButton()
+            bt1.setText('+')
+            bt1.clicked.connect(lambda s, x=vlo: self.add_img_cls(x))
+            qlo.addWidget(bt1)
+            bt2 = QToolButton()
+            bt2.setText('-')
+            bt2.clicked.connect(lambda s, x=vlo: self.del_img_cls(x))
+            qlo.addWidget(bt2)
+            vlo.addLayout(qlo)
             self.orig_label_field['image-cls'][cls_field_name] = {}
             self.cur_label_field['image-cls'][cls_field_name] = {}
             for cls_name, cls_idx in cls_info.items():
@@ -91,9 +103,11 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 qlabel = create_label(self.parent(), t, stylesheet="color: gray")
                 qlo.addWidget(qlabel)
                 qlo.addWidget(qle)
-                self.verticalLayout_6.addLayout(qlo)
+                vlo.addLayout(qlo)
+                self.verticalLayout_6.addLayout(vlo)
                 self.orig_label_field['image-cls'][cls_field_name][qle] = cls_name
                 self.cur_label_field['image-cls'][cls_field_name][qle] = cls_name
+                self.img_classes_cls_num[cls_field_name] += 1
 
     def add_boxes_box(self):
         t = f"{self.boxes_box_cls_num}: "
@@ -125,11 +139,21 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
     def del_boxes_cls(self):
         print("클릭 boxes-cls 클래스 삭제")
 
-    def add_img_cls(self):
-        print("클릭 image-cls 클래스 추가")
+    def add_img_cls(self, vlo):
+        field_name = vlo.field_name
+        t = f"{self.img_classes_cls_num[field_name]}: "
+        qlo = QHBoxLayout()
+        qle = QLineEdit(self.parent())
+        qle.textEdited.connect(lambda s, x=qle: self.change_img_cls(field_name, x, x.text()))
+        qlabel = create_label(self.parent(), t, stylesheet="color: gray")
+        qlo.addWidget(qlabel)
+        qlo.addWidget(qle)
+        vlo.addLayout(qlo)
+        self.cur_label_field['image-cls'][field_name][qle] = ""
+        self.img_classes_cls_num[field_name] += 1
 
-    def del_img_cls(self):
-        print("클릭 image-cls 클래스 삭제")
+    def del_img_cls(self, vlo):
+        print("클릭 image-cls 클래스 삭제", vlo, vlo.field_name)
 
     def check_cls_change(self, _):
         for le in self.line_edits:
