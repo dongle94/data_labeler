@@ -149,6 +149,26 @@ class DBManager(object):
 
         return ret
 
+    def update_label_field(self, where=None, **kwargs):
+        sql = "UPDATE label_field SET"
+        data = []
+        if kwargs:
+            for key, value in kwargs.items():
+                sql += f' {key} = (%s)' if sql[-3:] == "SET" else f' AND {key} = (%s)'
+                data.append(value)
+
+        if where is not None:
+            sql += " WHERE"
+            for key, value in where.items():
+                sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
+                data.append(value)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+        self.logger.debug(f"Update label_data: {sql}, {data}")
+
     def delete_label_field_by_label_field_id(self, label_field_id):
         sql = "DELETE FROM label_field WHERE label_field_id = (%s)"
         data = (label_field_id,)
