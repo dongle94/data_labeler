@@ -81,11 +81,11 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
             qlo.addWidget(qlabel)
             bt1 = QToolButton()
             bt1.setText('+')
-            bt1.clicked.connect(lambda s, x=vlo: self.add_img_cls(x))
             qlo.addWidget(bt1)
             bt2 = QToolButton()
             bt2.setText('-')
-            bt2.clicked.connect(lambda s, x=vlo: self.del_img_cls(x))
+            bt1.clicked.connect(lambda s, x=vlo, y=bt2: self.add_img_cls(x, y))
+            bt2.clicked.connect(lambda s, x=vlo, y=bt2: self.del_img_cls(x, y))
             qlo.addWidget(bt2)
             vlo.addLayout(qlo)
             self.orig_label_field['image-cls'][cls_field_name] = {}
@@ -104,10 +104,10 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 qlo.addWidget(qlabel)
                 qlo.addWidget(qle)
                 vlo.addLayout(qlo)
-                self.verticalLayout_6.addLayout(vlo)
                 self.orig_label_field['image-cls'][cls_field_name][qle] = cls_name
                 self.cur_label_field['image-cls'][cls_field_name][qle] = cls_name
                 self.img_classes_cls_num[cls_field_name] += 1
+            self.verticalLayout_6.addLayout(vlo)
 
     def add_boxes_box(self):
         t = f"{self.boxes_box_cls_num}: "
@@ -139,7 +139,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
     def del_boxes_cls(self):
         print("클릭 boxes-cls 클래스 삭제")
 
-    def add_img_cls(self, vlo):
+    def add_img_cls(self, vlo, bt):
         field_name = vlo.field_name
         t = f"{self.img_classes_cls_num[field_name]}: "
         qlo = QHBoxLayout()
@@ -151,9 +151,24 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         vlo.addLayout(qlo)
         self.cur_label_field['image-cls'][field_name][qle] = ""
         self.img_classes_cls_num[field_name] += 1
+        if self.img_classes_cls_num[field_name] != 0:
+            bt.setEnabled(True)
 
-    def del_img_cls(self, vlo):
-        print("클릭 image-cls 클래스 삭제", vlo, vlo.field_name)
+    def del_img_cls(self, vlo, bt):
+        field_name = vlo.field_name
+
+        layout = vlo.children()[self.img_classes_cls_num[field_name]]
+        for c in range(layout.count()):
+            w = vlo.children()[self.img_classes_cls_num[field_name]].itemAt(c).widget()
+            # w.deleteLater()       # deleteLater makes problem for refer in main
+            w.hide()
+            if isinstance(w, QLineEdit):
+                del self.cur_label_field['image-cls'][field_name][w]
+        layout.deleteLater()
+        layout.setParent(None)
+        self.img_classes_cls_num[field_name] -= 1
+        if self.img_classes_cls_num[field_name] == 0:
+            bt.setEnabled(False)
 
     def check_cls_change(self, _):
         for le in self.line_edits:
