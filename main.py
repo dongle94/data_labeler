@@ -812,9 +812,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Update: label_field table in DB
             classes = json.dumps(bbox_detail)
             where = {'label_field_id': label_field_idx}
-            self.db_manager.update_label_field(where, detail=classes)
+            if dialog.is_changed:
+                self.db_manager.update_label_field(where, detail=classes)
 
             # image-cap
+            orig_img_caps = orig_label['image-caption']
+            cur_img_caps = cur_label['image-caption']
+            for le, field_name in cur_img_caps.items():
+                label_field_idx = self.label_fields_dict_name_to_idx[orig_img_caps[le]]
+                if orig_img_caps[le] != field_name and dialog.is_changed:
+                    where = {'label_field_id': label_field_idx}
+                    self.db_manager.update_label_field(where, name=field_name)
 
             # image-cls
 
