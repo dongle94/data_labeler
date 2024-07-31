@@ -20,6 +20,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         # init
         self.orig_label_field = {}
         self.cur_label_field = {}
+        self.boxes_box_cls_num = 0
         self.line_edits = []
         self.draw_init_ui()
 
@@ -56,6 +57,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 self.verticalLayout_2.addLayout(qlo)
                 self.orig_label_field['boxes-box'][qle] = cls_name
                 self.cur_label_field['boxes-box'][qle] = cls_name
+                self.boxes_box_cls_num += 1
 
         img_caps = self.label_info.get('image-caption')
         self.orig_label_field['image-caption'] = {}
@@ -98,10 +100,27 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 self.cur_label_field['image-cls'][cls_field_name][qle] = cls_name
 
     def add_boxes_box(self):
-        print("클릭 boxes-box 클래스 추가")
+        t = f"{self.boxes_box_cls_num}: "
+        qlo = QHBoxLayout()
+        qle = QLineEdit(self.parent())
+        qle.textEdited.connect(lambda s, x=qle: self.change_boxes_box_cls(x, x.text()))
+        qlabel = create_label(self.parent(), t, stylesheet="color: gray")
+        qlo.addWidget(qlabel)
+        qlo.addWidget(qle)
+        self.verticalLayout_2.addLayout(qlo)
+        self.cur_label_field['boxes-box'][qle] = ""
+        self.boxes_box_cls_num += 1
 
     def del_boxes_box(self):
-        print("클릭 boxes-box 클래스 삭제")
+        layout = self.verticalLayout_2.children()[self.boxes_box_cls_num]
+        for c in range(layout.count()):
+            w = self.verticalLayout_2.children()[self.boxes_box_cls_num].itemAt(c).widget()
+            w.deleteLater()
+            if isinstance(w, QLineEdit):
+                del self.cur_label_field['boxes-box'][w]
+        layout.deleteLater()
+        layout.setParent(None)
+        self.boxes_box_cls_num -= 1
 
     def add_boxes_cls(self):
         print("클릭 boxes-cls 클래스 추가")
