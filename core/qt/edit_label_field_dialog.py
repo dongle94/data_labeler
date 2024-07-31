@@ -26,6 +26,10 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         # Signal & slots
         self.toolButton.clicked.connect(self.add_boxes_box)
         self.toolButton_2.clicked.connect(self.del_boxes_box)
+        self.toolButton_3.clicked.connect(self.add_boxes_cls)
+        self.toolButton_4.clicked.connect(self.del_boxes_cls)
+        self.toolButton_5.clicked.connect(self.add_img_cls)
+        self.toolButton_6.clicked.connect(self.del_img_cls)
 
         print(label_info)
 
@@ -91,22 +95,22 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 self.cur_label_field['image-cls'][cls_field_name][qle] = cls_name
 
     def add_boxes_box(self):
-        pass
+        print("클릭 boxes-box 클래스 추가")
 
     def del_boxes_box(self):
-        pass
+        print("클릭 boxes-box 클래스 삭제")
 
     def add_boxes_cls(self):
-        pass
+        print("클릭 boxes-cls 클래스 추가")
 
     def del_boxes_cls(self):
-        pass
+        print("클릭 boxes-cls 클래스 삭제")
 
     def add_img_cls(self):
-        pass
+        print("클릭 image-cls 클래스 추가")
 
     def del_img_cls(self):
-        pass
+        print("클릭 image-cls 클래스 삭제")
 
     def check_cls_change(self, _):
         for le in self.line_edits:
