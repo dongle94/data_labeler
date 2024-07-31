@@ -6,12 +6,10 @@ from ui.ui_edit_label_field import Ui_Dialog
 
 
 class EditLabelFieldDialog(QDialog, Ui_Dialog):
-    def __init__(self, parent=None, dataset_id=None, db=None, label_info=None, *args, **kwargs):
+    def __init__(self, parent=None, label_info=None, *args, **kwargs):
         super(EditLabelFieldDialog, self).__init__(parent)
         self.setupUi(self)
 
-        self.dataset_id = dataset_id
-        self.db_manager = db
         self.label_info = label_info
         self.logger = get_logger()
 
@@ -31,8 +29,6 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.toolButton_4.clicked.connect(self.del_boxes_cls)
         self.toolButton_5.clicked.connect(self.add_img_cls)
         self.toolButton_6.clicked.connect(self.del_img_cls)
-
-        print(label_info)
 
     def draw_init_ui(self):
         bboxes = self.label_info.get('boxes-box')
@@ -115,7 +111,8 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         layout = self.verticalLayout_2.children()[self.boxes_box_cls_num]
         for c in range(layout.count()):
             w = self.verticalLayout_2.children()[self.boxes_box_cls_num].itemAt(c).widget()
-            w.deleteLater()
+            # w.deleteLater()       # deleteLater makes problem for refer in main
+            w.hide()
             if isinstance(w, QLineEdit):
                 del self.cur_label_field['boxes-box'][w]
         layout.deleteLater()
