@@ -993,7 +993,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def save_db_labels(self):
         # Delete entire label in current image
-        self.db_manager.delete_label_data_by_image_data_id(self.cur_image_db_idx)
+        self.db_manager.delete_label_data(image_data_id=self.cur_image_db_idx)
 
         # Save image-cap label
         self.save_db_img_label_captions()
@@ -1228,7 +1228,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         # Delete Current image box label
-        self.db_manager.delete_boxes_box_label_data_by_image_data_id(image_idx)
+        self.db_manager.delete_label_data(image_data_id=image_idx, is_box=1)
         self.clear_ui_bbox_label_data()
 
         if self.detector is None:

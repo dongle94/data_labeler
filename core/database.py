@@ -193,35 +193,28 @@ class DBManager(object):
                 sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
                 data.append(value)
 
-        self.logger.debug(f"Read label_data: {sql}, {data}")
         cursor = self.con.cursor()
         cursor.execute(sql, data)
         ret = cursor.fetchall()
         cursor.close()
+        self.logger.debug(f"Read label_data: {sql}, {data}")
 
         return ret
 
-    def delete_label_data_by_image_data_id(self, image_data_id):
-        sql = "DELETE FROM label_data WHERE image_data_id = (%s)"
-        data = (image_data_id,)
+    def delete_label_data(self, **kwargs):
+        sql = "DELETE FROM label_data"
+        data = []
+        if kwargs:
+            sql += " WHERE"
+            for key, value in kwargs.items():
+                sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
+                data.append(value)
 
         cursor = self.con.cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
-
-        self.logger.info("image_data: %s of label_data are deleted.", image_data_id)
-
-    def delete_boxes_box_label_data_by_image_data_id(self, image_data_id):
-        sql = "DELETE FROM label_data WHERE image_data_id = (%s) AND is_box = 1"
-        data = (image_data_id,)
-
-        cursor = self.con.cursor()
-        cursor.execute(sql, data)
-        self.con.commit()
-        cursor.close()
-
-        self.logger.info(f"image_data: {image_data_id} of boxes-box label_data are deleted.")
+        self.logger.debug(f"Delete label_data: {sql}, {data}")
 
 
 if __name__ == "__main__":
