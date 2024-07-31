@@ -49,6 +49,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 qle.setText(cls_name)
                 self.line_edits.append(qle)
                 qle.textChanged.connect(self.check_cls_change)
+                qle.textEdited.connect(lambda s, x=qle: self.change_boxes_box_cls(x, x.text()))
                 qlabel = create_label(self.parent(), t, stylesheet="color: gray")
                 qlo.addWidget(qlabel)
                 qlo.addWidget(qle)
@@ -64,6 +65,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
             qle.original_text = cap_field_name
             qle.setText(cap_field_name)
             qle.textChanged.connect(self.check_cls_change)
+            qle.textEdited.connect(lambda s, x=qle: self.change_img_cap_field_name(x, x.text()))
             self.line_edits.append(qle)
             self.verticalLayout_5.addWidget(qle)
             self.orig_label_field['image-caption'][qle] = cap_field_name
@@ -87,6 +89,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 qle.setText(cls_name)
                 self.line_edits.append(qle)
                 qle.textChanged.connect(self.check_cls_change)
+                qle.textEdited.connect(lambda s, x=qle: self.change_img_cls(cls_field_name, x, x.text()))
                 qlabel = create_label(self.parent(), t, stylesheet="color: gray")
                 qlo.addWidget(qlabel)
                 qlo.addWidget(qle)
@@ -118,3 +121,12 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 self.is_changed = True
                 return
         self.is_changed = False
+
+    def change_boxes_box_cls(self, item, cls_name):
+        self.cur_label_field['boxes-box'][item] = cls_name
+
+    def change_img_cap_field_name(self, item, field_name):
+        self.cur_label_field['image-caption'][item] = field_name
+
+    def change_img_cls(self, label_name, item, cls_name):
+        self.cur_label_field['image-cls'][label_name][item] = cls_name
