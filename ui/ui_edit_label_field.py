@@ -147,18 +147,6 @@ class Ui_Dialog(object):
 
         self.horizontalLayout_5.addWidget(self.label_5)
 
-        self.toolButton_5 = QToolButton(Dialog)
-        self.toolButton_5.setObjectName(u"toolButton_5")
-        self.toolButton_5.setEnabled(False)
-
-        self.horizontalLayout_5.addWidget(self.toolButton_5)
-
-        self.toolButton_6 = QToolButton(Dialog)
-        self.toolButton_6.setObjectName(u"toolButton_6")
-        self.toolButton_6.setEnabled(False)
-
-        self.horizontalLayout_5.addWidget(self.toolButton_6)
-
 
         self.verticalLayout_6.addLayout(self.horizontalLayout_5)
 
@@ -195,7 +183,5 @@ class Ui_Dialog(object):
         self.toolButton_4.setText(QCoreApplication.translate("Dialog", u"-", None))
         self.label_4.setText(QCoreApplication.translate("Dialog", u"Image-caption", None))
         self.label_5.setText(QCoreApplication.translate("Dialog", u"Image-cls", None))
-        self.toolButton_5.setText(QCoreApplication.translate("Dialog", u"+", None))
-        self.toolButton_6.setText(QCoreApplication.translate("Dialog", u"-", None))
     # retranslateUi
 
