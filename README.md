@@ -22,3 +22,5 @@ $ conda create -n label python==3.10.14
 $ conda activate label
 $ pip install -r ./requirements.txt
 ```
+
+![annotaion example](./example.png)
