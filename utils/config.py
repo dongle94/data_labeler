@@ -39,6 +39,8 @@ def set_config(file):
     config.yolo_nms_iou = _config['DET']['YOLO']['NMS_IOU']
     config.yolo_agnostic_nms = _config['DET']['YOLO']['AGNOSTIC_NMS']
     config.yolo_max_det = _config['DET']['YOLO']['MAX_DET']
+    # INFER
+    config.det_infer_cls = _config['DET']['INFER']
 
     # Logger
     config.log_level = _config['LOG']['LOG_LEVEL']
