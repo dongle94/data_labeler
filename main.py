@@ -29,6 +29,7 @@ from core.qt.simple_dialog import (DatasetDeleteDialog, ImagesDeleteDialog, Labe
                                    DetectionLabelsCreateDialog)
 from core.qt.create_dataset_dialog import CreateDatasetDialog
 from core.qt.add_label_field_dialog import AddLabelFieldDialog
+from core.qt.edit_label_field_dialog import EditLabelFieldDialog
 from core.qt.export_dialog import ExportDialog
 from core.qt.item import BoxQListWidgetItem
 from core.qt.shape import Shape
@@ -138,6 +139,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Label Field
         self.pB_label_add.clicked.connect(self.create_label_field)
+        self.pB_label_edit.clicked.connect(self.edit_label_field)
         self.pB_label_del.clicked.connect(self.delete_label_field)
 
         self.logger.info("Success initializing MainWindow")
@@ -767,6 +769,90 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(f"라벨 필드 추가 완료 - 라벨 포맷: {label_format} / 라벨 타입: {label_type}")
             self.logger.info(f"라벨 필드 추가 완료 - 라벨 포맷: {label_format} / 라벨 타입: {label_type}")
 
+    def edit_label_field(self):
+        self.logger.info("클릭 - 라벨 필드 수정")
+
+        # label info process
+        cap_field = [img_cap_field_name[0] for img_cap_field_name in self.label_field_image_caps]
+        cls_field = {}
+        for image_cls in self.label_field_image_cls:
+            field_name = image_cls[0]
+            field_cls_data = self.label_field_name_dict_classname_to_idx[field_name]
+            cls_field[field_name] = field_cls_data
+
+        label_field = {
+            'boxes-box': self.label_field_name_dict_classname_to_idx.get('boxes-box'),
+            'image-caption': cap_field,
+            'image-cls': cls_field
+        }
+
+        dialog = EditLabelFieldDialog(self, label_info=label_field)
+        ret = dialog.exec()
+        if ret == QDialog.DialogCode.Rejected:
+            self.logger.info("라벨 필드 수정 취소")
+            return
+        elif ret == QDialog.DialogCode.Accepted:
+            orig_label = dialog.orig_label_field
+            cur_label = dialog.cur_label_field
+            # boxes-box
+            orig_bbox = orig_label['boxes-box']
+            cur_bbox = cur_label['boxes-box']
+            bbox_detail = {}
+            for idx, (le, cls_name) in enumerate(cur_bbox.items()):
+                # all: change detail
+                bbox_detail[idx] = cls_name
+                if le in orig_bbox.keys():
+                    del orig_bbox[le]
+            # Delete: label_data in DB
+            label_field_idx = self.label_fields_dict_name_to_idx['boxes-box']
+            for del_name in orig_bbox.values():
+                cls_idx = self.label_field_name_dict_classname_to_idx['boxes-box'][del_name]
+                self.db_manager.delete_label_data(cls=cls_idx, label_field_id=label_field_idx)
+
+            # Update: label_field table in DB
+            classes = json.dumps(bbox_detail)
+            where = {'label_field_id': label_field_idx}
+            if dialog.is_changed:
+                self.db_manager.update_label_field(where, detail=classes)
+
+            # image-cap
+            orig_img_caps = orig_label['image-caption']
+            cur_img_caps = cur_label['image-caption']
+            for le, field_name in cur_img_caps.items():
+                label_field_idx = self.label_fields_dict_name_to_idx[orig_img_caps[le]]
+                if orig_img_caps[le] != field_name and dialog.is_changed:
+                    where = {'label_field_id': label_field_idx}
+                    self.db_manager.update_label_field(where, name=field_name)
+
+            # image-cls
+            orig_img_classes = orig_label['image-cls']
+            cur_img_classes = cur_label['image-cls']
+            for field_name, class_item in cur_img_classes.items():
+                img_cls_detail = {}
+                for idx, (le, class_name) in enumerate(class_item.items()):
+                    # all: change detail
+                    img_cls_detail[idx] = class_name
+                    if le in orig_img_classes[field_name].keys():
+                        del orig_img_classes[field_name][le]
+                # Delete: label_data in DB
+                img_cls_field_idx = self.label_fields_dict_name_to_idx[field_name]
+                # Delete img-cls label-data
+                for del_name in orig_img_classes[field_name].values():
+                    cls_idx = self.label_field_name_dict_classname_to_idx[field_name][del_name]
+                    self.db_manager.delete_label_data(label_field_id=img_cls_field_idx, cls=cls_idx)
+                # Update
+                classes = json.dumps(img_cls_detail)
+                where = {'label_field_id': img_cls_field_idx}
+                if dialog.is_changed:
+                    self.db_manager.update_label_field(where, detail=classes)
+
+            self.clear_ui_label_data()
+            self.clear_ui_label_fields()
+            self.draw_ui_label_fields()
+            self.draw_ui_label_data()
+
+            self.logger.info(f"라벨 필드 수정 완료")
+
     def delete_label_field(self):
         self.logger.info("클릭 - 라벨 필드 삭제")
 
@@ -937,7 +1023,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def save_db_labels(self):
         # Delete entire label in current image
-        self.db_manager.delete_label_data_by_image_data_id(self.cur_image_db_idx)
+        self.db_manager.delete_label_data(image_data_id=self.cur_image_db_idx)
 
         # Save image-cap label
         self.save_db_img_label_captions()
@@ -1172,7 +1258,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         # Delete Current image box label
-        self.db_manager.delete_boxes_box_label_data_by_image_data_id(image_idx)
+        self.db_manager.delete_label_data(image_data_id=image_idx, is_box=1)
         self.clear_ui_bbox_label_data()
 
         if self.detector is None:

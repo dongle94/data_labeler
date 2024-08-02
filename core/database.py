@@ -149,6 +149,26 @@ class DBManager(object):
 
         return ret
 
+    def update_label_field(self, where=None, **kwargs):
+        sql = "UPDATE label_field SET"
+        data = []
+        if kwargs:
+            for key, value in kwargs.items():
+                sql += f' {key} = (%s)' if sql[-3:] == "SET" else f' AND {key} = (%s)'
+                data.append(value)
+
+        if where is not None:
+            sql += " WHERE"
+            for key, value in where.items():
+                sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
+                data.append(value)
+
+        cursor = self.con.cursor()
+        cursor.execute(sql, data)
+        self.con.commit()
+        cursor.close()
+        self.logger.debug(f"Update label_data: {sql}, {data}")
+
     def delete_label_field_by_label_field_id(self, label_field_id):
         sql = "DELETE FROM label_field WHERE label_field_id = (%s)"
         data = (label_field_id,)
@@ -184,41 +204,37 @@ class DBManager(object):
         self.logger.info(log_text)
         return cursor.lastrowid
 
-    def read_label_data(self, image_data_id, label_field_id=None):
-        sql = "SELECT * FROM label_data WHERE image_data_id = (%s)"
-        data = [image_data_id,]
-        if label_field_id is not None:
-            sql += " AND label_field_id = (%s)"
-            data.append(label_field_id)
+    def read_label_data(self, **kwargs):
+        sql = "SELECT * FROM label_data"
+        data = []
+        if kwargs:
+            sql += " WHERE"
+            for key, value in kwargs.items():
+                sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
+                data.append(value)
 
         cursor = self.con.cursor()
         cursor.execute(sql, data)
         ret = cursor.fetchall()
         cursor.close()
+        self.logger.debug(f"Read label_data: {sql}, {data}")
 
         return ret
 
-    def delete_label_data_by_image_data_id(self, image_data_id):
-        sql = "DELETE FROM label_data WHERE image_data_id = (%s)"
-        data = (image_data_id,)
+    def delete_label_data(self, **kwargs):
+        sql = "DELETE FROM label_data"
+        data = []
+        if kwargs:
+            sql += " WHERE"
+            for key, value in kwargs.items():
+                sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
+                data.append(value)
 
         cursor = self.con.cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
-
-        self.logger.info("image_data: %s of label_data are deleted.", image_data_id)
-
-    def delete_boxes_box_label_data_by_image_data_id(self, image_data_id):
-        sql = "DELETE FROM label_data WHERE image_data_id = (%s) AND is_box = 1"
-        data = (image_data_id,)
-
-        cursor = self.con.cursor()
-        cursor.execute(sql, data)
-        self.con.commit()
-        cursor.close()
-
-        self.logger.info(f"image_data: {image_data_id} of boxes-box label_data are deleted.")
+        self.logger.debug(f"Delete label_data: {sql}, {data}")
 
 
 if __name__ == "__main__":

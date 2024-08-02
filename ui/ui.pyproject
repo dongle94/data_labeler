@@ -5,6 +5,7 @@
         "../main.py",
         "create_dataset_dialog.ui",
         "add_label_field.ui",
-        "export_dialog.ui"
+        "export_dialog.ui",
+        "edit_label_field.ui"
     ]
 }
