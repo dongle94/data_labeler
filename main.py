@@ -825,6 +825,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.db_manager.update_label_field(where, name=field_name)
 
             # image-cls
+            orig_img_classes = orig_label['image-cls']
+            cur_img_classes = cur_label['image-cls']
+            for field_name, class_item in cur_img_classes.items():
+                img_cls_detail = {}
+                for idx, (le, class_name) in enumerate(class_item.items()):
+                    # all: change detail
+                    img_cls_detail[idx] = class_name
+                    if le in orig_img_classes[field_name].keys():
+                        del orig_img_classes[field_name][le]
+                # Delete: label_data in DB
+                img_cls_field_idx = self.label_fields_dict_name_to_idx[field_name]
+                # Delete img-cls label-data
+                for del_name in orig_img_classes[field_name].values():
+                    cls_idx = self.label_field_name_dict_classname_to_idx[field_name][del_name]
+                    self.db_manager.delete_label_data(label_field_id=img_cls_field_idx, cls=cls_idx)
+                # Update
+                classes = json.dumps(img_cls_detail)
+                where = {'label_field_id': img_cls_field_idx}
+                if dialog.is_changed:
+                    self.db_manager.update_label_field(where, detail=classes)
 
             self.clear_ui_label_data()
             self.clear_ui_label_fields()
