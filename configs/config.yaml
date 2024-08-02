@@ -22,15 +22,16 @@ ENV:
 # Object Detector
 DET:
   MODEL_TYPE: yolov8
-  DET_MODEL_PATH: './weights/yolov8/yolov8x.pt'
-  HALF: True
-  CONF_THRES: 0.75
+  DET_MODEL_PATH: './weights/coco/yolov10x.pt'
+  HALF: False
+  CONF_THRES: 0.3
   OBJ_CLASSES: [0]
   YOLO:
     IMG_SIZE: 640
     NMS_IOU: 0.45
     AGNOSTIC_NMS: True
     MAX_DET: 100
+  INFER:  # ex) 0: 4
 
 
 # Logger
