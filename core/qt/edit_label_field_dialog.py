@@ -99,7 +99,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
                 qle.setText(cls_name)
                 self.line_edits.append(qle)
                 qle.textChanged.connect(self.check_cls_change)
-                qle.textEdited.connect(lambda s, x=qle: self.change_img_cls(cls_field_name, x, x.text()))
+                qle.textEdited.connect(lambda s, x=cls_field_name, y=qle: self.change_img_cls(x, y, y.text()))
                 qlabel = create_label(self.parent(), t, stylesheet="color: gray")
                 qlo.addWidget(qlabel)
                 qlo.addWidget(qle)
