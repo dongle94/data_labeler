@@ -1180,10 +1180,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.cur_inner_tab.set_shape_visible(shape, item.checkState() == Qt.CheckState.Checked)
 
     def create_box_label_by_detection_entire_images(self):
+        self.logger.info("클릭 - 전체 이미지 디텍션 라벨 생성")
         item_cnt = self.image_list_widget.rowCount()
         dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=item_cnt)
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
+            self.logger.info("디텍션 라벨 생성 취소")
             return
         elif ret == QDialog.DialogCode.Accepted:
             box_num = 0
@@ -1199,6 +1201,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Bounding box for {item_cnt} images created successfully: {box_num}")
 
     def create_box_label_by_detection_selected_images(self):
+        self.logger.info("클릭 - 선택 이미지 디텍션 라벨 생성")
         if self.image_list_widget.check_selected_row_num() == 0:
             self.statusbar.showMessage("1장 이상의 이미지를 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 선택해주세요.")
@@ -1213,6 +1216,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=len(imgs_idx))
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
+            self.logger.info("디텍션 라벨 생성 취소")
             return
         elif ret == QDialog.DialogCode.Accepted:
             box_num = 0
@@ -1226,6 +1230,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
 
     def create_box_label_by_detection_current_image(self):
+        self.logger.info("클릭 - 현재 이미지 디텍션 라벨 생성")
         if self.image_list_widget.check_selected_row_num() == 0:
             self.statusbar.showMessage("이미지를 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 선택해주세요.")
@@ -1242,6 +1247,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=1)
         ret = dialog.exec()
         if ret == QDialog.DialogCode.Rejected:
+            self.logger.info("디텍션 라벨 생성 취소")
             return
         elif ret == QDialog.DialogCode.Accepted:
             box_num = self.create_box_label_by_detection_one_image(self.cur_image_db_idx)
@@ -1262,7 +1268,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.clear_ui_bbox_label_data()
 
         if self.detector is None:
-            self.detector = ObjectDetector(cfg=_cfg)
+            self.detector = ObjectDetector(cfg=self.cfg)
         image_fid = self.image_list_widget.fid_dict[image_idx]
         img = self.weed_manager.get_image(fid=image_fid, pil=False)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
