@@ -78,6 +78,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_field_boxes_box = []
         self.bbox_items_to_shapes = {}
         self.bbox_shapes_to_items = {}
+        self.bbox_new_shapes_to_items = {}
 
         # Inner param
         self._no_selection_slot = False
@@ -1085,14 +1086,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.logger.info(f"이미지 클래스 라벨 저장 완료 - label_data_id: {lastrowid}")
 
-    def save_bbox_labels(self):
+    def save_bbox_labels(self, only_new=False):
         if not self.label_field_boxes_box:
             return
 
         boxes = []
         label_field_idx, list_widget = self.label_field_boxes_box
 
-        for box_shape, list_widget_item in self.bbox_shapes_to_items.items():
+        if only_new is True:
+            shapes_to_items = self.bbox_new_shapes_to_items
+        else:
+            shapes_to_items = self.bbox_shapes_to_items
+
+        for box_shape, list_widget_item in shapes_to_items.items():
             points = box_shape.points
             xyxy = get_xyxy(points)
             pixmap_size = self.cur_inner_tab.pixmap.size()
@@ -1107,6 +1113,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 cls=cls
             )
             boxes.append(lastrowid)
+
+        self.bbox_new_shapes_to_items = {}
 
         self.logger.info(f"바운딩 박스 라벨 저장 완료 - {len(boxes)}개 : {boxes}")
 
@@ -1299,9 +1307,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Shape and Item
             shape = self.create_bbox_shape(rel_xyxy, cls_name, self.cur_inner_tab.pixmap.size())
             self.create_bbox_item(shape)
+            if remove_label is False:
+                item = self.bbox_shapes_to_items[shape]
+                self.bbox_new_shapes_to_items[shape] = item
 
         # Save label in DB
-        self.save_bbox_labels()
+        self.save_bbox_labels(only_new=not remove_label)
 
         return ret_num
 
