@@ -122,6 +122,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.boxes_box_cls_num += 1
         if self.boxes_box_cls_num != 0:
             self.toolButton_2.setEnabled(True)
+        self.is_changed = True
 
     def del_boxes_box(self):
         layout = self.verticalLayout_2.children()[self.boxes_box_cls_num]
@@ -136,6 +137,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.boxes_box_cls_num -= 1
         if self.boxes_box_cls_num == 0:
             self.toolButton_2.setEnabled(False)
+        self.is_changed = True
 
     def add_boxes_cls(self):
         print("클릭 boxes-cls 클래스 추가")
@@ -157,6 +159,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.img_classes_cls_num[field_name] += 1
         if self.img_classes_cls_num[field_name] != 0:
             bt.setEnabled(True)
+        self.is_changed = True
 
     def del_img_cls(self, vlo, bt):
         field_name = vlo.field_name
@@ -173,6 +176,7 @@ class EditLabelFieldDialog(QDialog, Ui_Dialog):
         self.img_classes_cls_num[field_name] -= 1
         if self.img_classes_cls_num[field_name] == 0:
             bt.setEnabled(False)
+        self.is_changed = True
 
     def check_cls_change(self, _):
         for le in self.line_edits:
