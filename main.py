@@ -116,9 +116,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDelete_selected_box.triggered.connect(self.clear_selected_bbox_label)
 
         # Menubar - infer
-        self.actionObject_Detection_for_entire_images.triggered.connect(self.create_box_label_by_detection_entire_images)
-        self.actionObject_Detection_for_selected_images.triggered.connect(self.create_box_label_by_detection_selected_images)
-        self.actionObject_Detection_for_current_image.triggered.connect(self.create_box_label_by_detection_current_image)
+        self.actionObject_Detection_for_entire_images.triggered.connect(
+            lambda x: self.create_box_label_by_detection_entire_images(True))
+        self.actionObject_Detection_for_selected_images.triggered.connect(
+            lambda x: self.create_box_label_by_detection_selected_images(True))
+        self.actionObject_Detection_for_current_image.triggered.connect(
+            lambda x: self.create_box_label_by_detection_current_image(True))
+        self.actionObject_Detection_for_entire_images_without_removing.triggered.connect(
+            lambda x: self.create_box_label_by_detection_entire_images(False))
+        self.actionObject_Detection_for_selected_images_without_removing.triggered.connect(
+            lambda x: self.create_box_label_by_detection_selected_images(False))
+        self.actionObject_Detection_for_current_image_without_removing.triggered.connect(
+            lambda x: self.create_box_label_by_detection_current_image(False))
 
         # Menubar - Export
         self.actionExport_YOLO_detect_dataset.triggered.connect(self.export_yolo_detection_dataset)
@@ -1179,8 +1188,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:  # User probably changed item visibility
             self.cur_inner_tab.set_shape_visible(shape, item.checkState() == Qt.CheckState.Checked)
 
-    def create_box_label_by_detection_entire_images(self):
-        self.logger.info("클릭 - 전체 이미지 디텍션 라벨 생성")
+    def create_box_label_by_detection_entire_images(self, remove_label=True):
+        self.logger.info(f"클릭 - 전체 이미지 디텍션 라벨 생성 - 기존 라벨 제거: {remove_label}")
         item_cnt = self.image_list_widget.rowCount()
         dialog = DetectionLabelsCreateDialog(self, weight=self.cfg.det_model_path, img_num=item_cnt)
         ret = dialog.exec()
@@ -1194,14 +1203,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 img_idx = int(img_idx_item.text())
                 self.image_list_widget.selectRow(row_idx)
                 self.draw_image_item(img_idx_item)
-                n = self.create_box_label_by_detection_one_image(img_idx)
+                n = self.create_box_label_by_detection_one_image(img_idx, remove_label=remove_label)
                 box_num += n
 
             self.statusbar.showMessage(f"Bounding box for {item_cnt} images created successfully: {box_num}")
             self.logger.info(f"Bounding box for {item_cnt} images created successfully: {box_num}")
 
-    def create_box_label_by_detection_selected_images(self):
-        self.logger.info("클릭 - 선택 이미지 디텍션 라벨 생성")
+    def create_box_label_by_detection_selected_images(self, remove_label=True):
+        self.logger.info(f"클릭 - 선택 이미지 디텍션 라벨 생성 - 기존 라벨 제거: {remove_label}")
         if self.image_list_widget.check_selected_row_num() == 0:
             self.statusbar.showMessage("1장 이상의 이미지를 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 선택해주세요.")
@@ -1223,14 +1232,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for img_idx, item in imgs_idx.items():
                 self.image_list_widget.selectRow(item.row())
                 self.draw_image_item(item)
-                n = self.create_box_label_by_detection_one_image(img_idx)
+                n = self.create_box_label_by_detection_one_image(img_idx, remove_label=remove_label)
                 box_num += n
 
             self.statusbar.showMessage(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
             self.logger.info(f"Bounding box for {len(imgs_idx)} images created successfully: {box_num}")
 
-    def create_box_label_by_detection_current_image(self):
-        self.logger.info("클릭 - 현재 이미지 디텍션 라벨 생성")
+    def create_box_label_by_detection_current_image(self, remove_label=True):
+        self.logger.info(f"클릭 - 현재 이미지 디텍션 라벨 생성 - 기존 라벨 제거: {remove_label}")
         if self.image_list_widget.check_selected_row_num() == 0:
             self.statusbar.showMessage("이미지를 선택해주세요.")
             msgBox = QMessageBox(text="이미지를 선택해주세요.")
@@ -1250,12 +1259,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.logger.info("디텍션 라벨 생성 취소")
             return
         elif ret == QDialog.DialogCode.Accepted:
-            box_num = self.create_box_label_by_detection_one_image(self.cur_image_db_idx)
+            box_num = self.create_box_label_by_detection_one_image(self.cur_image_db_idx, remove_label=remove_label)
 
             self.statusbar.showMessage(f"Bounding box created successfully: {box_num}")
             self.logger.info(f"Bounding box for current image created successfully: {box_num}")
 
-    def create_box_label_by_detection_one_image(self, image_idx):
+    def create_box_label_by_detection_one_image(self, image_idx, remove_label=True):
         # Check boxes-box label is exist.
         if 'boxes-box' not in self.label_field_name_dict_classname_to_idx:
             msgBox = QMessageBox(text="박스형-박스 라벨 필드가 존재하지 않습니다.")
