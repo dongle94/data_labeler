@@ -1273,8 +1273,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         # Delete Current image box label
-        self.db_manager.delete_label_data(image_data_id=image_idx, is_box=1)
-        self.clear_ui_bbox_label_data()
+        if remove_label is True:
+            self.db_manager.delete_label_data(image_data_id=image_idx, is_box=1)
+            self.clear_ui_bbox_label_data()
 
         if self.detector is None:
             self.detector = ObjectDetector(cfg=self.cfg)
@@ -1289,6 +1290,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             abs_xyxy = d[:4]
             rel_xyxy = absxyxy_to_relxyxy(abs_xyxy, img_w, img_h)
             cls = int(d[5])
+            cls = self.cfg.det_infer_cls.get(cls) if self.cfg.det_infer_cls.get(cls) else cls
             if cls not in cls_idx_to_name.keys():
                 continue
             ret_num += 1
