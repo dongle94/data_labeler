@@ -28,6 +28,14 @@ class DBManager(object):
         if self.logger is not None:
             self.logger.info("Initializing database")
 
+    def get_cursor(self):
+        try:
+            cursor = self.con.cursor()
+        except mysql.connector.Error as err:
+            self.con.reconnect()
+            cursor = self.con.cursor()
+        return cursor
+
     def show_tables(self):
         with self.con.cursor() as cursor:
             cursor.execute("SHOW TABLES")
@@ -39,7 +47,7 @@ class DBManager(object):
         sql = "INSERT INTO dataset (name, data_type, data_desc) VALUES (%s, %s, %s)"
         data = (name, data_type, dsec)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
@@ -50,7 +58,7 @@ class DBManager(object):
     def read_dataset(self):
         sql = "SELECT * FROM dataset"
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql)
         ret = cursor.fetchall()
         cursor.close()
@@ -61,7 +69,7 @@ class DBManager(object):
         sql = "SELECT * FROM dataset WHERE name = (%s)"
         data = (name, )
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         ret = cursor.fetchall()
         cursor.close()
@@ -72,7 +80,7 @@ class DBManager(object):
         sql = "DELETE FROM dataset WHERE name = (%s)"
         data = (name, )
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
@@ -84,7 +92,7 @@ class DBManager(object):
                "VALUES (%s, %s, %s, %s, %s, %s)")
         data = (dataset_id, filename, image_fid, image_url, width, height)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
@@ -96,7 +104,7 @@ class DBManager(object):
         sql = "SELECT * FROM image_data WHERE dataset_id = (%s)"
         data = (dataset_id,)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         ret = cursor.fetchall()
         cursor.close()
@@ -107,7 +115,7 @@ class DBManager(object):
         sql = "SELECT * FROM image_data WHERE image_data_id = (%s)"
         data = (image_data_id,)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         ret = cursor.fetchall()
         cursor.close()
@@ -118,7 +126,7 @@ class DBManager(object):
         sql = "DELETE FROM image_data WHERE image_data_id = (%s)"
         data = (image_id,)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
@@ -130,7 +138,7 @@ class DBManager(object):
                "VALUES (%s, %s, %s, %s, %s, %s)")
         data = (name, dataset_id, label_format, label_type, is_duplicate, detail)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
@@ -142,7 +150,7 @@ class DBManager(object):
         sql = "SELECT * FROM label_field WHERE dataset_id = (%s)"
         data = (dataset_id,)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         ret = cursor.fetchall()
         cursor.close()
@@ -163,7 +171,7 @@ class DBManager(object):
                 sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
                 data.append(value)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
@@ -173,7 +181,7 @@ class DBManager(object):
         sql = "DELETE FROM label_field WHERE label_field_id = (%s)"
         data = (label_field_id,)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
@@ -187,7 +195,7 @@ class DBManager(object):
                "VALUES (%s, %s, %s, %s, %s, %s, %s)")
         data = (image_data_id, label_field_id, ref_box_id, is_box, coord, cls, caption)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
@@ -213,7 +221,7 @@ class DBManager(object):
                 sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
                 data.append(value)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         ret = cursor.fetchall()
         cursor.close()
@@ -230,7 +238,7 @@ class DBManager(object):
                 sql += f' {key} = (%s)' if sql[-5:] == "WHERE" else f' AND {key} = (%s)'
                 data.append(value)
 
-        cursor = self.con.cursor()
+        cursor = self.get_cursor()
         cursor.execute(sql, data)
         self.con.commit()
         cursor.close()
