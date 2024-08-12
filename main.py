@@ -1298,7 +1298,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             abs_xyxy = d[:4]
             rel_xyxy = absxyxy_to_relxyxy(abs_xyxy, img_w, img_h)
             cls = int(d[5])
-            cls = self.cfg.det_infer_cls.get(cls) if self.cfg.det_infer_cls.get(cls) else cls
+            cls = self.cfg.det_infer_cls.get(cls) if self.cfg.det_infer_cls is not None and self.cfg.det_infer_cls.get(cls) else cls
             if cls not in cls_idx_to_name.keys():
                 continue
             ret_num += 1
